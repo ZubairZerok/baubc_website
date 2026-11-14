@@ -1,0 +1,618 @@
+<title>BAUBC Field &amp; Signal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Design direction specimen for the BAUBC Club Operating System: palette, bilingual typography, signature components and motion.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&family=Instrument+Serif:ital@0;1&family=Anek+Bangla:wdth,wght@75..125,300..800&family=Noto+Sans+Bengali:wdth,wght@62.5..100,300..700&display=swap">
+<style>
+/* Layout concept: "Field & Signal". Paper surfaces for reading, a canopy band for the cinematic hero,
+   one lime signal per viewport, and furrow lines that become market lines. */
+:root{
+  --paper:#F6F5EE; --paper-2:#ECEADF; --surface:#FFFFFF;
+  --ink:#151913; --ink-2:#262A22; --muted:#6B6A5C; --line:rgb(21 25 19 / .12); --line-strong:rgb(21 25 19 / .28);
+  --brand:#0F3A27; --link:#155234; --green:#0B7A4B; --leaf:#14A062;
+  --signal:#C8F53C; --on-signal:#07140E;
+  --harvest:#E9A23B; --harvest-text:#9A5B0E; --soil:#C2412D; --river:#2560C8;
+  --tint-ok:#E3F1E6; --tint-pend:#FBEBD0; --tint-info:#E2EAF8; --tint-bad:#F7E0DB; --tint-draft:#E7E5DA;
+  --band-bg:#07140E; --band-bg-2:#0B2117; --band-fg:#F6F5EE; --band-muted:#A8A493; --band-leaf:#52C48A;
+  --shadow:0 24px 48px -12px rgb(7 20 14 / .25), 0 2px 6px rgb(7 20 14 / .08);
+  --f-display:"Bricolage Grotesque", "Geist", system-ui, sans-serif;
+  --f-serif:"Instrument Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Geist", system-ui, "Segoe UI", Roboto, sans-serif;
+  --f-mono:"Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --f-bn-display:"Anek Bangla", "Noto Sans Bengali", "Nirmala UI", sans-serif;
+  --f-bn:"Noto Sans Bengali", "Anek Bangla", "Nirmala UI", "Vrinda", sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1); --dur-fast:160ms; --dur-base:240ms; --dur-slow:420ms;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#07140E; --paper-2:#0B2117; --surface:#0F2A1D;
+  --ink:#F6F5EE; --ink-2:#DAD8CC; --muted:#A8A493; --line:rgb(246 245 238 / .12); --line-strong:rgb(246 245 238 / .3);
+  --brand:#52C48A; --link:#DBFF73; --green:#52C48A; --leaf:#52C48A;
+  --harvest-text:#E9A23B; --soil:#F08A72; --river:#8EB2F2;
+  --tint-ok:#123A27; --tint-pend:#3A2A10; --tint-info:#16284A; --tint-bad:#43201A; --tint-draft:#1E2A22;
+  --shadow:0 24px 48px -12px rgb(0 0 0 / .6), 0 2px 6px rgb(0 0 0 / .3);
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#07140E; --paper-2:#0B2117; --surface:#0F2A1D;
+  --ink:#F6F5EE; --ink-2:#DAD8CC; --muted:#A8A493; --line:rgb(246 245 238 / .12); --line-strong:rgb(246 245 238 / .3);
+  --brand:#52C48A; --link:#DBFF73; --green:#52C48A; --leaf:#52C48A;
+  --harvest-text:#E9A23B; --soil:#F08A72; --river:#8EB2F2;
+  --tint-ok:#123A27; --tint-pend:#3A2A10; --tint-info:#16284A; --tint-bad:#43201A; --tint-draft:#1E2A22;
+  --shadow:0 24px 48px -12px rgb(0 0 0 / .6), 0 2px 6px rgb(0 0 0 / .3);
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:400 1rem/1.55 var(--f-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+:lang(bn){font-family:var(--f-bn);line-height:1.75;letter-spacing:0;font-synthesis:none}
+a{color:var(--link);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--link);outline-offset:3px;box-shadow:0 0 0 6px rgb(200 245 60 / .45);border-radius:4px}
+.wrap{max-width:1240px;margin-inline:auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+.label{font:500 .72rem/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase}
+.muted{color:var(--muted)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in oklab, var(--paper) 88%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.mark{display:flex;align-items:center;gap:10px;font:700 1rem/1 var(--f-display);letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.mark svg{flex:none}
+.toggle{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;padding:3px;gap:2px}
+.toggle button{font:500 .8rem/1 var(--f-body);border:0;background:transparent;color:var(--ink-2);padding:8px 12px;border-radius:999px;cursor:pointer;min-height:32px}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* Hero band (canopy in both themes, by design) */
+.hero{position:relative;background:var(--band-bg);color:var(--band-fg);overflow:hidden;isolation:isolate}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg, rgb(7 20 14 / .9) 0%, rgb(7 20 14 / .62) 42%, rgb(7 20 14 / 0) 78%)}
+.hero .wrap{padding-block:clamp(56px,9vw,120px) clamp(40px,6vw,72px);display:grid;gap:28px}
+.spec{display:inline-flex;align-items:center;gap:10px;border:1px solid rgb(246 245 238 / .28);padding:6px 10px;color:var(--band-muted);width:max-content;max-width:100%;flex-wrap:wrap}
+.spec b{color:var(--signal);font-weight:600}
+.hero h1{font-family:var(--f-display);font-variation-settings:"opsz" 96,"wdth" 78;font-weight:760;font-size:clamp(3rem,1.4rem + 7.4vw,8.5rem);line-height:.9;letter-spacing:-.035em;max-width:12ch}
+.hero h1 em{font-family:var(--f-serif);font-style:italic;font-weight:400;letter-spacing:-.01em;color:var(--signal)}
+.hero .bn{font-family:var(--f-bn-display);font-variation-settings:"wdth" 88;font-weight:600;font-size:clamp(1.6rem,1rem + 2.6vw,3rem);line-height:1.2;color:var(--band-leaf)}
+.hero .lede{max-width:56ch;font-size:clamp(1.02rem,.95rem + .3vw,1.2rem);color:rgb(246 245 238 / .82)}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:12px}
+.ticker{border-top:1px solid rgb(246 245 238 / .14);overflow:hidden;white-space:nowrap}
+.ticker .run{display:inline-flex;gap:40px;padding-block:14px;animation:tick 38s linear infinite}
+.ticker:hover .run{animation-play-state:paused}
+.ticker span{color:var(--band-muted)} .ticker span b{color:var(--band-fg);font-weight:600}
+.ticker .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--signal);margin-right:8px;vertical-align:middle;box-shadow:0 0 0 0 rgb(200 245 60 / .6);animation:pulse 2s var(--ease) infinite}
+@keyframes tick{to{transform:translateX(-50%)}}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgb(200 245 60 / 0)}100%{box-shadow:0 0 0 0 rgb(200 245 60 / 0)}}
+
+/* Buttons */
+.btn{--bg:transparent;--fg:var(--ink);--bd:var(--line-strong);position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:10px;border:1.5px solid var(--bd);background:var(--bg);color:var(--fg);font:600 .95rem/1 var(--f-body);text-decoration:none;cursor:pointer;transition:transform 90ms var(--ease), color var(--dur-base) var(--ease), border-color var(--dur-base)}
+.btn::before{content:"";position:absolute;inset:0;background:var(--wipe,transparent);transform:scaleX(0);transform-origin:left;transition:transform var(--dur-base) var(--ease);z-index:0}
+.btn > *{position:relative;z-index:1}
+.btn:hover::before{transform:scaleX(1)}
+.btn:active{transform:scale(.98)}
+.btn-primary{--bg:var(--signal);--fg:var(--on-signal);--bd:var(--signal);--wipe:#DBFF73}
+.btn-secondary{--fg:var(--link);--bd:var(--link);--wipe:color-mix(in oklab, var(--link) 12%, transparent)}
+.btn-ghost{--bd:transparent;--wipe:var(--paper-2)}
+.btn-danger{--bg:var(--soil);--fg:#fff;--bd:var(--soil);--wipe:color-mix(in oklab, #000 12%, var(--soil))}
+.hero .btn-ghost{--fg:var(--band-fg);--bd:rgb(246 245 238 / .35);--wipe:rgb(246 245 238 / .08)}
+
+/* Sections */
+section.block{padding-block:clamp(56px,8vw,112px);border-bottom:1px solid var(--line)}
+.head{display:grid;gap:12px;margin-bottom:clamp(28px,4vw,48px);max-width:760px}
+.head h2{font-family:var(--f-display);font-variation-settings:"opsz" 72,"wdth" 85;font-weight:700;font-size:clamp(1.9rem,1.3rem + 2.2vw,3rem);line-height:1.02;letter-spacing:-.025em}
+.head p{color:var(--ink-2);max-width:62ch}
+.idx{color:var(--green)}
+
+.thesis{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.thesis > div{background:var(--paper);padding:24px;display:grid;gap:10px;align-content:start;min-width:0}
+.thesis h3{font:700 1.3rem/1.15 var(--f-display);letter-spacing:-.01em}
+.thesis .sw{height:56px;border-radius:2px}
+
+/* Palette */
+.pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.chip-sw{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);min-width:0}
+.chip-sw .c{height:84px;display:flex;align-items:flex-end;padding:8px;font:500 .7rem/1 var(--f-mono)}
+.chip-sw .m{padding:10px 12px;display:grid;gap:2px}
+.chip-sw .m b{font:600 .85rem/1.2 var(--f-body)}
+.chip-sw .m span{font:400 .72rem/1.3 var(--f-mono);color:var(--muted)}
+.rules{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.rule{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface);min-width:0}
+.rule .demo{flex:none;width:64px;height:40px;border-radius:6px;display:grid;place-items:center;font:700 .95rem/1 var(--f-body)}
+.rule p{font-size:.88rem;color:var(--ink-2)}
+.ok{color:var(--green);font-weight:600} .no{color:var(--soil);font-weight:600}
+
+/* Type */
+.type{display:grid;gap:0;border-top:1px solid var(--line)}
+.trow{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:20px;padding-block:22px;border-bottom:1px solid var(--line);align-items:baseline}
+.trow > *{min-width:0}
+.trow .meta{display:grid;gap:4px}
+.trow .meta b{font:600 .9rem/1.2 var(--f-body)}
+.trow .meta span{font:400 .75rem/1.4 var(--f-mono);color:var(--muted)}
+.s-display{font-family:var(--f-display);font-variation-settings:"opsz" 96,"wdth" 80;font-weight:760;font-size:clamp(2.6rem,1.2rem + 5vw,5.5rem);line-height:.92;letter-spacing:-.035em}
+.s-serif{font:italic 400 clamp(2rem,1.2rem + 3vw,3.6rem)/1 var(--f-serif)}
+.s-bn-display{font-family:var(--f-bn-display);font-variation-settings:"wdth" 85;font-weight:650;font-size:clamp(1.9rem,1.1rem + 3vw,3.4rem);line-height:1.18}
+.s-body{font-size:1.06rem;line-height:1.6;max-width:62ch}
+.s-bn{font-family:var(--f-bn);font-size:1.12rem;line-height:1.8;max-width:56ch}
+.s-mono{font:500 1rem/1.5 var(--f-mono);display:flex;flex-wrap:wrap;gap:8px 18px}
+.conj{font-family:var(--f-bn-display);font-size:clamp(1.6rem,1.2rem + 1.6vw,2.4rem);line-height:1.5;display:flex;flex-wrap:wrap;gap:6px 22px}
+.conj span:nth-child(2n){font-weight:300} .conj span:nth-child(3n){font-weight:800}
+.scale{display:grid;gap:8px;margin-top:24px}
+.scale div{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:baseline;min-width:0}
+.scale code{font:400 .72rem/1.3 var(--f-mono);color:var(--muted)}
+.scale p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--f-display);letter-spacing:-.015em}
+
+/* Components grid */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:20px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:clamp(18px,3vw,28px);display:grid;gap:18px;min-width:0}
+.panel > header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.panel h3{font:700 1.35rem/1.1 var(--f-display);letter-spacing:-.015em}
+.example{font:500 .68rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--harvest-text);border:1px dashed currentColor;padding:5px 8px;border-radius:4px}
+
+.tags{display:flex;flex-wrap:wrap;gap:10px}
+.tag{font:500 .72rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-strong);padding:7px 10px 7px 8px;display:inline-flex;gap:8px;align-items:center;color:var(--ink-2)}
+.tag i{font-style:normal;color:var(--green);border-right:1px solid var(--line-strong);padding-right:8px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.st{display:inline-flex;align-items:center;gap:6px;font:600 .78rem/1 var(--f-body);padding:7px 10px;border-radius:999px;color:var(--ink)}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.8}
+.st.draft{background:var(--tint-draft);color:var(--muted)}
+.st.pend{background:var(--tint-pend);color:var(--harvest-text)}
+.st.info{background:var(--tint-info);color:var(--river)}
+.st.ok{background:var(--tint-ok);color:var(--green)}
+.st.bad{background:var(--tint-bad);color:var(--soil)}
+.st.lock{background:var(--brand);color:var(--paper)} .st.lock::before{display:none}
+.st.live{background:transparent;border:1px solid var(--line-strong)} .st.live::before{background:var(--signal);opacity:1;box-shadow:0 0 0 2px var(--on-signal)}
+
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+
+/* Term sheet + seat plot */
+.term{display:grid;gap:0;border-top:1px solid var(--line)}
+.term div{display:flex;justify-content:space-between;gap:12px;padding-block:10px;border-bottom:1px solid var(--line);font-size:.95rem}
+.term div span:first-child{color:var(--muted)}
+.term b{font-variant-numeric:tabular-nums}
+.seatbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.big{font:700 clamp(2.2rem,1.6rem + 2vw,3rem)/1 var(--f-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.plot{display:grid;grid-template-columns:repeat(auto-fill,minmax(16px,1fr));gap:4px}
+.plot i{aspect-ratio:1;border-radius:2px;border:1px solid var(--line-strong);background:transparent;transition:background var(--dur-base) var(--ease), border-color var(--dur-base)}
+.plot i.sold{background:var(--brand);border-color:var(--brand)}
+.plot i.held{border-color:var(--harvest);background:repeating-linear-gradient(135deg,var(--harvest) 0 2px,transparent 2px 5px)}
+.plot i.sprout{animation:sprout var(--dur-base) var(--ease)}
+@keyframes sprout{from{transform:scale(.55)}to{transform:scale(1)}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:2px;border:1px solid var(--line-strong);display:inline-block}
+.legend i.s{background:var(--brand);border-color:var(--brand)} .legend i.h{border-color:var(--harvest);background:repeating-linear-gradient(135deg,var(--harvest) 0 2px,transparent 2px 5px)}
+
+/* Growth rings */
+.rings{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:24px;align-items:center}
+.rings svg{width:100%;height:auto;max-width:260px}
+.rlegend{display:grid;gap:8px;font-size:.9rem}
+.rlegend div{display:flex;align-items:center;gap:10px;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:6px}
+.rlegend i{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:8px}
+
+/* Ledger + stamp */
+.ledger{display:grid;gap:0;border-top:1px solid var(--line)}
+.lrow{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding-block:12px;border-bottom:1px solid var(--line)}
+.lrow > div{min-width:0}
+.lrow .pts{font:600 1rem/1 var(--f-mono)}
+.lrow small{display:block;color:var(--muted);font-size:.8rem}
+.stamp{width:44px;height:44px;flex:none}
+.stamp text{font:600 7.2px/1 var(--f-mono);letter-spacing:.12em;fill:var(--brand)}
+.stamp circle{fill:none;stroke:var(--brand)}
+.stamp path{fill:var(--brand)}
+
+/* Decision card */
+.decision{border:1px solid var(--line-strong);border-radius:20px;background:var(--surface);overflow:hidden;box-shadow:var(--shadow)}
+.decision .body{padding:clamp(18px,3vw,26px);display:grid;gap:14px}
+.decision .amt{font:700 clamp(2rem,1.5rem + 2vw,2.8rem)/1 var(--f-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 18px;font-size:.9rem}
+.facts div{display:grid;gap:2px;min-width:0}
+.facts span{color:var(--muted);font-size:.78rem}
+.budget{height:8px;background:var(--paper-2);border-radius:999px;overflow:hidden;display:flex}
+.budget i{display:block;height:100%}
+.decision textarea{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line-strong);border-radius:6px;background:var(--paper);color:var(--ink);font:400 .95rem/1.5 var(--f-body);padding:10px 12px}
+.decision label{font:600 .85rem/1.2 var(--f-body)}
+.decbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding:14px clamp(18px,3vw,26px);border-top:1px solid var(--line);background:var(--paper-2);align-items:center}
+.decbar .spacer{flex:1 1 auto;font-size:.82rem;color:var(--muted);min-width:160px}
+.bigstamp{position:absolute;right:18px;top:18px;width:96px;height:96px;opacity:0;transform:scale(1.25) rotate(-8deg);pointer-events:none}
+.bigstamp.on{animation:stamp var(--dur-base) var(--ease) forwards}
+@keyframes stamp{to{opacity:1;transform:scale(1) rotate(-6deg)}}
+.rel{position:relative}
+
+/* Motion tokens */
+.tokens{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.tok{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--surface);display:grid;gap:10px;min-width:0}
+.tok .track{height:6px;background:var(--paper-2);border-radius:999px;position:relative;overflow:hidden}
+.tok .track i{position:absolute;left:0;top:0;height:100%;width:28%;background:var(--green);border-radius:999px}
+.tok:hover .track i,.tok:focus-within .track i{animation:slide var(--d) var(--ease) forwards}
+@keyframes slide{to{left:72%}}
+.tok b{font:600 .9rem/1.2 var(--f-body)} .tok code{font:400 .75rem/1.3 var(--f-mono);color:var(--muted)}
+
+footer.foot{padding-block:48px 64px}
+footer.foot .wrap{display:grid;gap:14px}
+footer.foot p{max-width:70ch;color:var(--ink-2)}
+
+@media (max-width:640px){
+  .trow{grid-template-columns:1fr;gap:10px}
+  .rings{grid-template-columns:1fr;justify-items:center}
+  .rlegend{width:100%}
+  .scale div{grid-template-columns:80px 1fr}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .ticker{white-space:normal} .ticker .run{flex-wrap:wrap;gap:12px 28px}
+  .bigstamp.on{opacity:1;transform:rotate(-6deg)}
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="BAUBC design direction, back to top">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="6" style="fill:var(--brand)"/><path d="M5 19c4-1 6-6 9-6s4 3 9-6" style="stroke:var(--signal);fill:none" stroke-width="2.4" stroke-linecap="round"/><path d="M5 23h18" style="stroke:var(--paper)" stroke-opacity=".55" stroke-width="1.4"/></svg>
+      <span>BAUBC <span class="muted" style="font-weight:500">Field &amp; Signal</span></span>
+    </a>
+    <div class="toggle" role="group" aria-label="Preview theme">
+      <button type="button" id="th-light" aria-pressed="false">Field</button>
+      <button type="button" id="th-dark" aria-pressed="false">Canopy</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <canvas id="furrow" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <span class="spec label"><b>BAUBC</b> · Design direction · v0.1 · 14 Nov 2026</span>
+      <h1 id="hero-title">Grow founders <em>from the field.</em></h1>
+      <p class="bn" lang="bn">মাঠ থেকে বাজারে।</p>
+      <p class="lede">The visual system for the BAUBC Club Operating System. Ploughed-field furrows bend into market lines as you scroll. Paper surfaces carry the work. Lime marks the one thing that is live, actionable or verified.</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="#components"><span>See the components</span></a>
+        <a class="btn btn-ghost" href="#type"><span>Bangla + English type</span></a>
+      </div>
+    </div>
+    <div class="ticker" aria-label="Example live signals">
+      <div class="run label">
+        <span><i class="dot"></i><b>Startup Summit 2027</b> · registration opens soon (example)</span>
+        <span><b>DECODED EP 05</b> · new episode in production</span>
+        <span><b>Recruitment 2026–27</b> · 3 wings hiring</span>
+        <span><b>Case Studies EP 02</b> · Thursday 8 pm</span>
+        <span aria-hidden="true"><i class="dot"></i><b>Startup Summit 2027</b> · registration opens soon (example)</span>
+        <span aria-hidden="true"><b>DECODED EP 05</b> · new episode in production</span>
+        <span aria-hidden="true"><b>Recruitment 2026–27</b> · 3 wings hiring</span>
+        <span aria-hidden="true"><b>Case Studies EP 02</b> · Thursday 8 pm</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="t-thesis">
+    <div class="wrap">
+      <div class="head">
+        <span class="label idx">Thesis</span>
+        <h2 id="t-thesis">Three materials, one discipline</h2>
+        <p>BAUBC sits where agriculture, technology and business strategy meet. The system turns that meeting point into three materials. Each one has a job, and lime is never used for decoration.</p>
+      </div>
+      <div class="thesis">
+        <div><div class="sw" style="background:#F6F5EE;border:1px solid var(--line)"></div><span class="label muted">Field paper</span><h3>Calm surfaces for reading and work</h3><p class="muted">Applications, tasks, ledgers and articles live on warm off-white paper with ink-dark text.</p></div>
+        <div><div class="sw" style="background:#07140E"></div><span class="label muted">Canopy</span><h3>Deep green for cinematic moments</h3><p class="muted">Heroes, DECODED episodes and the Summit stage use the canopy band. It is also the portal's dark mode.</p></div>
+        <div><div class="sw" style="background:#C8F53C"></div><span class="label muted">Signal</span><h3>Bio-lime for what is live or verified</h3><p class="muted">At most one lime element per screen: the primary action, a live seat count, or a verified stamp.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="t-pal">
+    <div class="wrap">
+      <div class="head">
+        <span class="label idx">Colour</span>
+        <h2 id="t-pal">Palette and the contrast rules behind it</h2>
+        <p>Greens carry the brand. Harvest amber is the warm complementary accent for awards, DECODED and warnings. Soil red and river blue appear only as status colours.</p>
+      </div>
+      <div class="pal" id="palette"></div>
+      <div class="rules">
+        <div class="rule"><div class="demo" style="background:#C8F53C;color:#07140E">Aa</div><p><span class="ok">14.9 : 1</span> Canopy text on lime: the primary button label.</p></div>
+        <div class="rule"><div class="demo" style="background:#F6F5EE;color:#C8F53C;border:1px solid var(--line)">Aa</div><p><span class="no">1.16 : 1</span> Lime text on paper fails. Lime is never a text colour on light surfaces.</p></div>
+        <div class="rule"><div class="demo" style="background:#F6F5EE;color:#0B7A4B;border:1px solid var(--line)">Aa</div><p><span class="ok">4.93 : 1</span> Emerald 600 on paper 50 passes for text. On paper 100 it drops to 4.46, so use Forest 700 there.</p></div>
+        <div class="rule"><div class="demo" style="background:#07140E;color:#C8F53C">Aa</div><p><span class="ok">14.9 : 1</span> Lime on canopy: live indicators and focus halos in dark sections.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="type" aria-labelledby="t-type">
+    <div class="wrap">
+      <div class="head">
+        <span class="label idx">Typography</span>
+        <h2 id="t-type">Bangla and English as equals</h2>
+        <p>Every family is open source (SIL OFL) and self-hosted in production. Bangla gets its own families, taller line-heights and no letter-spacing tricks. Conjuncts are checked at every heading weight.</p>
+      </div>
+      <div class="type">
+        <div class="trow"><div class="meta"><b>Display</b><span>Bricolage Grotesque · opsz 96 · wdth 80 · 760</span></div><p class="s-display">Field &amp; Signal</p></div>
+        <div class="trow"><div class="meta"><b>Editorial accent</b><span>Instrument Serif italic · DECODED titles</span></div><p class="s-serif">The Game Behind the Game</p></div>
+        <div class="trow"><div class="meta"><b>Bangla display</b><span>Anek Bangla · wdth 85 · 650</span></div><p class="s-bn-display" lang="bn">উদ্যোক্তা গড়ার মাঠ</p></div>
+        <div class="trow"><div class="meta"><b>Body and UI</b><span>Geist · 400 · 1.06rem / 1.6</span></div><p class="s-body">BAUBC is an innovation ecosystem that turns students into future founders and industry leaders, at the intersection of agriculture, technology and business strategy.</p></div>
+        <div class="trow"><div class="meta"><b>Bangla body</b><span>Noto Sans Bengali · 1.12rem / 1.8</span></div><p class="s-bn" lang="bn">বিএইউবিসি একটি উদ্ভাবনী ইকোসিস্টেম, যা কৃষি, প্রযুক্তি ও ব্যবসায়িক কৌশলের সংযোগস্থলে শিক্ষার্থীদের ভবিষ্যতের উদ্যোক্তা ও শিল্পনেতা হিসেবে গড়ে তোলে।</p></div>
+        <div class="trow"><div class="meta"><b>Conjunct check</b><span>Anek Bangla · 300 / 500 / 800</span></div><p class="conj" lang="bn"><span>ক্ষ</span><span>জ্ঞ</span><span>ন্ত্র</span><span>স্ক্র</span><span>ক্ত</span><span>ষ্ণ</span><span>দ্ভ</span><span>র্শ</span></p></div>
+        <div class="trow"><div class="meta"><b>Data and codes</b><span>Geist Mono · tabular figures</span></div><p class="s-mono tnum"><span>BAUBC-2026-0142</span><span>CERT-2027-000123</span><span>TrxID 9KX4T7QZ2M</span><span>৳ 1,250.00</span></p></div>
+      </div>
+      <div class="scale" aria-label="Type scale">
+        <div><code>display-2xl</code><p style="font-size:clamp(2.4rem,1.6rem + 4vw,4.6rem);font-weight:760;font-variation-settings:'opsz' 96,'wdth' 80;line-height:1">Seats left 38</p></div>
+        <div><code>h1</code><p style="font-size:clamp(1.9rem,1.5rem + 1.8vw,3rem);font-weight:700">Startup Summit 2027</p></div>
+        <div><code>h2</code><p style="font-size:clamp(1.5rem,1.3rem + 1vw,2.2rem);font-weight:700">Needs your decision</p></div>
+        <div><code>h3</code><p style="font-size:1.5rem;font-weight:650">Verification queue</p></div>
+        <div><code>body</code><p style="font:400 1rem/1.55 var(--f-body);letter-spacing:0">Submit your TrxID after sending money from your bKash app.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="components" aria-labelledby="t-comp">
+    <div class="wrap">
+      <div class="head">
+        <span class="label idx">Signature components</span>
+        <h2 id="t-comp">What makes a screen recognisably BAUBC</h2>
+        <p>The public site, member portal, teacher portal and admin console all use these components. All figures below are example data.</p>
+      </div>
+
+      <div class="grid2">
+        <article class="panel" aria-labelledby="c-seat">
+          <header><h3 id="c-seat">Term Sheet + Seat Plot</h3><span class="example">Example data</span></header>
+          <div class="seatbar">
+            <div><span class="label muted">Seats left</span><div class="big" id="seats-left" aria-live="polite">32</div></div>
+            <span class="st live" id="seat-status">Open</span>
+          </div>
+          <div class="plot" id="plot" role="img" aria-label="Seat plot showing sold, held and open seats"></div>
+          <div class="legend"><span><i class="s"></i>Sold</span><span><i class="h"></i>On hold (payment pending)</span><span><i></i>Open</span></div>
+          <div class="term">
+            <div><span>Event</span><b>Startup Summit 2027</b></div>
+            <div><span>Fee</span><b>৳ 300 (example)</b></div>
+            <div><span>Capacity</span><b id="cap">96</b></div>
+            <div><span>Registration closes</span><b>TBC</b></div>
+          </div>
+          <div class="btns">
+            <button type="button" class="btn btn-primary" id="sim"><span>Simulate registrations</span></button>
+            <button type="button" class="btn btn-ghost" id="reset"><span>Reset</span></button>
+          </div>
+          <p class="muted" style="font-size:.85rem">In the real system, every change comes from the database's atomic seat function and reaches viewers by realtime broadcast within about 3 seconds.</p>
+        </article>
+
+        <article class="panel" aria-labelledby="c-rings">
+          <header><h3 id="c-rings">Growth Rings</h3><span class="example">Example member</span></header>
+          <div class="rings">
+            <svg id="rings" viewBox="0 0 260 260" role="img" aria-label="Verified points by year and category, drawn as growth rings"></svg>
+            <div class="rlegend" id="rlegend"></div>
+          </div>
+          <p class="muted" style="font-size:.85rem">Each ring is a year and its thickness is verified points. Segments show categories. Only ledger-verified points are drawn.</p>
+        </article>
+
+        <article class="panel" aria-labelledby="c-ledger">
+          <header><h3 id="c-ledger">Ledger Stamp</h3><span class="st lock">Locked record</span></header>
+          <div class="ledger">
+            <div class="lrow"><svg class="stamp" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20.5" stroke-width="1.2"/><circle cx="22" cy="22" r="15" stroke-width=".6" stroke-dasharray="1.5 1.5"/><path d="M17.5 21v-2.5a4.5 4.5 0 0 1 9 0V21h1v7h-11v-7zm2 0h5v-2.5a2.5 2.5 0 0 0-5 0z"/><text><textPath href="#ring-path">VERIFIED · BAUBC · 2026 ·</textPath></text></svg>
+              <div><b>Poster: Case Studies EP 01</b><small>Content · reviewed by HR · 12 Nov 2026</small></div><span class="pts">+40</span></div>
+            <div class="lrow"><svg class="stamp" viewBox="0 0 44 44" aria-hidden="true"><use href="#stamp-shape"/></svg>
+              <div><b>Volunteer: DECODED shoot</b><small>Events · check-in verified · 2 Nov 2026</small></div><span class="pts">+25</span></div>
+            <div class="lrow"><svg class="stamp" viewBox="0 0 44 44" aria-hidden="true"><use href="#stamp-shape"/></svg>
+              <div><b>Reversal: duplicate submission</b><small>Correction entry · original kept · 3 Nov 2026</small></div><span class="pts" style="color:var(--soil)">−15</span></div>
+          </div>
+          <p class="muted" style="font-size:.85rem">Members can read these entries and request a correction. They cannot edit them. Corrections appear as new entries.</p>
+        </article>
+
+        <article class="panel" aria-labelledby="c-labels">
+          <header><h3 id="c-labels">Specimen Labels, status and actions</h3></header>
+          <div class="tags">
+            <span class="tag"><i>01</i>Summit · 2027</span>
+            <span class="tag"><i>EP 04</i>Monpura · 2009</span>
+            <span class="tag"><i>ID</i>BAUBC-2026-0142</span>
+            <span class="tag"><i>Wing</i>Research &amp; Strategy</span>
+          </div>
+          <div class="chips">
+            <span class="st draft">Draft</span><span class="st pend">Pending verification</span><span class="st info">Under review</span><span class="st ok">Verified</span><span class="st bad">Rejected</span><span class="st lock">Official</span><span class="st live">Live</span>
+          </div>
+          <div class="btns">
+            <button type="button" class="btn btn-primary"><span>Register</span></button>
+            <button type="button" class="btn btn-secondary"><span>Request correction</span></button>
+            <button type="button" class="btn btn-ghost"><span>Cancel</span></button>
+            <button type="button" class="btn btn-danger"><span>Reject</span></button>
+          </div>
+          <p class="muted" style="font-size:.85rem">Status always pairs colour with a word. Hover a button to see the furrow-wipe fill. Press feedback scales to 0.98.</p>
+        </article>
+      </div>
+
+      <div style="margin-top:20px" class="rel">
+        <article class="decision" aria-labelledby="c-dec">
+          <svg class="bigstamp" id="bigstamp" viewBox="0 0 44 44" aria-hidden="true"><use href="#stamp-shape"/></svg>
+          <div class="body">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <span class="tag"><i>DR</i>2027-0031</span><span class="st pend">Step 1 of 2</span><span class="label muted">Due in 2 days · example</span>
+            </div>
+            <h3 id="c-dec" style="font:700 1.4rem/1.15 var(--f-display);letter-spacing:-.015em">Decision Card: venue deposit for Startup Summit 2027</h3>
+            <div class="amt">৳ 18,500</div>
+            <div class="facts">
+              <div><span>Payee</span><b>Venue (organisation)</b></div>
+              <div><span>Pay to</span><b class="tnum" style="font-family:var(--f-mono)">bKash ••••4471</b></div>
+              <div><span>Budget line</span><b>Summit / Venue</b></div>
+              <div><span>Requested by</span><b>Finance Officer</b></div>
+              <div><span>Policy</span><b>৳2,001–20,000: two distinct approvers</b></div>
+              <div><span>Similar requests</span><b>None in 30 days</b></div>
+            </div>
+            <div style="display:grid;gap:6px">
+              <span class="label muted">Budget · ৳60,000 allocated</span>
+              <div class="budget" aria-label="Budget used 22,000, this request 18,500, remaining 19,500"><i style="width:36.7%;background:var(--brand)"></i><i style="width:30.8%;background:var(--harvest)"></i></div>
+              <span class="muted" style="font-size:.82rem">Used ৳22,000 · this request ৳18,500 · remaining after ৳19,500</span>
+            </div>
+            <div style="display:grid;gap:6px">
+              <label for="dec-note">Decision note <span class="muted" style="font-weight:400">(required to reject or return)</span></label>
+              <textarea id="dec-note" placeholder="Add context for the record"></textarea>
+            </div>
+          </div>
+          <div class="decbar">
+            <span class="spacer" id="dec-msg" role="status">Approving requires MFA in the real system.</span>
+            <button type="button" class="btn btn-ghost"><span>Request clarification</span></button>
+            <button type="button" class="btn btn-secondary"><span>Return</span></button>
+            <button type="button" class="btn btn-danger" id="dec-reject"><span>Reject</span></button>
+            <button type="button" class="btn btn-primary" id="dec-approve"><span>Approve</span></button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="t-motion">
+    <div class="wrap">
+      <div class="head">
+        <span class="label idx">Motion</span>
+        <h2 id="t-motion">Motion explains change</h2>
+        <p>One house curve (expo-out), five durations, and only transform and opacity. Every effect has a reduced-motion version, and this page follows your system setting. Hover or focus a token to play it.</p>
+      </div>
+      <div class="tokens">
+        <div class="tok" tabindex="0" style="--d:90ms"><b>Instant · 90 ms</b><div class="track"><i></i></div><code>press, toggle</code></div>
+        <div class="tok" tabindex="0" style="--d:160ms"><b>Fast · 160 ms</b><div class="track"><i></i></div><code>hover, chips</code></div>
+        <div class="tok" tabindex="0" style="--d:240ms"><b>Base · 240 ms</b><div class="track"><i></i></div><code>menus, toasts, sprouting plots</code></div>
+        <div class="tok" tabindex="0" style="--d:420ms"><b>Slow · 420 ms</b><div class="track"><i></i></div><code>panels, chart growth</code></div>
+        <div class="tok" tabindex="0" style="--d:900ms"><b>Scenic · 900 ms</b><div class="track"><i></i></div><code>hero, section reveals</code></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span class="label idx">Blueprint</span>
+    <p>This specimen accompanies Document 6 (UI/UX Design Brief) of the BAUBC implementation blueprint. Nothing here is a built feature. It shows the proposed direction for review and approval.</p>
+    <p class="muted" style="font-size:.85rem">Fonts: Bricolage Grotesque, Instrument Serif, Geist, Geist Mono, Anek Bangla and Noto Sans Bengali (SIL Open Font License, via Google Fonts).</p>
+  </div>
+</footer>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="ring-path" d="M22,22 m-17.5,0 a17.5,17.5 0 1,1 35,0 a17.5,17.5 0 1,1 -35,0"/>
+    <g id="stamp-shape">
+      <circle cx="22" cy="22" r="20.5" style="fill:none;stroke:var(--brand)" stroke-width="1.2"/>
+      <circle cx="22" cy="22" r="15" style="fill:none;stroke:var(--brand)" stroke-width=".6" stroke-dasharray="1.5 1.5"/>
+      <path d="M17.5 21v-2.5a4.5 4.5 0 0 1 9 0V21h1v7h-11v-7zm2 0h5v-2.5a2.5 2.5 0 0 0-5 0z" style="fill:var(--brand)"/>
+      <text style="font:600 7.2px/1 'Geist Mono',monospace;letter-spacing:.12em;fill:var(--brand)"><textPath href="#ring-path">VERIFIED · BAUBC · 2026 ·</textPath></text>
+    </g>
+  </defs>
+</svg>
+
+<script>
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root = document.documentElement;
+
+  // Theme preview toggle (sets the same data-theme attribute the viewer uses)
+  const bL = document.getElementById('th-light'), bD = document.getElementById('th-dark');
+  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const syncToggle = () => { const d = isDark(); bL.setAttribute('aria-pressed', String(!d)); bD.setAttribute('aria-pressed', String(d)); };
+  bL.addEventListener('click', () => { root.dataset.theme = 'light'; syncToggle(); drawRings(); });
+  bD.addEventListener('click', () => { root.dataset.theme = 'dark'; syncToggle(); drawRings(); });
+  syncToggle();
+
+  // Palette swatches
+  const pal = [
+    ['Canopy 950','#07140E','Cinematic backgrounds, dark mode',true],['Forest 800','#0F3A27','Brand green, official records',true],
+    ['Forest 700','#155234','Links and headings on light',true],['Emerald 600','#0B7A4B','Interactive green, success',true],
+    ['Leaf 400','#52C48A','Green on dark, charts',false],['Bio-lime 400','#C8F53C','Signal: primary action, live',false],
+    ['Paper 50','#F6F5EE','Default light background',false],['Paper 100','#ECEADF','Raised and sunken surfaces',false],
+    ['Ink 900','#151913','Primary text',true],['Stone 600','#6B6A5C','Muted text on light',true],
+    ['Harvest 500','#E9A23B','Warm accent, awards, warnings',false],['Soil 600','#C2412D','Danger, rejected',true],
+    ['River 600','#2560C8','Info, under review',true]
+  ];
+  const palEl = document.getElementById('palette');
+  palEl.innerHTML = pal.map(([n,h,r,dark]) => `<div class="chip-sw"><div class="c" style="background:${h};color:${dark?'#F6F5EE':'#07140E'}">${h}</div><div class="m"><b>${n}</b><span>${r}</span></div></div>`).join('');
+
+  // Furrow Field: contour lines that bend into a market curve as the hero scrolls away
+  const cv = document.getElementById('furrow'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, dpr = 1, t = 0, running = false, visible = true;
+  function size(){ const r = cv.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  function progress(){ const r = cv.getBoundingClientRect(); return Math.min(1, Math.max(0, -r.top / Math.max(1, r.height*0.8))); }
+  function market(x){ const u = x / W; return H*0.86 - Math.pow(u, 1.7) * H*0.62 - Math.sin(u*22)*H*0.018*(1-u*0.4); }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const p = reduce ? 0.35 : 0.12 + progress()*0.88, n = W < 640 ? 18 : 28;
+    for (let i = 0; i < n; i++){
+      const base = H*0.12 + (i/(n-1))*H*0.9, sig = i === Math.round(n*0.62);
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += 8){
+        const field = base + Math.sin(x*0.006 + t + i*0.35)*9 + Math.sin(x*0.017 - t*0.6 + i)*3;
+        const mk = market(x) + (i - n*0.62) * H*0.018;
+        const y = field*(1-p*0.85) + mk*(p*0.85);
+        x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.lineWidth = sig ? 2.2 : 1;
+      ctx.strokeStyle = sig ? 'rgba(200,245,60,0.95)' : `rgba(82,196,138,${0.10 + (i/n)*0.28})`;
+      ctx.stroke();
+    }
+  }
+  function loop(){ if (!running) return; t += 0.006; draw(); requestAnimationFrame(loop); }
+  function start(){ if (reduce || running || !visible || document.hidden) return; running = true; requestAnimationFrame(loop); }
+  function stop(){ running = false; }
+  size(); draw();
+  window.addEventListener('resize', () => { size(); draw(); });
+  window.addEventListener('scroll', () => { if (!running) draw(); }, { passive:true });
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(cv);
+  document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+  start();
+
+  // Seat Plot simulation (example data)
+  const plot = document.getElementById('plot'), left = document.getElementById('seats-left'), status = document.getElementById('seat-status');
+  const CAP = 96; let seats = [], timer = null;
+  function initSeats(){ seats = Array.from({length:CAP}, (_,i) => i < 58 ? 'sold' : i < 64 ? 'held' : 'open'); render(); }
+  function render(changed){
+    if (!plot.children.length){ for (let i=0;i<CAP;i++) plot.appendChild(document.createElement('i')); }
+    seats.forEach((s,i) => { const c = plot.children[i]; c.className = s === 'open' ? '' : s; if (changed === i && !reduce){ c.classList.add('sprout'); } });
+    const open = seats.filter(s => s === 'open').length;
+    left.textContent = open;
+    const st = open === 0 ? ['Sold out','st bad'] : open <= CAP*0.1 ? ['Almost full','st pend'] : ['Open','st live'];
+    status.textContent = st[0]; status.className = st[1];
+  }
+  function step(){
+    const openIdx = seats.map((s,i)=>s==='open'?i:-1).filter(i=>i>=0), heldIdx = seats.map((s,i)=>s==='held'?i:-1).filter(i=>i>=0);
+    const r = Math.random(); let i = -1;
+    if (openIdx.length && (r < 0.55 || !heldIdx.length)){ i = openIdx[Math.floor(Math.random()*openIdx.length)]; seats[i] = 'held'; }
+    else if (heldIdx.length && r < 0.85){ i = heldIdx[Math.floor(Math.random()*heldIdx.length)]; seats[i] = 'sold'; }
+    else if (heldIdx.length){ i = heldIdx[Math.floor(Math.random()*heldIdx.length)]; seats[i] = 'open'; }
+    render(i);
+    if (!seats.includes('open') && !seats.includes('held')) stopSim();
+  }
+  function stopSim(){ clearInterval(timer); timer = null; document.querySelector('#sim span').textContent = 'Simulate registrations'; }
+  document.getElementById('sim').addEventListener('click', () => {
+    if (timer){ stopSim(); return; }
+    document.querySelector('#sim span').textContent = 'Pause';
+    timer = setInterval(step, reduce ? 900 : 520);
+  });
+  document.getElementById('reset').addEventListener('click', () => { stopSim(); initSeats(); });
+  initSeats();
+
+  // Growth Rings (example member)
+  const years = [ ['2024', {Events:60, Content:40, Operations:20, Leadership:0}], ['2025', {Events:140, Content:120, Operations:90, Leadership:30}], ['2026', {Events:210, Content:260, Operations:150, Leadership:120}], ['2027', {Events:40, Content:30, Operations:24, Leadership:10}] ];
+  const cats = ['Events','Content','Operations','Leadership'];
+  function catColor(c){ const cs = getComputedStyle(root); return {Events: cs.getPropertyValue('--brand'), Content: cs.getPropertyValue('--leaf'), Operations: cs.getPropertyValue('--harvest'), Leadership: cs.getPropertyValue('--river')}[c].trim(); }
+  function arc(cx, cy, r0, r1, a0, a1){
+    const p = (r,a) => [cx + r*Math.cos(a), cy + r*Math.sin(a)], large = a1 - a0 > Math.PI ? 1 : 0;
+    const [x0,y0] = p(r1,a0), [x1,y1] = p(r1,a1), [x2,y2] = p(r0,a1), [x3,y3] = p(r0,a0);
+    return `M${x0} ${y0}A${r1} ${r1} 0 ${large} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${large} 0 ${x3} ${y3}Z`;
+  }
+  function drawRings(){
+    const svg = document.getElementById('rings'), max = Math.max(...years.map(([,v]) => Object.values(v).reduce((a,b)=>a+b,0)));
+    let r = 34, out = '', total = 0; const gap = 0.025;
+    years.forEach(([y, v]) => {
+      const sum = Object.values(v).reduce((a,b)=>a+b,0); total += sum;
+      const th = 8 + (sum/max)*18; let a = -Math.PI/2;
+      cats.forEach(c => { if (!v[c]) return; const span = (v[c]/sum)*Math.PI*2; out += `<path d="${arc(130,130,r,r+th,a+gap,a+span-gap)}" fill="${catColor(c)}"/>`; a += span; });
+      out += `<text x="${130 + r + th/2}" y="133" text-anchor="middle" style="font:500 8px var(--f-mono);fill:var(--muted)" transform="rotate(90 ${130 + r + th/2} 130)">${y}</text>`;
+      r += th + 4;
+    });
+    out += `<text x="130" y="128" text-anchor="middle" style="font:700 22px var(--f-display);fill:var(--ink)">${total.toLocaleString('en-US')}</text><text x="130" y="144" text-anchor="middle" style="font:500 8px var(--f-mono);letter-spacing:.08em;fill:var(--muted)">VERIFIED PTS</text>`;
+    svg.innerHTML = out;
+    document.getElementById('rlegend').innerHTML = cats.map(c => `<div><span><i style="background:${catColor(c)}"></i>${c}</span><b class="tnum">${years.reduce((a,[,v])=>a+v[c],0)}</b></div>`).join('') + `<div><span class="muted">Years shown</span><b>2024–2027</b></div>`;
+  }
+  drawRings();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { syncToggle(); drawRings(); });
+
+  // Decision Card demo
+  const msg = document.getElementById('dec-msg'), note = document.getElementById('dec-note'), big = document.getElementById('bigstamp');
+  document.getElementById('dec-approve').addEventListener('click', () => { big.classList.remove('on'); void big.getBoundingClientRect(); big.classList.add('on'); msg.textContent = 'Demo: approved as step 1 of 2. A second, different approver is now required.'; });
+  document.getElementById('dec-reject').addEventListener('click', () => {
+    if (!note.value.trim()){ msg.textContent = 'Add a decision note before rejecting.'; note.focus(); return; }
+    big.classList.remove('on'); msg.textContent = 'Demo: rejected with your note. The requester will be notified.';
+  });
+})();
+</script>
