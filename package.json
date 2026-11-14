@@ -1,0 +1,41 @@
+{
+  "name": "baubc-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BAUBC Club Operating System: public website and club operations platform for Bangladesh Agricultural University Business Club",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:test": "node scripts/db-test.mjs",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:bootstrap-admins": "node scripts/bootstrap-admins.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.119.0",
+    "@zxing/browser": "0.2.1",
+    "@zxing/library": "0.23.0",
+    "jose": "6.2.17",
+    "next": "16.4.6",
+    "postgres": "4.1.1",
+    "qrcode": "1.5.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "resend": "6.38.1",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/node": "22.20.5",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tailwindcss": "4.3.5",
+    "typescript": "5.9.3"
+  },
+  "engines": { "node": ">=20.9" }
+}
