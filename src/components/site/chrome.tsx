@@ -1,88 +1,77 @@
 import Link from 'next/link';
-import { LogoMark } from '@/components/ui/Logo';
-import { LangToggle, MobileMenu, RevealObserver, ThemeToggle } from './client';
-import { t, type Lang } from '@/lib/i18n';
+import { LogoTile, Mark, Arrow, Diamond } from '@/components/brand/Mark';
+import { HeaderShell, MobileMenu, NavLinks, RevealObserver } from './client';
 import { isPreview } from '@/server/env';
 
 type Social = { facebook_url?: string; youtube_url?: string; linkedin_url?: string };
 
-export function SiteHeader({ lang, signedIn, features }: { lang: Lang; signedIn: boolean; features: Record<string, any> }) {
+export function SiteHeader({ signedIn, features }: { signedIn: boolean; features: Record<string, any> }) {
   const items = [
-    { href: '/about', label: t(lang, 'nav_about') },
-    { href: '/events', label: t(lang, 'nav_events') },
-    { href: '/insights', label: t(lang, 'nav_insights') },
-    { href: '/wings', label: t(lang, 'nav_wings') },
-    ...(features.members_directory !== false ? [{ href: '/members', label: t(lang, 'nav_members') }] : []),
-    { href: '/contact', label: t(lang, 'nav_contact') },
+    { href: '/about', label: 'About' },
+    { href: '/events', label: 'Events' },
+    { href: '/insights', label: 'Insights' },
+    { href: '/wings', label: 'Wings' },
+    ...(features.members_directory !== false ? [{ href: '/members', label: 'Members' }] : []),
+    { href: '/contact', label: 'Contact' },
   ];
-  const cta = (
-    <>
-      <Link href={signedIn ? '/app' : '/login'} className="btn btn-ghost btn-sm">{signedIn ? t(lang, 'nav_dashboard') : t(lang, 'nav_login')}</Link>
-      <Link href="/join" className="btn btn-primary btn-sm">{t(lang, 'nav_join')}</Link>
-    </>
-  );
   return (
     <>
-      {isPreview && (
-        <div className="bg-harvest text-[#151913] text-center text-xs font-semibold py-1.5 px-4">{t(lang, 'preview_banner')}</div>
-      )}
-      <header className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur-md" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
-        <div className="wrap flex h-16 items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2.5 font-display font-bold tracking-tight text-[1.05rem]" aria-label="BAUBC home">
-            <LogoMark /> <span>BAUBC</span>
-          </Link>
-          <nav className="hidden lg:flex items-center gap-1" aria-label="Main">
-            {items.map((it) => (
-              <Link key={it.href} href={it.href} className="px-3 py-2 rounded-lg text-[.93rem] font-medium text-ink-2 hover:text-ink hover:bg-paper-2 transition-colors">{it.label}</Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:block"><LangToggle lang={lang} /></div>
-            <ThemeToggle />
-            <div className="hidden lg:flex items-center gap-2">{cta}</div>
-            <MobileMenu items={[{ href: '/', label: t(lang, 'nav_home') }, ...items, { href: '/join', label: t(lang, 'nav_join') }]} cta={<><LangToggle lang={lang} dark />{cta}</>} />
-          </div>
+      <HeaderShell>
+        <Link href="/" className="flex items-center gap-2.5 font-display font-bold tracking-tight text-[1.12rem]" aria-label="BAUBC home">
+          <LogoTile size={38} /> <span>BAUBC</span>
+        </Link>
+        <NavLinks items={items} />
+        <div className="flex items-center gap-1.5">
+          <Link href={signedIn ? '/app' : '/login'} className="btn btn-ghost btn-sm hidden sm:inline-flex">{signedIn ? 'My workspace' : 'Sign in'}</Link>
+          <Link href="/join" className="btn btn-primary btn-sm">Join <Arrow size={12} /></Link>
+          <MobileMenu items={[{ href: '/', label: 'Home' }, ...items]} signedIn={signedIn} />
         </div>
-      </header>
+      </HeaderShell>
       <RevealObserver />
     </>
   );
 }
 
-export function SiteFooter({ lang, club, social }: { lang: Lang; club: Record<string, any>; social: Social }) {
-  return (
-    <footer className="canopy on-canopy mt-24">
-      <div className="wrap py-16 grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div className="grid gap-4 content-start">
-          <div className="flex items-center gap-3"><LogoMark size={36} /><span className="display-md text-2xl">BAUBC</span></div>
-          <p className="text-canopy-muted max-w-sm text-sm">{lang === 'bn' ? club.name_bn : club.name}. {t(lang, 'footer_note')}</p>
-          <p className="font-mono text-sm text-on-canopy">{club.email}</p>
-        </div>
-        <FooterCol title="Club" links={[['/about', t(lang, 'nav_about')], ['/wings', t(lang, 'nav_wings')], ['/advisors', t(lang, 'nav_advisors')], ['/members', t(lang, 'nav_members')], ['/join', t(lang, 'nav_join')]]} />
-        <FooterCol title="Explore" links={[['/events', t(lang, 'nav_events')], ['/insights', t(lang, 'nav_insights')], ['/gallery', t(lang, 'nav_gallery')], ['/resources', t(lang, 'nav_resources')], ['/verify', t(lang, 'nav_verify')]]} />
-        <div className="grid gap-3 content-start">
-          <p className="label text-canopy-muted">{t(lang, 'follow')}</p>
-          {social.facebook_url && <a className="hover:text-signal" href={social.facebook_url} target="_blank" rel="noopener noreferrer">Facebook</a>}
-          {social.youtube_url && <a className="hover:text-signal" href={social.youtube_url} target="_blank" rel="noopener noreferrer">YouTube</a>}
-          {social.linkedin_url && <a className="hover:text-signal" href={social.linkedin_url} target="_blank" rel="noopener noreferrer">LinkedIn</a>}
-          <Link className="hover:text-signal" href="/contact">{t(lang, 'nav_contact')}</Link>
-        </div>
-      </div>
-      <div className="border-t border-white/10">
-        <div className="wrap py-5 flex flex-wrap justify-between gap-3 text-xs text-canopy-muted">
-          <span>© {new Date().getFullYear()} Bangladesh Agricultural University Business Club</span>
-          <span className="flex gap-4"><Link href="/privacy" className="hover:text-signal">{t(lang, 'privacy')}</Link><Link href="/login" className="hover:text-signal">{t(lang, 'nav_login')}</Link></span>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
-  return (
-    <div className="grid gap-3 content-start">
-      <p className="label text-canopy-muted">{title}</p>
-      {links.map(([href, label]) => <Link key={href} href={href} className="hover:text-signal">{label}</Link>)}
+export function SiteFooter({ club, social }: { club: Record<string, any>; social: Social }) {
+  const col = (title: string, links: [string, string][]) => (
+    <div className="grid gap-2.5 content-start">
+      <p className="label text-lime-200">{title}</p>
+      {links.map(([href, label]) => <Link key={href} href={href} className="text-white/85 hover:text-lime-200 transition-colors w-max">{label}</Link>)}
     </div>
+  );
+  return (
+    <footer className="relative canopy on-canopy mt-28 overflow-hidden isolate">
+      <div className="absolute inset-0 -z-10 pat-rays-light" aria-hidden="true" />
+      <Mark size="62rem" className="pointer-events-none absolute -right-52 -bottom-72 -z-10 text-white/[.07]" />
+      <div className="wrap pt-20 pb-12 grid gap-14">
+        <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] items-end">
+          <p className="display text-[clamp(2.6rem,1.4rem+5vw,5.6rem)] max-w-[11ch]">Plant ideas. <span className="serif-i text-lime-200">Harvest</span> founders.</p>
+          <div className="flex flex-wrap gap-3 lg:justify-end">
+            <Link href="/join" className="btn btn-lime btn-lg">Join the club <Arrow /></Link>
+            <Link href="/contact" className="btn btn-ghost btn-lg">Partner with us</Link>
+          </div>
+        </div>
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] border-t border-white/15 pt-10">
+          <div className="grid gap-4 content-start">
+            <div className="flex items-center gap-3"><span className="grid size-11 place-items-center rounded-xl bg-white text-brand"><Mark size={30} /></span><span className="display-md text-2xl">BAUBC</span></div>
+            <p className="text-canopy-muted max-w-sm text-sm">{club.name}. A student organisation of Bangladesh Agricultural University, Mymensingh 2202.</p>
+            <p className="font-mono text-sm">{club.email}</p>
+          </div>
+          {col('The club', [['/about', 'About'], ['/wings', 'Wings'], ['/advisors', 'Advisors'], ['/members', 'Members'], ['/join', 'Join BAUBC']])}
+          {col('Explore', [['/events', 'Events'], ['/insights', 'Insights'], ['/gallery', 'Gallery'], ['/resources', 'Resources'], ['/verify', 'Verify a certificate']])}
+          <div className="grid gap-2.5 content-start">
+            <p className="label text-lime-200">Follow</p>
+            {([['Facebook', social.facebook_url], ['YouTube', social.youtube_url], ['LinkedIn', social.linkedin_url]] as const).filter(([, u]) => u).map(([n, u]) => (
+              <a key={n} href={u} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-2 text-white/85 hover:text-lime-200 transition-colors w-max">{n}<Arrow size={11} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></a>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-wrap justify-between gap-3 text-xs text-canopy-muted">
+          <span className="inline-flex items-center gap-2"><Diamond size={7} className="text-lime-300" />© {new Date().getFullYear()} Bangladesh Agricultural University Business Club</span>
+          <span className="flex gap-5"><Link href="/privacy" className="hover:text-lime-200">Privacy</Link><Link href="/login" className="hover:text-lime-200">Sign in</Link></span>
+        </div>
+      </div>
+      {isPreview && <div className="fixed left-3 bottom-3 z-40 glass-strong rounded-full px-3 py-1.5 text-[11px] font-semibold no-print flex items-center gap-2"><Diamond size={7} className="text-harvest" />Preview mode · sample data</div>}
+    </footer>
   );
 }

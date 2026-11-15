@@ -43,7 +43,7 @@ export async function updateProfile(_: ActionResult, fd: FormData) {
       display_name: s(fd, 'display_name'), bio: s(fd, 'bio'), facebook_url: s(fd, 'facebook_url'), linkedin_url: s(fd, 'linkedin_url'),
       interests: s(fd, 'interests').split(',').map((x) => x.trim()).filter(Boolean), skills: s(fd, 'skills').split(',').map((x) => x.trim()).filter(Boolean),
       public_profile: b(fd, 'public_profile'),
-      avatar: s(fd, 'avatar_style') ? { style: s(fd, 'avatar_style'), tone: s(fd, 'avatar_tone') } : undefined,
+      avatar: s(fd, 'avatar_hair') ? { hair: s(fd, 'avatar_hair'), skin: Number(s(fd, 'avatar_skin') || 0), top: Number(s(fd, 'avatar_top') || 0), glasses: b(fd, 'avatar_glasses') } : undefined,
     })]);
     return 'Profile updated.';
   });
@@ -196,23 +196,23 @@ export async function confirmChange(_: ActionResult, fd: FormData) {
 // ── events ───────────────────────────────────────────────────────────────────
 export async function saveEvent(_: ActionResult, fd: FormData) {
   const id = s(fd, 'id');
-  const vals = [s(fd, 'title'), s(fd, 'title_bn') || null, s(fd, 'subtitle') || null, s(fd, 'summary') || null, s(fd, 'body') || null, s(fd, 'category'), s(fd, 'status'),
+  const vals = [s(fd, 'title'), s(fd, 'subtitle') || null, s(fd, 'summary') || null, s(fd, 'body') || null, s(fd, 'category'), s(fd, 'status'),
     s(fd, 'venue') || null, dhaka(s(fd, 'starts_at')), dhaka(s(fd, 'ends_at')),
     s(fd, 'date_label') || null, dhaka(s(fd, 'reg_opens_at')), dhaka(s(fd, 'reg_closes_at')),
     s(fd, 'eligibility') || null, s(fd, 'refund_policy') || null, s(fd, 'cover_tone') || 'canopy', b(fd, 'featured')];
   const res = await act(async (tx) => {
     if (id) {
-      await tx.query(`update app.events set title=$2, title_bn=$3, subtitle=$4, summary=$5, body=$6, category=$7, status=$8, venue=$9, starts_at=$10, ends_at=$11, date_label=$12,
-        reg_opens_at=$13, reg_closes_at=$14, eligibility=$15, refund_policy=$16, cover_tone=$17, featured=$18 where id=$1`, [id, ...vals]);
+      await tx.query(`update app.events set title=$2, subtitle=$3, summary=$4, body=$5, category=$6, status=$7, venue=$8, starts_at=$9, ends_at=$10, date_label=$11,
+        reg_opens_at=$12, reg_closes_at=$13, eligibility=$14, refund_policy=$15, cover_tone=$16, featured=$17 where id=$1`, [id, ...vals]);
       await tx.query(`select app.audit('event.updated','event',$1,null,null)`, [id]);
       return 'Event saved.';
     }
     const slug = s(fd, 'slug') || s(fd, 'title').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const r = await tx.one(`insert into app.events(slug, title, title_bn, subtitle, summary, body, category, status, venue, starts_at, ends_at, date_label, reg_opens_at, reg_closes_at, eligibility, refund_policy, cover_tone, featured, created_by)
-      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, authz.current_person_id()) returning id::text`, [slug, ...vals]);
+    const r = await tx.one(`insert into app.events(slug, title, subtitle, summary, body, category, status, venue, starts_at, ends_at, date_label, reg_opens_at, reg_closes_at, eligibility, refund_policy, cover_tone, featured, created_by)
+      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17, authz.current_person_id()) returning id::text`, [slug, ...vals]);
     return `created:${r!.id}`;
   }, { path: '/' });
-  if (res?.ok && res.message.startsWith('created:')) redirect(`/app/events/${res.message.slice(8)}`);
+  if (res?.ok && res.message.startsWith('created:')) redirect(`/app/events/manage/${res.message.slice(8)}`);
   return res;
 }
 export async function saveTicketType(_: ActionResult, fd: FormData) {
@@ -250,7 +250,7 @@ export async function checkIn(code: string, eventId: string, device: string) {
 
 // ── content & communications ─────────────────────────────────────────────────
 export async function saveAnnouncement(_: ActionResult, fd: FormData) {
-  return act(async (tx) => { await tx.query(`insert into app.announcements(title, title_bn, body, audience, pinned, author_id) values ($1,$2,$3,$4,$5, authz.current_person_id())`, [s(fd, 'title'), s(fd, 'title_bn') || null, s(fd, 'body'), s(fd, 'audience'), b(fd, 'pinned')]); return 'Announcement published.'; }, { path: '/' });
+  return act(async (tx) => { await tx.query(`insert into app.announcements(title, body, audience, pinned, author_id) values ($1,$2,$3,$4, authz.current_person_id())`, [s(fd, 'title'), s(fd, 'body'), s(fd, 'audience'), b(fd, 'pinned')]); return 'Announcement published.'; }, { path: '/' });
 }
 export async function deleteAnnouncement(_: ActionResult, fd: FormData) {
   return act(async (tx) => { await tx.query(`delete from app.announcements where id = $1`, [s(fd, 'id')]); return 'Removed.'; }, { path: '/', flash: true });
@@ -258,16 +258,16 @@ export async function deleteAnnouncement(_: ActionResult, fd: FormData) {
 export async function savePost(_: ActionResult, fd: FormData) {
   return act(async (tx) => {
     const id = s(fd, 'id');
-    const vals = [s(fd, 'title'), s(fd, 'title_bn') || null, s(fd, 'dek') || null, s(fd, 'body') || null, s(fd, 'series') || null, n(fd, 'episode_no'), s(fd, 'kind') || 'article',
+    const vals = [s(fd, 'title'), s(fd, 'dek') || null, s(fd, 'body') || null, s(fd, 'series') || null, n(fd, 'episode_no'), s(fd, 'kind') || 'article',
       s(fd, 'cover_label') || null, s(fd, 'cover_tone') || 'canopy', s(fd, 'status') || 'draft', s(fd, 'facebook_url') || null, s(fd, 'youtube_url') || null];
     if (id) {
-      await tx.query(`update app.posts set title=$2, title_bn=$3, dek=$4, body=$5, series=$6, episode_no=$7, kind=$8, cover_label=$9, cover_tone=$10, status=$11, facebook_url=$12, youtube_url=$13,
-        published_at = case when $11 = 'published' then coalesce(published_at, now()) else published_at end where id=$1`, [id, ...vals]);
+      await tx.query(`update app.posts set title=$2, dek=$3, body=$4, series=$5, episode_no=$6, kind=$7, cover_label=$8, cover_tone=$9, status=$10, facebook_url=$11, youtube_url=$12,
+        published_at = case when $10 = 'published' then coalesce(published_at, now()) else published_at end where id=$1`, [id, ...vals]);
       return 'Saved.';
     }
     const slug = s(fd, 'title').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
-    await tx.query(`insert into app.posts(slug, title, title_bn, dek, body, series, episode_no, kind, cover_label, cover_tone, status, facebook_url, youtube_url, published_at, created_by)
-      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, case when $11 = 'published' then now() end, authz.current_person_id())`, [slug, ...vals]);
+    await tx.query(`insert into app.posts(slug, title, dek, body, series, episode_no, kind, cover_label, cover_tone, status, facebook_url, youtube_url, published_at, created_by)
+      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, case when $10 = 'published' then now() end, authz.current_person_id())`, [slug, ...vals]);
     return 'Post created.';
   }, { path: '/' });
 }
@@ -277,20 +277,178 @@ export async function updateInquiry(_: ActionResult, fd: FormData) {
 export async function reviewInbound(_: ActionResult, fd: FormData) {
   return act(async (tx) => { await tx.query(`update app.inbound_messages set status=$2, review_note=$3, category=coalesce(nullif($4,''), category), reviewer_id=authz.current_person_id() where id=$1`, [s(fd, 'id'), s(fd, 'status'), s(fd, 'note') || null, s(fd, 'category')]); return 'Updated.'; }, { flash: true });
 }
+const SETTING_FIELDS: Record<string, { name: string; type: 'text' | 'url' | 'number' | 'bool' | 'choice'; choices?: string[] }[]> = {
+  club: [{ name: 'name', type: 'text' }, { name: 'short_name', type: 'text' }, { name: 'tagline', type: 'text' }, { name: 'bio', type: 'text' }, { name: 'email', type: 'text' }, { name: 'location', type: 'text' }],
+  social: [{ name: 'facebook_url', type: 'url' }, { name: 'youtube_url', type: 'url' }, { name: 'linkedin_url', type: 'url' }, { name: 'facebook_followers', type: 'number' }, { name: 'stats_as_of', type: 'text' }],
+  payments: [{ name: 'bkash_number', type: 'text' }, { name: 'bkash_account_type', type: 'choice', choices: ['Personal', 'Merchant', 'Agent'] }, { name: 'instructions', type: 'text' }],
+  features: [{ name: 'members_directory', type: 'bool' }, { name: 'gallery', type: 'bool' }, { name: 'resources', type: 'bool' }, { name: 'perks', type: 'bool' }, { name: 'leaderboard', type: 'choice', choices: ['off', 'members', 'public'] }],
+  security: [{ name: 'mfa_required', type: 'bool' }],
+  finance: [{ name: 'second_verifier_threshold', type: 'number' }],
+  points: [{ name: 'adjustment_approval_above', type: 'number' }],
+};
+/** Settings are edited as plain form fields; the three sensitive groups need a second Super Admin to confirm. */
 export async function saveSetting(_: ActionResult, fd: FormData) {
-  return act(async (tx, session) => {
+  return act(async (tx) => {
     const key = s(fd, 'key');
-    let value: unknown;
-    try { value = JSON.parse(s(fd, 'value')); } catch { throw new Error('INVALID_JSON: the value must be valid JSON'); }
+    const fields = SETTING_FIELDS[key];
+    if (!fields) throw new Error('NOT_FOUND');
+    const current = (await tx.one(`select value from app.site_settings where key = $1`, [key]))?.value ?? {};
+    const value: Record<string, unknown> = { ...current };
+    for (const f of fields) {
+      const raw = s(fd, f.name);
+      if (f.type === 'bool') value[f.name] = b(fd, f.name);
+      else if (f.type === 'number') { const v = Number(raw); if (raw === '' || !Number.isFinite(v) || v < 0) throw new Error(`INVALID_VALUE: ${f.name.replace(/_/g, ' ')} must be a number`); value[f.name] = v; }
+      else if (f.type === 'url') { if (raw && !/^https:\/\//i.test(raw)) throw new Error(`INVALID_VALUE: ${f.name.replace(/_/g, ' ')} must start with https://`); value[f.name] = raw; }
+      else if (f.type === 'choice') { if (!f.choices!.includes(raw)) throw new Error('INVALID_VALUE: pick one of the listed options'); value[f.name] = raw; }
+      else value[f.name] = raw;
+    }
+    if (key === 'payments' && value.bkash_number && !/^(\+?880|0)1[3-9]\d{8}$/.test(String(value.bkash_number).replace(/[\s-]/g, ''))) throw new Error('INVALID_VALUE: enter a valid Bangladeshi mobile number, for example 01XXXXXXXXX');
     if (['security', 'finance', 'points'].includes(key)) {
       await tx.query(`select app.request_privileged_change('setting', $1::jsonb, $2)`, [JSON.stringify({ key, value, person_id: null }), `Change setting "${key}"`]);
-      return 'Sensitive setting: another Super Admin must confirm the change.';
+      return 'This is a sensitive setting, so the other Super Admin has to confirm it before it takes effect.';
     }
-    void session;
     await tx.query(`update app.site_settings set value = $2::jsonb, updated_at = now(), updated_by = authz.current_person_id() where key = $1`, [key, JSON.stringify(value)]);
     await tx.query(`select app.audit('setting.updated','site_setting',$1,null,$2::jsonb)`, [key, JSON.stringify(value)]);
-    return 'Setting saved.';
+    return 'Saved. The website now shows the new details.';
   }, { path: '/' });
+}
+
+// ── wings & teams ────────────────────────────────────────────────────────────
+const slugify = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+const lines = (v: string) => v.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+export async function saveUnit(_: ActionResult, fd: FormData) {
+  return act(async (tx) => {
+    const id = s(fd, 'id');
+    const vals = [s(fd, 'name'), s(fd, 'summary') || null, lines(s(fd, 'responsibilities')), b(fd, 'is_public'), n(fd, 'sort') ?? 100, s(fd, 'kind') || 'wing'];
+    if (!vals[0]) throw new Error('NAME_REQUIRED');
+    if (id) { await tx.query(`update app.org_units set name=$2, summary=$3, responsibilities=$4::text[], is_public=$5, sort=$6, kind=$7 where id=$1`, [id, ...vals]); await tx.query(`select app.audit('unit.updated','org_unit',$1,null,null)`, [id]); return 'Wing saved.'; }
+    await tx.query(`insert into app.org_units(slug, name, summary, responsibilities, is_public, sort, kind) values ($1,$2,$3,$4::text[],$5,$6,$7)`, [slugify(s(fd, 'name')), ...vals]);
+    return 'Wing created. It appears on the Wings page now.';
+  }, { path: '/' });
+}
+export async function assignUnit(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.assign_unit($1,$2,$3,$4)`, [s(fd, 'person_id'), s(fd, 'unit_id'), s(fd, 'title'), b(fd, 'is_lead')]); return b(fd, 'is_lead') ? 'Placed as lead. They can now assign and review work for this wing.' : 'Placed in the wing.'; }, { path: '/' });
+}
+export async function endUnitMembership(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.end_unit_membership($1)`, [s(fd, 'id')]); return 'Removed from the wing. Their past record is kept.'; }, { path: '/', flash: true });
+}
+
+// ── accounts, cycles, activation links ───────────────────────────────────────
+export async function setAccountStatus(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.set_account_status($1,$2,$3)`, [s(fd, 'person_id'), s(fd, 'status'), s(fd, 'reason')]); return s(fd, 'status') === 'active' ? 'Account reactivated.' : 'Account suspended. They can no longer use the workspace.'; }, { flash: true });
+}
+export async function revokeMandate(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.revoke_mandate($1,$2)`, [s(fd, 'id'), s(fd, 'reason')]); return 'Approval mandate revoked.'; }, { flash: true });
+}
+export async function resendActivation(_: ActionResult, fd: FormData) {
+  const token = randomToken();
+  return act(async (tx) => {
+    const r = (await tx.one(`select app.reissue_provision($1,$2) r`, [s(fd, 'person_id'), sha256(token)]))!.r;
+    await asSystem((stx) => sendMail(stx, activationMail(r.email, r.full_name, `${env.siteUrl}/activate/${token}`, 'invite')));
+    return `A fresh activation link was emailed to ${r.email}. It works for 72 hours.`;
+  }, { flash: true });
+}
+export async function saveCycle(_: ActionResult, fd: FormData) {
+  return act(async (tx) => {
+    const id = s(fd, 'id'), status = s(fd, 'status') || 'planned', url = s(fd, 'intake_form_url');
+    if (url && !/^https:\/\//i.test(url)) throw new Error('INVALID_VALUE: the form link must start with https://');
+    if (status === 'open') await tx.query(`update app.membership_cycles set status = 'closed' where status = 'open' and id::text <> $1`, [id]);
+    const vals = [s(fd, 'label'), status, dhaka(s(fd, 'opens_at')), dhaka(s(fd, 'closes_at')), url || null, s(fd, 'notes') || null];
+    if (!vals[0]) throw new Error('NAME_REQUIRED');
+    if (id) await tx.query(`update app.membership_cycles set label=$2, status=$3, opens_at=$4, closes_at=$5, intake_form_url=$6, notes=$7 where id=$1`, [id, ...vals]);
+    else await tx.query(`insert into app.membership_cycles(label, status, opens_at, closes_at, intake_form_url, notes) values ($1,$2,$3,$4,$5,$6)`, vals);
+    await tx.query(`select app.audit('cycle.saved','membership_cycle',$1,null,$2::jsonb)`, [id || vals[0], JSON.stringify({ status })]);
+    return status === 'open' ? 'Recruitment is open. The Join page is accepting applications.' : status === 'closed' ? 'Recruitment is closed. The Join page says so.' : 'Recruitment cycle saved.';
+  }, { path: '/' });
+}
+
+// ── payments: cash, bank, refunds ────────────────────────────────────────────
+export async function recordOfflinePayment(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.record_offline_payment($1,$2,$3)`, [s(fd, 'invoice_id'), s(fd, 'method'), s(fd, 'reference') || null]); return 'Payment recorded. Someone in finance now verifies it, and the seat is confirmed after that.'; }, { flash: true });
+}
+export async function requestRefund(_: ActionResult, fd: FormData) {
+  return act(async (tx) => {
+    const id = (await tx.one(`select app.request_refund($1,$2) id`, [s(fd, 'payment_id'), s(fd, 'reason')]))!.id;
+    await tx.query(`select app.submit_refund($1)`, [id]);
+    return 'Refund sent for approval. After approval, a different person pays it out.';
+  }, { flash: true });
+}
+export async function completeRefund(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.complete_refund($1,$2)`, [s(fd, 'refund_id'), s(fd, 'trx')]); return 'Refund paid and entered in the cash book.'; }, { flash: true });
+}
+
+// ── tasks & events housekeeping ──────────────────────────────────────────────
+export async function closeTask(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.close_task($1,$2)`, [s(fd, 'task_id'), s(fd, 'status')]); return s(fd, 'status') === 'cancelled' ? 'Task cancelled. Open assignments were cancelled too.' : s(fd, 'status') === 'closed' ? 'Task closed.' : 'Task reopened.'; }, { flash: true });
+}
+export async function removeEventPerson(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`delete from app.event_people where id = $1`, [s(fd, 'id')]); return 'Removed.'; }, { path: '/', flash: true });
+}
+
+// ── website content: resources, gallery, reach ───────────────────────────────
+const https = (v: string, what: string) => { if (!/^https:\/\//i.test(v)) throw new Error(`INVALID_VALUE: the ${what} must start with https://`); return v; };
+export async function saveResource(_: ActionResult, fd: FormData) {
+  return act(async (tx) => {
+    await tx.query(`insert into app.resources(title, description, url, category, audience) values ($1,$2,$3,$4,$5)`, [s(fd, 'title'), s(fd, 'description') || null, https(s(fd, 'url'), 'link'), s(fd, 'category') || 'guide', s(fd, 'audience') || 'public']);
+    return 'Resource added.';
+  }, { path: '/' });
+}
+export async function deleteResource(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`delete from app.resources where id = $1`, [s(fd, 'id')]); return 'Resource removed.'; }, { path: '/', flash: true });
+}
+export async function saveAlbum(_: ActionResult, fd: FormData) {
+  return act(async (tx) => {
+    await tx.query(`insert into app.gallery_albums(title, description, external_url, photo_count, taken_on, event_id) values ($1,$2,$3,$4,$5,$6)`,
+      [s(fd, 'title'), s(fd, 'description') || null, https(s(fd, 'external_url'), 'album link'), n(fd, 'photo_count'), s(fd, 'taken_on') || null, s(fd, 'event_id') || null]);
+    return 'Album added to the gallery.';
+  }, { path: '/' });
+}
+export async function deleteAlbum(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`delete from app.gallery_albums where id = $1`, [s(fd, 'id')]); return 'Album removed.'; }, { path: '/', flash: true });
+}
+export async function saveSocialPost(_: ActionResult, fd: FormData) {
+  return act(async (tx) => {
+    const link = s(fd, 'permalink');
+    await tx.query(`insert into app.social_posts(platform, external_id, title, post_type, permalink, published_at, viewers, views, likes, comments, shares)
+      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      on conflict (platform, external_id) do update set title = excluded.title, viewers = excluded.viewers, views = excluded.views, likes = excluded.likes, comments = excluded.comments, shares = excluded.shares, captured_at = now()`,
+      [s(fd, 'platform') || 'facebook', link || slugify(s(fd, 'title')), s(fd, 'title'), s(fd, 'post_type') || null, link ? https(link, 'post link') : null, s(fd, 'published_on') || null,
+        n(fd, 'viewers'), n(fd, 'views'), n(fd, 'likes'), n(fd, 'comments'), n(fd, 'shares')]);
+    return 'Post numbers saved. The home page counts update from these.';
+  }, { path: '/' });
+}
+export async function deleteSocialPost(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`delete from app.social_posts where id = $1`, [s(fd, 'id')]); return 'Removed.'; }, { path: '/', flash: true });
+}
+
+// ── member perks ─────────────────────────────────────────────────────────────
+export async function savePerk(_: ActionResult, fd: FormData) {
+  return act(async (tx) => {
+    const id = s(fd, 'id'), mode = s(fd, 'mode') || 'shared_code', url = s(fd, 'url');
+    const vals = [s(fd, 'title'), s(fd, 'partner'), s(fd, 'description'), s(fd, 'terms') || null, mode, url ? https(url, 'link') : null, s(fd, 'shared_code') || null, n(fd, 'min_points') ?? 0,
+      s(fd, 'distribution_permission'), s(fd, 'ends_on') ? dhaka(`${s(fd, 'ends_on')}T23:59`) : null, s(fd, 'status') || 'active'];
+    if (!vals[8]) throw new Error('INVALID_VALUE: say who at the partner allowed the club to share this offer');
+    if (mode === 'link' && !url) throw new Error('INVALID_VALUE: a link perk needs a link');
+    if (mode === 'shared_code' && !vals[6]) throw new Error('INVALID_VALUE: enter the code members will use');
+    let perk = id;
+    if (id) await tx.query(`update app.perks set title=$2, partner=$3, description=$4, terms=$5, mode=$6, url=$7, shared_code=$8, min_points=$9, distribution_permission=$10, ends_at=$11, status=$12 where id=$1`, [id, ...vals]);
+    else perk = (await tx.one(`insert into app.perks(title, partner, description, terms, mode, url, shared_code, min_points, distribution_permission, ends_at, status) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning id::text`, vals))!.id;
+    const codes = lines(s(fd, 'codes'));
+    const added = codes.length ? (await tx.one(`select app.add_perk_codes($1,$2::text[]) n`, [perk, codes]))!.n : 0;
+    await tx.query(`select app.audit('perk.saved','perk',$1,null,null)`, [perk]);
+    return `Perk saved${added ? ` with ${added} new one-time codes` : ''}.`;
+  });
+}
+
+// ── profile photo & privacy ──────────────────────────────────────────────────
+export async function setMyPhoto(url: string | null): Promise<ActionResult> {
+  return act(async (tx) => { await tx.query(`select app.set_my_photo($1)`, [url]); return url ? 'Photo updated.' : 'Photo removed. Your character avatar is back.'; }, { path: '/', jobs: false });
+}
+export async function openPrivacyRequest(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`select app.open_privacy_request($1,$2)`, [s(fd, 'kind'), s(fd, 'details')]); return 'Request received. The club answers privacy requests within 30 days.'; });
+}
+export async function handlePrivacyRequest(_: ActionResult, fd: FormData) {
+  return act(async (tx) => { await tx.query(`update app.privacy_requests set status = $2, handled_by = authz.current_person_id() where id = $1`, [s(fd, 'id'), s(fd, 'status')]); await tx.query(`select app.audit('privacy.handled','privacy_request',$1,null,$2::jsonb)`, [s(fd, 'id'), JSON.stringify({ status: s(fd, 'status') })]); return 'Privacy request updated.'; }, { flash: true });
 }
 
 // ── integrations & operations ────────────────────────────────────────────────

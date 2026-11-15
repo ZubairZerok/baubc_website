@@ -596,7 +596,7 @@ begin
   update app.invoices set status = 'paid', paid_at = now() where id = v_inv.id;
   insert into app.finance_entries(account_id, direction, amount, payment_id, memo, created_by)
   select coalesce(v_p.receiving_account_id, (select id from app.finance_accounts where is_default_incoming limit 1)),
-         'in', v_p.amount, v_p.id, v_inv.invoice_no || ' · ' || v_inv.description || ' · TrxID ' || v_p.provider_trx_id, v_me
+         'in', v_p.amount, v_p.id, v_inv.invoice_no || ' · ' || v_inv.description || coalesce(' · TrxID ' || v_p.provider_trx_id, ' · ' || replace(v_p.method, '_', ' ')), v_me
   where coalesce(v_p.receiving_account_id, (select id from app.finance_accounts where is_default_incoming limit 1)) is not null;
 
   if v_reg.id is not null and v_reg.status in ('pending_verification','pending_payment') then

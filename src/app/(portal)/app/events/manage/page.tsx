@@ -19,7 +19,7 @@ export default async function ManageEventsPage() {
         <tbody>{events.map((e: any) => (
           <tr key={e.id}><td><b>{e.title}</b><div className="text-xs text-muted">{CATEGORY_LABEL[e.category]}{e.pv ? ` · ${e.pv} payments to verify` : ''}</div></td><td className="text-sm whitespace-nowrap">{eventWhen(e)}</td><td><Status value={e.status} /></td>
             <td className="text-right tnum">{e.sold}</td><td className="text-right tnum">{e.held}</td><td className="text-right tnum">{e.cap}</td>
-            <td><Link href={`/app/events/manage/${e.id}`} className="btn btn-ghost btn-sm border-line">Manage</Link></td></tr>))}</tbody></table></div>
+            <td><Link href={`/app/events/manage/${e.id}`} className="btn btn-secondary btn-sm">Manage</Link></td></tr>))}</tbody></table></div>
       <details className="panel"><summary className="cursor-pointer heading text-lg">Create an event</summary><div className="mt-4"><EventForm /></div></details>
     </>
   );

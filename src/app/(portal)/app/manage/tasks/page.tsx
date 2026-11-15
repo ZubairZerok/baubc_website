@@ -1,7 +1,7 @@
 import { PageTitle } from '@/components/portal/Shell';
 import { Status } from '@/components/ui/Status';
 import { ActionForm, SubmitButton } from '@/components/ui/forms';
-import { assignTask, createTask } from '@/app/actions/portal';
+import { assignTask, closeTask, createTask } from '@/app/actions/portal';
 import { withClaims } from '@/server/db';
 import { requireSession } from '@/server/session';
 import { fmtDateTime } from '@/lib/format';
@@ -44,11 +44,17 @@ export default async function ManageTasksPage() {
         </ActionForm>
         <section className="grid gap-3">
           <div className="table-wrap"><table className="table">
-            <thead><tr><th>Task</th><th>Type</th><th>Due</th><th className="text-right">Pts</th><th>Progress</th><th>Status</th></tr></thead>
+            <thead><tr><th>Task</th><th>Type</th><th>Due</th><th className="text-right">Pts</th><th>Progress</th><th>Status</th><th></th></tr></thead>
             <tbody>{d.tasks.map((t: any) => (
               <tr key={t.id}><td className="font-semibold">{t.title}{t.unit && <div className="text-xs text-muted font-normal">{t.unit}</div>}</td><td className="text-sm">{t.type_name}</td>
                 <td className="text-sm whitespace-nowrap">{t.due_at ? fmtDateTime(t.due_at) : '—'}</td><td className="text-right tnum">{t.points}</td>
-                <td className="text-sm tnum">{t.done}/{t.assigned}{t.assignment_mode === 'open_claim' ? ' claimed' : ''}</td><td><Status value={t.status} /></td></tr>))}</tbody>
+                <td className="text-sm tnum">{t.done}/{t.assigned}{t.assignment_mode === 'open_claim' ? ' claimed' : ''}</td><td><Status value={t.status} /></td>
+                <td>{t.status === 'published' ? (
+                  <ActionForm action={closeTask} className="flex gap-1 justify-end"><input type="hidden" name="task_id" value={t.id} />
+                    <SubmitButton name="status" value="closed" className="btn btn-ghost btn-sm min-h-7 text-xs">Close</SubmitButton><SubmitButton name="status" value="cancelled" className="btn btn-ghost btn-sm min-h-7 text-xs text-signal">Cancel</SubmitButton></ActionForm>
+                ) : ['closed', 'cancelled'].includes(t.status) ? (
+                  <ActionForm action={closeTask} className="flex justify-end"><input type="hidden" name="task_id" value={t.id} /><SubmitButton name="status" value="published" className="btn btn-ghost btn-sm min-h-7 text-xs">Reopen</SubmitButton></ActionForm>
+                ) : null}</td></tr>))}</tbody>
           </table></div>
           {d.tasks.length > 0 && (
             <ActionForm action={assignTask} className="panel grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">

@@ -48,14 +48,14 @@ export default async function ApprovalsPage() {
                   <div><dt className="text-xs text-muted">Similar requests (30 days)</dt><dd className={`font-semibold ${r.similar ? 'text-harvest-text' : ''}`}>{r.similar ? `${r.similar} to this payee` : 'None'}</dd></div>
                   {r.context?.reason && <div className="sm:col-span-3"><dt className="text-xs text-muted">Reason</dt><dd>{r.context.reason}</dd></div>}
                 </dl>
-                {r.evidence_urls?.length > 0 && <div className="flex flex-wrap gap-2">{r.evidence_urls.map((u: string) => <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm border-line">Evidence ↗</a>)}</div>}
+                {r.evidence_urls?.length > 0 && <div className="flex flex-wrap gap-2">{r.evidence_urls.map((u: string) => <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">Evidence ↗</a>)}</div>}
                 {r.actions?.length > 0 && <ul className="text-sm grid gap-1 border-t border-line pt-3">{r.actions.map((a: any, i: number) => <li key={i} className={a.void ? 'line-through text-muted' : ''}><b>{a.who}</b> · {a.action}{a.note ? `: “${a.note}”` : ''} · {relTime(a.at)}</li>)}</ul>}
               </div>
-              <ActionForm action={decideApproval} className="border-t border-line bg-paper-2 p-4 sm:p-5 grid gap-3">
+              <ActionForm action={decideApproval} className="border-t border-line bg-lime-50 p-4 sm:p-5 grid gap-3">
                 <input type="hidden" name="request_id" value={r.id} />
                 <div className="field"><label htmlFor={`note-${r.id}`}>Decision note <span className="font-normal text-muted">(required to reject, return or ask)</span></label><textarea id={`note-${r.id}`} name="note" className="textarea min-h-[70px]" /></div>
                 <div className="flex flex-wrap gap-2 justify-end">
-                  <SubmitButton name="decision" value="clarify" className="btn btn-ghost border-line">Ask a question</SubmitButton>
+                  <SubmitButton name="decision" value="clarify" className="btn btn-secondary">Ask a question</SubmitButton>
                   <SubmitButton name="decision" value="return" className="btn btn-secondary">Return for revision</SubmitButton>
                   <SubmitButton name="decision" value="reject" className="btn btn-danger">Reject</SubmitButton>
                   <SubmitButton name="decision" value="approve" className="btn btn-primary">Approve</SubmitButton>

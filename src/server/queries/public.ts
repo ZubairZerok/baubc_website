@@ -11,7 +11,7 @@ export const getSettings = cache(async () => {
 });
 
 export type EventRow = {
-  id: string; slug: string; title: string; title_bn: string | null; subtitle: string | null; summary: string | null; body: string | null;
+  id: string; slug: string; title: string; subtitle: string | null; summary: string | null; body: string | null;
   category: string; status: string; venue: string | null; venue_detail: string | null; starts_at: string | null; ends_at: string | null;
   date_label: string | null; reg_opens_at: string | null; reg_closes_at: string | null; featured: boolean; eligibility: string | null;
   refund_policy: string | null; cover_tone: string; contact_email: string | null; is_online: boolean;
@@ -37,14 +37,14 @@ export async function getAvailability(eventId: string) {
 export const getEventPeople = cache(async (eventId: string) =>
   anon((tx) => tx.query(`select name, role, title, bio from app.event_people where event_id = $1 order by sort`, [eventId])));
 
-export type PostRow = { id: string; slug: string; kind: string; series: string | null; episode_no: number | null; title: string; title_bn: string | null; dek: string | null; body: string | null; topics: string[]; cover_tone: string; cover_label: string | null; facebook_url: string | null; youtube_url: string | null; author_name: string | null; stats: any; published_at: string | null };
+export type PostRow = { id: string; slug: string; kind: string; series: string | null; episode_no: number | null; title: string; dek: string | null; body: string | null; topics: string[]; cover_tone: string; cover_label: string | null; facebook_url: string | null; youtube_url: string | null; author_name: string | null; stats: any; published_at: string | null };
 export const getPosts = cache(async () =>
   anon((tx) => tx.query<PostRow>(`select * from app.posts where status = 'published' order by published_at desc nulls last`)));
 export const getPost = cache(async (slug: string) =>
   anon((tx) => tx.one<PostRow>(`select * from app.posts where slug = $1 and status = 'published'`, [slug])));
 
 export const getWings = cache(async () =>
-  anon((tx) => tx.query(`select id::text, slug, name, name_bn, summary, responsibilities, kind from app.org_units where is_public order by sort, name`)));
+  anon((tx) => tx.query(`select id::text, slug, name, summary, responsibilities, kind from app.org_units where is_public order by sort, name`)));
 
 export const getPublicMembers = cache(async () => anon((tx) => tx.query(`select * from app.public_members()`)));
 export const getPublicAdvisors = cache(async () => anon((tx) => tx.query(`select * from app.public_advisors()`)));
@@ -54,8 +54,10 @@ export const getSocialTop = cache(async () =>
 export const getRecruitment = cache(async () =>
   anon((tx) => tx.one(`select label, status, opens_at, closes_at, intake_form_url, notes from app.membership_cycles order by (status = 'open') desc, created_at desc limit 1`)));
 export const getPublicAnnouncements = cache(async () =>
-  anon((tx) => tx.query(`select title, title_bn, body, publish_at from app.announcements order by pinned desc, publish_at desc limit 3`)));
+  anon((tx) => tx.query(`select title, body, publish_at from app.announcements order by pinned desc, publish_at desc limit 3`)));
 export const getGallery = cache(async () => anon((tx) => tx.query(`select * from app.gallery_albums order by taken_on desc nulls last, created_at desc`)));
 export const getResources = cache(async () => anon((tx) => tx.query(`select * from app.resources order by created_at desc`)));
 export const getRecognition = cache(async () =>
-  anon((tx) => tx.query(`select ra.period, ra.citation from app.recognition_awards ra order by period desc limit 1`)));
+  anon((tx) => tx.one<{ period: string; full_name: string; citation: string; wing: string | null }>(`select * from app.public_recognition()`)));
+export const getLeaderboard = cache(async (scope: 'month' | 'all') =>
+  anon((tx) => tx.query<{ rank: number; full_name: string; wing: string | null; points: number }>(`select * from app.leaderboard($1)`, [scope])));

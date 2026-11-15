@@ -30,7 +30,7 @@ export default async function ApplicationPage() {
       <ol className="grid grid-cols-5 gap-1 mb-8" aria-label="Application progress">
         {STAGES.map(([k, name, desc], i) => (
           <li key={k} className="grid gap-2">
-            <div className={`h-2 rounded-full ${i <= stage ? (d.app.status_key === 'rejected' && i === stage ? 'bg-soil' : 'bg-brand') : 'bg-paper-2'}`} />
+            <div className={`h-2 rounded-full ${i <= stage ? (d.app.status_key === 'rejected' && i === stage ? 'bg-soil' : 'bg-brand') : 'bg-lime-50'}`} />
             <span className={`label ${i <= stage ? 'text-ink' : 'text-muted'}`}>{name}</span>
             <span className="text-xs text-muted hidden sm:block">{desc}</span>
           </li>

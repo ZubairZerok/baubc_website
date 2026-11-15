@@ -1,24 +1,21 @@
 import Link from 'next/link';
-import { LogoMark } from '@/components/ui/Logo';
-import { FurrowCanvas } from '@/components/site/client';
+import { LogoTile, Mark } from '@/components/brand/Mark';
 
 export const dynamic = 'force-dynamic';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh grid lg:grid-cols-[1fr_1.1fr]">
-      <aside className="relative hidden lg:flex canopy on-canopy isolate overflow-hidden p-10 flex-col justify-between">
-        <FurrowCanvas className="-z-10 opacity-80" />
-        <Link href="/" className="flex items-center gap-3 font-display font-bold text-xl"><LogoMark size={36} />BAUBC</Link>
-        <div className="grid gap-4 max-w-md">
-          <p className="display text-6xl">Grow founders <span className="serif-i text-signal">from the field.</span></p>
-          <p className="text-canopy-muted">Accounts are created by BAUBC from applications and invitations. No one can sign themselves up.</p>
-        </div>
-      </aside>
-      <main className="flex flex-col p-5 sm:p-10">
-        <Link href="/" className="lg:hidden flex items-center gap-2 font-display font-bold mb-8"><LogoMark />BAUBC</Link>
-        <div className="my-auto w-full max-w-md mx-auto">{children}</div>
+    <div className="relative min-h-dvh isolate overflow-hidden flex flex-col">
+      <div className="hero-mesh -z-10" aria-hidden="true"><i /><i /><i /><i /></div>
+      <Mark size="64rem" className="pointer-events-none absolute -right-72 -bottom-72 -z-10 text-white/55" />
+      <header className="wrap pt-6 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 font-display font-bold text-[1.12rem]"><LogoTile size={38} />BAUBC</Link>
+        <Link href="/" className="btn btn-secondary btn-sm">Back to the site</Link>
+      </header>
+      <main className="flex-1 grid place-items-center px-4 py-10">
+        <div className="glass-strong rounded-[30px] w-full max-w-[520px] p-7 sm:p-9 page-enter">{children}</div>
       </main>
+      <p className="wrap pb-6 text-center text-xs text-ink-2">Accounts are created by BAUBC from applications and invitations. Nobody can sign themselves up.</p>
     </div>
   );
 }

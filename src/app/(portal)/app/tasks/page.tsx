@@ -34,9 +34,9 @@ export default async function TasksPage() {
               <Status value={t.status} />
             </div>
             {t.description && <p className="text-ink-2">{t.description}</p>}
-            {t.instructions && <div className="rounded-lg bg-paper-2 p-3 text-sm"><b>Instructions.</b> {t.instructions}</div>}
+            {t.instructions && <div className="rounded-lg bg-lime-50 p-3 text-sm"><b>Instructions.</b> {t.instructions}</div>}
             <p className="text-sm text-muted">{t.due_at ? `Due ${fmtDateTime(t.due_at)} (${relTime(t.due_at)})` : 'No deadline'}</p>
-            {t.links?.length > 0 && <div className="flex flex-wrap gap-2">{t.links.map((l: string) => <a key={l} href={l} target="_blank" rel="noopener noreferrer" className="text-sm underline text-link">{new URL(l).hostname}</a>)}</div>}
+            {t.links?.length > 0 && <div className="flex flex-wrap gap-2">{t.links.map((l: string) => <a key={l} href={l} target="_blank" rel="noopener noreferrer" className="text-sm underline text-brand">{new URL(l).hostname}</a>)}</div>}
             {t.submissions?.length > 0 && <ul className="text-sm grid gap-1">{t.submissions.map((s: any) => <li key={s.attempt}>Attempt {s.attempt}: <Status value={s.status} />{s.late ? ' · late' : ''}{s.feedback ? ` · “${s.feedback}”` : ''}</li>)}</ul>}
             {['assigned', 'in_progress', 'revision_requested'].includes(t.status) && (
               <ActionForm action={submitTask} className="grid gap-3 border-t border-line pt-4">

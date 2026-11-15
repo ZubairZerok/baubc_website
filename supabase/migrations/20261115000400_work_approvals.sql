@@ -410,7 +410,7 @@ begin
       where person_id = p_person and category = p_category and period_month = date_trunc('month', now() at time zone 'Asia/Dhaka')::date;
       v_amount := least(p_amount, greatest(v_cap - v_month_total, 0));
       if v_amount = 0 then
-        perform app.notify(p_person, 'points', 'Monthly cap reached in ' || p_category, 'No further points this month in this category.', '/app/points', 'cap:' || p_category || ':' || now()::date);
+        perform app.notify(p_person, 'points', 'Monthly cap reached in ' || p_category, 'No further points this month in this category.', '/app/record', 'cap:' || p_category || ':' || now()::date);
         return null;
       end if;
     end if;
@@ -419,7 +419,7 @@ begin
   values (p_person, v_amount, p_kind, p_category, p_source_type, p_source_id, p_validation, p_approval, p_reverses,
           p_reason || case when v_amount < p_amount then ' (capped from ' || p_amount || ')' else '' end, p_awarded_by)
   returning id into v_id;
-  perform app.notify(p_person, 'points', case when v_amount > 0 then '+' else '' end || v_amount || ' points', p_reason, '/app/points', 'pts:' || v_id);
+  perform app.notify(p_person, 'points', case when v_amount > 0 then '+' else '' end || v_amount || ' points', p_reason, '/app/record', 'pts:' || v_id);
   return v_id;
 end $$;
 
@@ -594,7 +594,7 @@ begin
   insert into app.point_ledger(person_id, amount, kind, category, source_type, source_id, reverses_entry_id, reason, awarded_by)
   values (v_e.person_id, -v_e.amount, 'reversal', v_e.category, v_e.source_type, v_e.source_id, v_e.id, 'Reversal: ' || p_reason, authz.current_person_id())
   returning id into v_id;
-  perform app.notify(v_e.person_id, 'points', 'Points corrected: ' || (-v_e.amount), p_reason, '/app/points', 'rev:' || v_id);
+  perform app.notify(v_e.person_id, 'points', 'Points corrected: ' || (-v_e.amount), p_reason, '/app/record', 'rev:' || v_id);
   perform app.audit('points.reversed', 'point_ledger', v_e.id::text, null, jsonb_build_object('reason', p_reason, 'reversal', v_id));
   return v_id;
 end $$;

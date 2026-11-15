@@ -11,7 +11,7 @@ export function RegisterForm({ tickets, signedIn, isMember, defaultName, default
   const [sel, setSel] = useState(open.find((t) => t.seats_left > 0)?.ticket_type_id ?? open[0]?.ticket_type_id);
   const ticket = useMemo(() => open.find((t) => t.ticket_type_id === sel), [open, sel]);
   const [idem] = useState(() => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : String(Math.random())));
-  if (!open.length) return <p className="text-muted">Registration is not open yet. Follow BAUBC on Facebook for the opening date.</p>;
+  if (!open.length) return <p className="text-muted">Registration has not opened yet. The date will be announced here and on our Facebook page.</p>;
   const membersOnly = ticket?.audience === 'members' && !isMember;
   const soldOut = (ticket?.seats_left ?? 0) <= 0;
 
@@ -20,7 +20,7 @@ export function RegisterForm({ tickets, signedIn, isMember, defaultName, default
       <fieldset className="grid gap-2">
         <legend className="field-label mb-1">Choose a ticket</legend>
         {open.map((t) => (
-          <label key={t.ticket_type_id} className={`flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition-colors ${sel === t.ticket_type_id ? 'border-link bg-paper-2' : 'border-line hover:border-line-strong'}`}>
+          <label key={t.ticket_type_id} className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition-all ${sel === t.ticket_type_id ? 'border-brand bg-lime-100 shadow-[var(--shadow-sm)]' : 'border-line bg-white/60 hover:border-line-strong'}`}>
             <input type="radio" name="tt" className="mt-1 accent-[var(--brand)]" checked={sel === t.ticket_type_id} onChange={() => setSel(t.ticket_type_id)} />
             <span className="grid gap-0.5 flex-1">
               <span className="flex justify-between gap-3 font-semibold"><span>{t.name}</span><span className="tnum">{Number(t.price) === 0 ? 'Free' : `৳ ${Number(t.price).toLocaleString('en-IN')}`}</span></span>
@@ -56,7 +56,7 @@ export function RegisterForm({ tickets, signedIn, isMember, defaultName, default
             <div className="field"><label htmlFor="r-inst">University / organisation</label><input id="r-inst" name="institution" className="input" placeholder="e.g. Bangladesh Agricultural University" /></div>
           </div>
           {ticket?.unit === 'team' && (
-            <div className="grid gap-3 rounded-xl border border-line p-4">
+            <div className="grid gap-3 rounded-2xl border border-line bg-white/60 p-4">
               <div className="field"><label htmlFor="r-team">Team name</label><input id="r-team" name="team_name" className="input" required /></div>
               <div className="field"><label htmlFor="r-members">Other team members</label>
                 <textarea id="r-members" name="team_members" className="textarea" placeholder={'One per line: Name, email\nNusrat Jahan, nusrat@example.com'} />
@@ -65,7 +65,7 @@ export function RegisterForm({ tickets, signedIn, isMember, defaultName, default
           )}
           <label className="check"><input type="checkbox" name="consent" required /> <span>I agree to the <Link href="/privacy" className="underline text-link" target="_blank">privacy notice</Link>: my details are used to run this event.</span></label>
           <label className="check"><input type="checkbox" name="photo_consent" /> <span>I am happy to appear in event photos published by BAUBC.</span></label>
-          <SubmitButton pendingText="Holding your seat…">{Number(ticket?.price ?? 0) > 0 ? 'Hold my seat and pay' : 'Register'}</SubmitButton>
+          <SubmitButton className="btn btn-primary btn-lg" pendingText="Holding your seat…">{Number(ticket?.price ?? 0) > 0 ? 'Hold my seat and pay' : 'Register'}</SubmitButton>
           {Number(ticket?.price ?? 0) > 0 && <p className="hint">Your seat is held while you pay with bKash Send Money and submit the Transaction ID. Nothing is charged here.</p>}
         </ActionForm>
       )}

@@ -4,7 +4,7 @@ import { withClaims } from '@/server/db';
 import { requireSession } from '@/server/session';
 import { env } from '@/server/env';
 import { QR } from '@/components/ui/QR';
-import { LogoMark } from '@/components/ui/Logo';
+import { LogoTile } from '@/components/brand/Mark';
 import { LedgerStamp } from '@/components/ui/Stamp';
 import { fmtDate } from '@/lib/format';
 import { PrintButton } from '../../PrintButton';
@@ -27,7 +27,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
         <div className="absolute inset-[3%] border border-[#0F3A27]/40" />
         <div className="relative h-full grid grid-rows-[auto_1fr_auto] p-[6%] gap-4">
           <header className="flex items-center justify-between">
-            <div className="flex items-center gap-3"><LogoMark size={44} /><div className="grid leading-tight"><b className="font-display text-xl">BAUBC</b><span className="text-[11px] tracking-wide uppercase text-[#6B6A5C]">Bangladesh Agricultural University Business Club</span></div></div>
+            <div className="flex items-center gap-3"><LogoTile size={44} /><div className="grid leading-tight"><b className="font-display text-xl">BAUBC</b><span className="text-[11px] tracking-wide uppercase text-[#6B6A5C]">Bangladesh Agricultural University Business Club</span></div></div>
             <span className="font-mono text-xs tracking-widest text-[#6B6A5C]">{c.serial_no}</span>
           </header>
           <div className="grid content-center gap-3 text-center justify-items-center">

@@ -15,7 +15,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
     <>
       <PageTitle label="Governance" title="Audit log">Append-only and hash-chained: each entry includes the hash of the one before, so editing history breaks the chain.</PageTitle>
       {d.chain && <div className={`panel mb-5 ${d.chain.ok ? '' : 'border-soil'}`}><b>{d.chain.ok ? '✓ Chain verified' : '✗ Chain broken'}</b> · {d.chain.checked} entries checked</div>}
-      <form className="flex gap-2 mb-3"><input name="q" defaultValue={q} className="input max-w-sm" placeholder="Filter by action or entity" aria-label="Filter" /><button className="btn btn-ghost border-line">Filter</button></form>
+      <form className="flex gap-2 mb-3"><input name="q" defaultValue={q} className="input max-w-sm" placeholder="Filter by action or entity" aria-label="Filter" /><button className="btn btn-secondary">Filter</button></form>
       <div className="table-wrap"><table className="table"><thead><tr><th>#</th><th>When</th><th>Who</th><th>Action</th><th>Entity</th><th>Details</th><th>Hash</th></tr></thead>
         <tbody>{d.rows.map((r: any) => <tr key={r.id}><td className="tnum text-muted">{r.id}</td><td className="whitespace-nowrap text-sm">{fmtDateTime(r.occurred_at)}</td><td className="text-sm">{r.actor ?? 'System'}</td><td className="text-sm font-semibold">{r.action}</td><td className="text-xs font-mono">{r.entity_type}</td><td className="text-xs text-muted max-w-[320px] truncate">{r.after ? JSON.stringify(r.after) : ''}</td><td className="font-mono text-xs text-muted">{r.hash}</td></tr>)}</tbody></table></div>
     </>

@@ -32,7 +32,7 @@ export function MfaClient({ url, anonKey, next }: { url: string; anonKey: string
 
   return (
     <div className="grid gap-6">
-      <div className="grid gap-2"><span className="label text-green">Security</span><h1 className="display-md text-4xl">Two-step verification</h1>
+      <div className="grid gap-2"><span className="eyebrow">Security</span><h1 className="display-md text-4xl">Two-step verification</h1>
         <p className="text-ink-2">{qr ? 'Your role handles money or decisions, so it needs an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password…). Scan the code, then enter the 6-digit number.' : 'Enter the 6-digit code from your authenticator app.'}</p></div>
       {qr && <div className="panel grid justify-items-center gap-3"><img src={qr} alt="Authenticator QR code" width={200} height={200} className="bg-white rounded-lg p-2" />{secret && <p className="text-xs text-muted">Or enter this key: <span className="font-mono">{secret}</span></p>}</div>}
       <form onSubmit={verify} className="grid gap-4">

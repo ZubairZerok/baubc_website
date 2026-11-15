@@ -10,7 +10,6 @@ export function EventForm({ e }: { e?: any }) {
       {e && <input type="hidden" name="id" value={e.id} />}
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="field"><label htmlFor="ev-t">Title</label><input id="ev-t" name="title" className="input" required defaultValue={e?.title} /></div>
-        <div className="field"><label htmlFor="ev-tb">Title (বাংলা)</label><input id="ev-tb" name="title_bn" className="input" lang="bn" defaultValue={e?.title_bn ?? ''} /></div>
         {!e && <div className="field"><label htmlFor="ev-s">URL slug</label><input id="ev-s" name="slug" className="input" placeholder="auto from title" /></div>}
         <div className="field"><label htmlFor="ev-sub">Subtitle</label><input id="ev-sub" name="subtitle" className="input" defaultValue={e?.subtitle ?? ''} /></div>
         <div className="field"><label htmlFor="ev-c">Category</label><select id="ev-c" name="category" className="select" defaultValue={e?.category ?? 'workshop'}>{Object.entries(CATEGORY_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>

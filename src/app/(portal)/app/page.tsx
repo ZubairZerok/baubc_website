@@ -38,7 +38,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      {welcome && <div className="panel mb-6 border-link bg-paper-2"><b>Welcome to BAUBC.</b> Your account is active. {session.hasApplication && !session.isMember ? 'You can follow your application below.' : ''}</div>}
+      {welcome && <div className="panel mb-6 border-brand bg-lime-50"><b>Welcome to BAUBC.</b> Your account is active. {session.hasApplication && !session.isMember ? 'You can follow your application below.' : ''}</div>}
       <PageTitle label={fmtDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long' })} title={`Hello, ${first}`}>
         {session.memberNo ? <>Member <span className="font-mono">{session.memberNo}</span>. </> : null}Here is what needs your attention.
       </PageTitle>
@@ -48,7 +48,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           <h2 className="label text-muted">Needs you</h2>
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {queues.map((q) => (
-              <Link key={q.href} href={q.href} className={`panel flex items-center justify-between gap-4 hover:border-line-strong transition-colors ${q.value ? '' : 'opacity-70'}`}>
+              <Link key={q.href} href={q.href} className={`panel flex items-center justify-between gap-4 lift ${q.value ? '' : 'opacity-70'}`}>
                 <span className="font-semibold">{q.label}</span>
                 <span className={`display-md text-3xl tnum ${q.value ? 'text-ink' : 'text-muted'}`}>{q.value}</span>
               </Link>
@@ -60,7 +60,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
       {data.app && !session.isMember && (
         <section className="panel mb-8 grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="heading text-xl">Your application</h2><Status value={data.app.status_key} label={data.app.label} /></div>
-          <p className="text-ink-2">Submitted {fmtDate(data.app.submitted_at)}. <Link href="/app/application" className="underline text-link">See progress and any requests →</Link></p>
+          <p className="text-ink-2">Submitted {fmtDate(data.app.submitted_at)}. <Link href="/app/application" className="underline text-brand">See progress and any requests →</Link></p>
         </section>
       )}
 
@@ -82,7 +82,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
       <div className="grid xl:grid-cols-2 gap-6">
         {session.isMember && (
           <section className="panel grid gap-3 content-start">
-            <div className="flex justify-between items-center"><h2 className="heading text-lg">Due soon</h2><Link href="/app/tasks" className="text-sm text-link underline">All tasks</Link></div>
+            <div className="flex justify-between items-center"><h2 className="heading text-lg">Due soon</h2><Link href="/app/tasks" className="text-sm text-brand underline">All tasks</Link></div>
             {data.tasks.length ? data.tasks.map((t: any) => (
               <Link key={t.id} href="/app/tasks" className="flex items-center justify-between gap-3 py-2 border-b border-line last:border-0">
                 <span className="grid"><b className="text-[.95rem]">{t.title}</b><span className="text-xs text-muted">{t.due_at ? `Due ${relTime(t.due_at)}` : 'No deadline'} · {t.points} pts</span></span>
@@ -92,7 +92,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           </section>
         )}
         <section className="panel grid gap-3 content-start">
-          <div className="flex justify-between items-center"><h2 className="heading text-lg">My events</h2><Link href="/events" className="text-sm text-link underline">Browse events</Link></div>
+          <div className="flex justify-between items-center"><h2 className="heading text-lg">My events</h2><Link href="/events" className="text-sm text-brand underline">Browse events</Link></div>
           {data.regs.length ? data.regs.map((r: any) => (
             <Link key={r.manage_token} href={`/tickets/${r.manage_token}`} className="flex items-center justify-between gap-3 py-2 border-b border-line last:border-0">
               <span className="grid"><b className="text-[.95rem]">{r.title}</b><span className="text-xs text-muted">{r.date_label ?? fmtDateTime(r.starts_at)}</span></span><Status value={r.status} />
@@ -100,14 +100,14 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           )) : <p className="text-muted text-sm">You have no upcoming registrations.</p>}
         </section>
         <section className="panel grid gap-3 content-start">
-          <div className="flex justify-between items-center"><h2 className="heading text-lg">Notices</h2><Link href="/app/notices" className="text-sm text-link underline">All notices</Link></div>
+          <div className="flex justify-between items-center"><h2 className="heading text-lg">Notices</h2><Link href="/app/notices" className="text-sm text-brand underline">All notices</Link></div>
           {data.notices.length ? data.notices.map((nn: any, i: number) => (
             <div key={i} className="py-2 border-b border-line last:border-0 grid gap-1"><b className="text-[.95rem]">{nn.pinned ? '📌 ' : ''}{nn.title}</b><p className="text-sm text-ink-2 line-clamp-2">{nn.body}</p><span className="text-xs text-muted">{relTime(nn.publish_at)} · {nn.audience}</span></div>
           )) : <Empty title="No notices">Announcements for your role appear here.</Empty>}
         </section>
         {data.activity.length > 0 && (
           <section className="panel grid gap-3 content-start">
-            <div className="flex justify-between items-center"><h2 className="heading text-lg">Recent activity</h2><Link href="/app/admin/audit" className="text-sm text-link underline">Audit log</Link></div>
+            <div className="flex justify-between items-center"><h2 className="heading text-lg">Recent activity</h2><Link href="/app/admin/audit" className="text-sm text-brand underline">Audit log</Link></div>
             {data.activity.map((a: any, i: number) => (
               <div key={i} className="flex justify-between gap-3 text-sm py-1.5 border-b border-line last:border-0"><span><b>{a.actor ?? 'System'}</b> · {a.action.replace(/[._]/g, ' ')}</span><span className="text-muted whitespace-nowrap">{relTime(a.occurred_at)}</span></div>
             ))}
@@ -115,7 +115,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
         )}
         {data.health.length > 0 && (
           <section className="panel grid gap-3 content-start">
-            <div className="flex justify-between items-center"><h2 className="heading text-lg">Integration health</h2><Link href="/app/admin/integrations" className="text-sm text-link underline">Manage</Link></div>
+            <div className="flex justify-between items-center"><h2 className="heading text-lg">Integration health</h2><Link href="/app/admin/integrations" className="text-sm text-brand underline">Manage</Link></div>
             {data.health.map((h: any) => (
               <div key={h.provider} className="flex justify-between items-center gap-3 text-sm py-1.5 border-b border-line last:border-0"><span>{h.label}</span><span className="flex items-center gap-2">{h.last_success_at && <span className="text-xs text-muted">{relTime(h.last_success_at)}</span>}<Status value={h.status} /></span></div>
             ))}

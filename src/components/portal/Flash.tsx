@@ -13,8 +13,8 @@ export function Flash({ message }: { message: string | null }) {
   }, [message]);
   if (!msg) return null;
   return (
-    <div role="status" className="fixed z-50 bottom-4 left-1/2 -translate-x-1/2 max-w-[92vw] rounded-xl bg-ink text-paper px-4 py-3 shadow-[var(--shadow)] flex items-center gap-3 text-sm">
-      <span className="size-2 rounded-full bg-signal shrink-0" aria-hidden="true" />
+    <div role="status" className="fade-up fixed z-50 bottom-5 left-1/2 -translate-x-1/2 max-w-[92vw] rounded-full bg-ink text-white pl-4 pr-3 py-2.5 shadow-[var(--shadow)] flex items-center gap-3 text-sm">
+      <span className="size-2.5 diamond-clip bg-lime-300 shrink-0" aria-hidden="true" />
       <span>{msg}</span>
       <button type="button" onClick={() => setMsg(null)} className="ml-2 opacity-70 hover:opacity-100" aria-label="Dismiss">✕</button>
     </div>

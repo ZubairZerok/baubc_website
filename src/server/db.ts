@@ -1,5 +1,6 @@
 import 'server-only';
-import { readFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { env, isPreview } from './env';
 
@@ -28,17 +29,24 @@ async function createPreviewDriver(): Promise<Driver> {
   const root = process.cwd();
   // Persist between restarts in local dev; in serverless use memory (preview only).
   const dataDir = process.env.VERCEL ? undefined : join(root, '.data', 'preview-db');
-  if (dataDir && !existsSync(join(root, '.data'))) mkdirSync(join(root, '.data'), { recursive: true });
+  const mig = join(root, 'supabase', 'migrations');
+  const files = [
+    join(root, 'supabase', 'preview', '00_shim.sql'),
+    ...readdirSync(mig).filter((f) => f.endsWith('.sql')).sort().map((f) => join(mig, f)),
+    join(root, 'supabase', 'preview', '10_sample_data.sql'),
+  ];
+  // The preview database is rebuilt whenever the SQL it is made from changes, so it can never drift from the migrations.
+  const sqlHash = createHash('sha256').update(files.map((f) => readFileSync(f, 'utf8')).join('\n')).digest('hex');
+  const stamp = join(root, '.data', 'preview-db.hash');
+  if (dataDir) {
+    if (!existsSync(join(root, '.data'))) mkdirSync(join(root, '.data'), { recursive: true });
+    if (existsSync(dataDir) && (!existsSync(stamp) || readFileSync(stamp, 'utf8') !== sqlHash)) rmSync(dataDir, { recursive: true, force: true });
+  }
   const db = await PGlite.create(dataDir ? { dataDir } : undefined);
   const ready = await db.query<{ ok: boolean }>(`select to_regclass('app.people') is not null as ok`);
   if (!ready.rows[0]?.ok) {
-    const mig = join(root, 'supabase', 'migrations');
-    const files = [
-      join(root, 'supabase', 'preview', '00_shim.sql'),
-      ...readdirSync(mig).filter((f) => f.endsWith('.sql')).sort().map((f) => join(mig, f)),
-      join(root, 'supabase', 'preview', '10_sample_data.sql'),
-    ];
     for (const f of files) await db.exec(readFileSync(f, 'utf8'));
+    if (dataDir) writeFileSync(stamp, sqlHash);
   }
   let chain: Promise<unknown> = Promise.resolve();
   return {

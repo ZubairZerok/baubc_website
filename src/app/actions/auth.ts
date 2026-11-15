@@ -10,6 +10,9 @@ import { rateLimit } from '@/server/ratelimit';
 import { friendlyError } from '@/server/errors';
 import type { ActionResult } from '@/components/ui/forms';
 
+const passwordMessage = (m?: string) => !m ? 'We could not create your account. Please try the link again.'
+  : /weak|pwned|breach/i.test(m) ? 'Choose a stronger password: this one is too simple or has appeared in a data breach.'
+  : /already|registered|exists/i.test(m) ? 'An account already exists for this email. Sign in instead, or reset your password.' : m;
 const safeNext = (n: unknown) => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : '/app');
 
 export async function previewSignIn(fd: FormData) {
@@ -37,6 +40,7 @@ export async function passwordSignIn(_: ActionResult, fd: FormData): Promise<Act
 }
 
 export async function googleSignIn(fd: FormData) {
+  if (!hasSupabaseAuth || !env.googleSignIn) redirect('/login');
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${env.siteUrl}/auth/callback?next=${encodeURIComponent(safeNext(fd.get('next')))}` } });
   if (data.url) redirect(data.url);
@@ -69,13 +73,23 @@ export async function activateAccount(_: ActionResult, fd: FormData): Promise<Ac
   if (password.length < 10) return { ok: false, message: 'Use at least 10 characters.' };
   if (password !== String(fd.get('confirm'))) return { ok: false, message: 'The two passwords do not match.' };
   try {
-    const admin = supabaseAdmin();
-    const { data, error } = await admin.auth.admin.createUser({ email: prov.email, password, email_confirm: true, user_metadata: { full_name: prov.full_name } });
-    if (error || !data.user) throw new Error(error?.message.includes('weak') ? 'Choose a stronger password (it was found in a breach list or is too simple).' : error?.message ?? 'Could not create account');
-    await asSystem((tx) => tx.query(`select app.consume_provision($1, $2::uuid)`, [hash, data.user.id]));
     const s = await supabaseServer();
-    await s.auth.signInWithPassword({ email: prov.email, password });
-  } catch (e) { return { ok: false, message: e instanceof Error && !e.message.startsWith('ACTIVATION') ? e.message : friendlyError(e) }; }
+    let userId: string;
+    if (env.supabaseSecret) {
+      const { data, error } = await supabaseAdmin().auth.admin.createUser({ email: prov.email, password, email_confirm: true, user_metadata: { full_name: prov.full_name } });
+      if (error || !data.user) throw new Error(passwordMessage(error?.message));
+      userId = data.user.id;
+    } else {
+      // No secret key needed: the database's sign-up gate only lets this through because the request carries the hash of a live activation token.
+      const { data, error } = await s.auth.signUp({ email: prov.email, password, options: { data: { full_name: prov.full_name, provision_hash: hash } } });
+      if (error || !data.user?.id || !data.user.identities?.length) throw new Error(passwordMessage(error?.message));
+      userId = data.user.id;
+    }
+    await asSystem((tx) => tx.query(`select app.consume_provision($1, $2::uuid)`, [hash, userId]));
+    const { error: signInError } = await s.auth.signInWithPassword({ email: prov.email, password });
+    if (signInError) return { ok: true, message: 'Your account is ready. Please sign in with your new password.' };
+    await s.auth.updateUser({ data: { provision_hash: null } });
+  } catch (e) { return { ok: false, message: e instanceof Error && !/^[A-Z_]+(:|$)/.test(e.message) ? e.message : friendlyError(e) }; }
   redirect('/app?welcome=1');
 }
 

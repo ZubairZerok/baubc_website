@@ -7,7 +7,7 @@ import { fmtDateTime } from '@/lib/format';
 export default async function NoticesPage() {
   const session = await requireSession('/app/notices');
   const d = await withClaims(session.claims, async (tx) => ({
-    notices: await tx.query(`select id, title, title_bn, body, audience, pinned, publish_at from app.announcements order by pinned desc, publish_at desc limit 50`),
+    notices: await tx.query(`select id, title, body, audience, pinned, publish_at from app.announcements order by pinned desc, publish_at desc limit 50`),
     resources: await tx.query(`select title, description, url, category, audience from app.resources where audience <> 'public' order by created_at desc`),
   }));
   return (
@@ -18,7 +18,6 @@ export default async function NoticesPage() {
           {d.notices.length ? d.notices.map((n: any) => (
             <article key={n.id} className="panel grid gap-2">
               <div className="flex flex-wrap items-center gap-2 justify-between"><h2 className="heading text-lg">{n.title}</h2><span className="flex gap-2">{n.pinned && <span className="chip chip-lock">Pinned</span>}<span className="chip chip-info">{n.audience}</span></span></div>
-              {n.title_bn && <p className="text-green" lang="bn">{n.title_bn}</p>}
               <p className="text-ink-2 whitespace-pre-line">{n.body}</p>
               <span className="text-xs text-muted">{fmtDateTime(n.publish_at)}</span>
             </article>

@@ -27,11 +27,11 @@ export default async function ReviewPage() {
                 <div className="flex flex-wrap gap-2 items-center"><span className="label text-muted">{s.type_name}{s.unit ? ` · ${s.unit}` : ''}</span>{s.is_late && <span className="chip chip-pend">Late</span>}{s.attempt_no > 1 && <span className="chip chip-info">Attempt {s.attempt_no}</span>}</div>
                 <h2 className="heading text-xl">{s.title}</h2>
                 <p className="text-sm text-muted"><b className="text-ink">{s.member}</b> · {relTime(s.submitted_at)} · {s.prior_ok} approved before</p>
-                <div className="rounded-lg bg-paper-2 p-3 whitespace-pre-line">{s.content}</div>
-                {s.link_url && <a href={s.link_url} target="_blank" rel="noopener noreferrer" className="underline text-link break-all text-sm">{s.link_url}</a>}
+                <div className="rounded-lg bg-lime-50 p-3 whitespace-pre-line">{s.content}</div>
+                {s.link_url && <a href={s.link_url} target="_blank" rel="noopener noreferrer" className="underline text-brand break-all text-sm">{s.link_url}</a>}
                 <div className="flex flex-wrap gap-2">{(s.rules ?? []).map((r: any) => <span key={r.rule} className={`chip ${r.outcome === 'pass' ? 'chip-ok' : 'chip-pend'}`} title={r.comment ?? ''}>{r.rule.replace(/_/g, ' ')}: {r.outcome}</span>)}</div>
               </div>
-              <ActionForm action={reviewSubmission} className="p-5 grid gap-3 content-start bg-paper-2/40">
+              <ActionForm action={reviewSubmission} className="p-5 grid gap-3 content-start bg-lime-50/40">
                 <input type="hidden" name="submission_id" value={s.id} />
                 {s.instructions && <p className="text-sm"><b>Brief:</b> {s.instructions}</p>}
                 <div className="field"><label htmlFor={`p-${s.id}`}>Points (max {s.max_points})</label><input id={`p-${s.id}`} name="points" type="number" min={0} max={s.max_points} defaultValue={s.points} className="input w-32 tnum" />

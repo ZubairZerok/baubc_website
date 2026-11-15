@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { withClaims } from '@/server/db';
 import { requireSession } from '@/server/session';
-import { LogoMark } from '@/components/ui/Logo';
+import { LogoTile } from '@/components/brand/Mark';
 import { fmtDate } from '@/lib/format';
 import { PrintButton } from '../PrintButton';
 
@@ -26,10 +26,10 @@ export default async function CvPage() {
       <div className="no-print flex gap-3 flex-wrap justify-center"><Link href="/app/record" className="btn btn-ghost">Back</Link><PrintButton /><span className="text-sm text-muted self-center">Built only from verified BAUBC records. Skills are self-declared.</span></div>
       <article className="w-full max-w-[820px] bg-white text-[#151913] p-10 shadow-[var(--shadow)] print:shadow-none grid gap-6" style={{ colorScheme: 'light' }}>
         <header className="flex justify-between gap-6 items-start border-b-2 border-[#0F3A27] pb-5">
-          <div className="grid gap-1"><h1 className="display-md text-4xl">{p.full_name}</h1>{p.full_name_bn && <p className="text-[#0B7A4B]" lang="bn">{p.full_name_bn}</p>}
+          <div className="grid gap-1"><h1 className="display-md text-4xl">{p.full_name}</h1>
             <p className="text-sm text-[#6B6A5C]">{[p.academic_department, p.academic_session, p.batch_level].filter(Boolean).join(' · ')} · Bangladesh Agricultural University</p>
             <p className="text-sm text-[#6B6A5C]">{p.email}{p.linkedin_url ? ` · ${p.linkedin_url.replace('https://', '')}` : ''}</p></div>
-          <div className="grid justify-items-end gap-1 text-right"><LogoMark size={40} /><span className="font-mono text-xs">{p.member_no ?? ''}</span><span className="text-xs text-[#6B6A5C]">{d.pts!.v} verified points</span></div>
+          <div className="grid justify-items-end gap-1 text-right"><LogoTile size={40} /><span className="font-mono text-xs">{p.member_no ?? ''}</span><span className="text-xs text-[#6B6A5C]">{d.pts!.v} verified points</span></div>
         </header>
         {p.bio && <p className="text-[.95rem]">{p.bio}</p>}
         {d.units.length > 0 && <Section title="Club positions">{d.units.map((u: any, i: number) => <div key={i} className="flex justify-between gap-4 text-[.95rem]"><span><b>{u.position_title}</b>, {u.name}</span><span className="text-[#6B6A5C]">{u.term_label}</span></div>)}</Section>}

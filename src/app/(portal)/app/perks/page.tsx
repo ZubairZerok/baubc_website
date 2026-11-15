@@ -24,7 +24,7 @@ export default async function PerksPage() {
               <p className="text-ink-2 text-sm">{p.description}</p>
               {p.terms && <p className="text-xs text-muted">{p.terms}</p>}
               {p.mine ? (
-                <div className="rounded-lg bg-paper-2 p-3"><span className="label text-muted">Yours</span><p className="font-mono break-all">{p.mode === 'link' ? <a href={p.mine} target="_blank" rel="noopener noreferrer" className="underline text-link">{p.mine}</a> : p.mine}</p></div>
+                <div className="rounded-2xl lime-wash border border-line p-3"><span className="label text-muted">Yours</span><p className="font-mono break-all">{p.mode === 'link' ? <a href={p.mine} target="_blank" rel="noopener noreferrer" className="underline text-brand">{p.mine}</a> : p.mine}</p></div>
               ) : (
                 <ActionForm action={claimPerk}><input type="hidden" name="perk_id" value={p.id} />
                   <SubmitButton className="btn btn-secondary btn-sm" disabled={d.points!.v < p.min_points}>{d.points!.v < p.min_points ? `Needs ${p.min_points} verified points` : 'Claim'}</SubmitButton></ActionForm>

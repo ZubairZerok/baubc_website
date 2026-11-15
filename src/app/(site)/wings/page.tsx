@@ -1,28 +1,35 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Arrow, RAYS } from '@/components/brand/Mark';
 import { PageHero } from '@/components/site/bits';
+import { WingsBurst } from '@/components/site/client';
 import { getWings } from '@/server/queries/public';
-import { getLang } from '@/lib/lang';
-import { pick } from '@/lib/i18n';
 
-export const metadata: Metadata = { title: 'Wings', description: 'The wings and teams that run BAUBC.' };
+export const metadata: Metadata = { title: 'Wings', description: 'The six wings that run BAUBC.' };
 
 export default async function WingsPage() {
-  const [lang, wings] = await Promise.all([getLang(), getWings()]);
+  const wings = await getWings();
   return (
     <>
-      <PageHero label="Wings" title={<>Six wings, <span className="serif-i">one club</span></>} bn="উইং ও টিম">Every member belongs to a wing. Wing leads assign tasks, review work and recommend recognition.</PageHero>
-      <div className="wrap py-12 grid md:grid-cols-2 gap-5">
+      <PageHero label="Wings" title={<>Six rays. <em className="serif-i text-brand">Six wings.</em></>}>Every member belongs to a wing. Leads hand out the work, review it and put names forward for recognition.</PageHero>
+      <section className="wrap py-16"><div className="reveal" data-r="scale"><WingsBurst wings={wings as any} /></div></section>
+      <section className="wrap pb-6 grid md:grid-cols-2 gap-5">
         {wings.map((w: any, i: number) => (
-          <section id={w.slug} key={w.slug} className="panel grid gap-4 scroll-mt-24 reveal">
-            <div className="flex items-start justify-between gap-4">
-              <div className="grid gap-1"><span className="label text-muted">Wing {String(i + 1).padStart(2, '0')}</span><h2 className="heading text-2xl">{pick(lang, w.name, w.name_bn)}</h2>
-              {w.name_bn && lang === 'en' && <p className="text-green" lang="bn">{w.name_bn}</p>}</div>
+          <article id={w.slug} key={w.slug} className="panel spot lift grid grid-cols-[auto_1fr] gap-5 scroll-mt-28 reveal" style={{ ['--d' as any]: i % 2 }}>
+            <svg viewBox="120 90 820 820" className="size-20 shrink-0" aria-hidden="true">{RAYS.map((r, j) => <path key={r.id} d={r.d} fill={j === i % 6 ? '#016737' : 'rgba(1,103,55,.14)'} />)}</svg>
+            <div className="grid gap-3 content-start">
+              <span className="eyebrow">Wing {String(i + 1).padStart(2, '0')}</span>
+              <h2 className="display-md text-[1.9rem]">{w.name}</h2>
+              {w.summary && <p className="text-ink-2">{w.summary}</p>}
+              {w.responsibilities?.length > 0 && <ul className="flex flex-wrap gap-2">{w.responsibilities.map((r: string) => <li key={r} className="chip chip-ok">{r}</li>)}</ul>}
             </div>
-            {w.summary && <p className="text-ink-2">{w.summary}</p>}
-            {w.responsibilities?.length > 0 && <ul className="grid gap-1.5 text-sm">{w.responsibilities.map((r: string) => <li key={r} className="flex gap-2"><span className="text-green">—</span>{r}</li>)}</ul>}
-          </section>
+          </article>
         ))}
-      </div>
+      </section>
+      <section className="wrap pt-10"><div className="glass-strong rounded-[28px] p-8 md:p-10 flex flex-wrap items-center justify-between gap-5 reveal">
+        <p className="display-md text-[clamp(1.6rem,1.2rem+1.4vw,2.4rem)] max-w-[22ch]">Know which ray is yours?</p>
+        <Link href="/join" className="btn btn-primary btn-lg">Apply to join <Arrow /></Link>
+      </div></section>
     </>
   );
 }

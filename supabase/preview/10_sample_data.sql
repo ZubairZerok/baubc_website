@@ -63,8 +63,7 @@ insert into app.approval_mandates(person_id, categories, max_amount, granted_by)
   ('b0000000-0000-4000-8000-000000000003', array['finance_disbursement','finance_refund','points_award'], 50000, 'b0000000-0000-4000-8000-000000000001'),
   ('b0000000-0000-4000-8000-000000000004', array['finance_disbursement','finance_refund'], 20000, 'b0000000-0000-4000-8000-000000000001');
 
-update app.membership_cycles set status = 'open', opens_at = now() - interval '5 days', closes_at = now() + interval '25 days',
-  intake_form_url = 'https://forms.gle/preview-form-link' where label = '2026–27';
+update app.membership_cycles set status = 'open', opens_at = now() - interval '5 days', closes_at = now() + interval '25 days' where label = '2026–27';
 
 -- members
 insert into app.memberships(person_id, member_no, status_key, finalized_at)
@@ -236,3 +235,13 @@ select 'achievement', 'BAUBC-CERT-2026-000001', 'PREVIEWCERT0001', 'b0000000-000
        'Designed the DECODED visual identity', 'Certificate of Appreciation', id, 'b0000000-0000-4000-8000-000000000001'
 from app.achievement_records where title = 'Designed the DECODED visual identity';
 insert into app.counters(key, value) values ('cert_2026', 1) on conflict (key) do update set value = 1;
+
+-- last month's Member of the Month (shown on the home page)
+with a as (
+  insert into app.achievement_records(person_id, kind, title, description, occurred_on, issued_by, verified_by, verified_at, status)
+  values ('b0000000-0000-4000-8000-00000000000b', 'recognition', 'Member of the Month', 'Designed the full DECODED poster series and never missed a deadline.',
+          (date_trunc('month', now()) - interval '1 month')::date, 'b0000000-0000-4000-8000-000000000006', 'b0000000-0000-4000-8000-000000000001', now(), 'active')
+  returning id)
+insert into app.recognition_awards(period, person_id, citation, decided_by, achievement_id)
+select (date_trunc('month', now()) - interval '1 month')::date, 'b0000000-0000-4000-8000-00000000000b',
+       'Designed the full DECODED poster series and never missed a deadline.', 'b0000000-0000-4000-8000-000000000006', id from a;

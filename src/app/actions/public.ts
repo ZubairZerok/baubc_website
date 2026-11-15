@@ -98,9 +98,9 @@ export async function applyAction(_: ActionResult, fd: FormData): Promise<Action
   if (!fd.get('consent')) return { ok: false, message: 'Please agree to the privacy notice.' };
   const payload = {
     response_id: `native:${str(fd, 'email').toLowerCase()}:${new Date().toISOString().slice(0, 10)}`,
-    email: str(fd, 'email'), full_name: str(fd, 'full_name'), full_name_bn: str(fd, 'full_name_bn'), student_id: str(fd, 'student_id'),
+    email: str(fd, 'email'), full_name: str(fd, 'full_name'), student_id: str(fd, 'student_id'),
     department: str(fd, 'department'), session: str(fd, 'session'), batch: str(fd, 'batch'), phone: str(fd, 'phone'),
-    facebook_url: str(fd, 'facebook_url'), linkedin_url: str(fd, 'linkedin_url'), bio: str(fd, 'bio'),
+    facebook_url: /facebook\.com/i.test(str(fd, 'facebook_url')) ? str(fd, 'facebook_url') : '', linkedin_url: /linkedin\.com/i.test(str(fd, 'facebook_url')) ? str(fd, 'facebook_url') : '', bio: '',
     interests: str(fd, 'interests').split(',').map((s) => s.trim()).filter(Boolean),
     skills: str(fd, 'skills').split(',').map((s) => s.trim()).filter(Boolean),
     experience: str(fd, 'experience'), motivation: str(fd, 'motivation'),

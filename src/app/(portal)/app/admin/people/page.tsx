@@ -1,6 +1,6 @@
 import { PageTitle } from '@/components/portal/Shell';
 import { ActionForm, SubmitButton } from '@/components/ui/forms';
-import { confirmChange, grantMandate, grantRole, invitePerson, revokeRole } from '@/app/actions/portal';
+import { confirmChange, grantMandate, grantRole, invitePerson, resendActivation, revokeMandate, revokeRole, setAccountStatus } from '@/app/actions/portal';
 import { withClaims } from '@/server/db';
 import { can, requireSession } from '@/server/session';
 import { fmtDate, fmtMoney, relTime } from '@/lib/format';
@@ -11,7 +11,7 @@ export default async function PeopleAdmin({ searchParams }: { searchParams: Prom
   const d = await withClaims(session.claims, async (tx) => ({
     people: await tx.query(`select p.id, p.full_name, p.email, p.kind, p.status, p.user_id is not null activated, m.member_no,
         coalesce((select jsonb_agg(jsonb_build_object('id', ra.id, 'role', ra.role_key, 'unit', u.name)) from app.role_assignments ra left join app.org_units u on u.id = ra.scope_id where ra.person_id = p.id and ra.revoked_at is null), '[]') roles,
-        coalesce((select jsonb_agg(jsonb_build_object('cats', am.categories, 'max', am.max_amount)) from app.approval_mandates am where am.person_id = p.id and am.revoked_at is null), '[]') mandates
+        coalesce((select jsonb_agg(jsonb_build_object('id', am.id, 'cats', am.categories, 'max', am.max_amount)) from app.approval_mandates am where am.person_id = p.id and am.revoked_at is null), '[]') mandates
       from app.people p left join app.memberships m on m.person_id = p.id
       where $1::text is null or p.full_name ilike '%' || $1 || '%' or p.email ilike '%' || $1 || '%' order by p.kind, p.full_name limit 200`, [q ?? null]),
     roles: await tx.query(`select key, name, is_privileged from app.roles order by sort`),
@@ -28,7 +28,7 @@ export default async function PeopleAdmin({ searchParams }: { searchParams: Prom
             <ActionForm key={c.id} action={confirmChange} className="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-line last:border-0">
               <input type="hidden" name="id" value={c.id} />
               <span><b>{c.summary}</b><span className="text-sm text-muted"> · requested by {c.by} {relTime(c.created_at)} · expires {fmtDate(c.expires_at)}</span></span>
-              {c.mine ? <span className="text-sm text-muted">Another Super Admin must confirm</span> : <span className="flex gap-2"><SubmitButton name="decision" value="confirm" className="btn btn-primary btn-sm">Confirm 🔐</SubmitButton><SubmitButton name="decision" value="reject" className="btn btn-ghost btn-sm border-line">Reject</SubmitButton></span>}
+              {c.mine ? <span className="text-sm text-muted">Another Super Admin must confirm</span> : <span className="flex gap-2"><SubmitButton name="decision" value="confirm" className="btn btn-primary btn-sm">Confirm 🔐</SubmitButton><SubmitButton name="decision" value="reject" className="btn btn-secondary btn-sm">Reject</SubmitButton></span>}
             </ActionForm>
           ))}
         </section>
@@ -71,15 +71,26 @@ export default async function PeopleAdmin({ searchParams }: { searchParams: Prom
           </ActionForm>
         )}
       </div>
-      <form className="flex gap-2 mb-3"><input name="q" defaultValue={q} className="input max-w-sm" placeholder="Search name or email" aria-label="Search people" /><button className="btn btn-ghost border-line">Search</button></form>
+      <form className="flex gap-2 mb-3"><input name="q" defaultValue={q} className="input max-w-sm" placeholder="Search name or email" aria-label="Search people" /><button className="btn btn-secondary">Search</button></form>
       <div className="table-wrap"><table className="table"><thead><tr><th>Person</th><th>Type</th><th>Roles & mandates</th><th>Account</th></tr></thead>
         <tbody>{d.people.map((p: any) => (
           <tr key={p.id}><td><b>{p.full_name}</b><div className="text-xs text-muted">{p.email}{p.member_no ? ` · ${p.member_no}` : ''}</div></td><td className="text-sm">{p.kind}</td>
             <td className="grid gap-1">{p.roles.map((r: any) => (
               <ActionForm key={r.id} action={revokeRole} className="flex items-center gap-2 text-sm"><input type="hidden" name="assignment_id" value={r.id} /><span className="chip chip-info">{r.role}{r.unit ? ` · ${r.unit}` : ''}</span>
                 {can(session, 'rbac.manage') && <><input name="reason" className="input min-h-7 text-xs w-28" placeholder="reason" /><SubmitButton className="btn btn-ghost btn-sm min-h-7 text-xs">Revoke</SubmitButton></>}</ActionForm>))}
-              {p.mandates.map((m: any, i: number) => <span key={i} className="text-xs text-muted">Mandate: {m.cats.join(', ')} up to {fmtMoney(m.max)}</span>)}</td>
-            <td className="text-sm">{p.activated ? 'Active' : 'Invited'}{p.status !== 'active' ? ` · ${p.status}` : ''}</td></tr>))}</tbody></table></div>
+              {p.mandates.map((m: any) => (
+                <ActionForm key={m.id} action={revokeMandate} className="flex items-center gap-2 text-xs"><input type="hidden" name="id" value={m.id} /><span className="chip chip-lock">Mandate · {m.cats.map((c: string) => c.replace(/_/g, ' ')).join(', ')} · up to {fmtMoney(m.max)}</span>
+                  {session.isSuperAdmin && <><input name="reason" className="input min-h-7 text-xs w-28" placeholder="reason" aria-label="Reason" /><SubmitButton className="btn btn-ghost btn-sm min-h-7 text-xs">Revoke</SubmitButton></>}</ActionForm>))}</td>
+            <td className="text-sm">
+              <span className={`chip ${p.status !== 'active' ? 'chip-bad' : p.activated ? 'chip-ok' : 'chip-pend'}`}>{p.status !== 'active' ? p.status : p.activated ? 'Active' : 'Invited'}</span>
+              {!p.activated && can(session, 'identity.invite') && <ActionForm action={resendActivation} className="mt-1.5"><input type="hidden" name="person_id" value={p.id} /><SubmitButton className="btn btn-ghost btn-sm min-h-7 text-xs">Resend link</SubmitButton></ActionForm>}
+              {session.isSuperAdmin && p.id !== session.personId && p.activated && (
+                <details className="mt-1.5"><summary className="cursor-pointer text-xs text-muted hover:text-ink">{p.status === 'active' ? 'Suspend…' : 'Reactivate…'}</summary>
+                  <ActionForm action={setAccountStatus} className="grid gap-1.5 mt-1.5"><input type="hidden" name="person_id" value={p.id} /><input type="hidden" name="status" value={p.status === 'active' ? 'suspended' : 'active'} />
+                    <input name="reason" className="input min-h-7 text-xs" placeholder="Reason (recorded)" aria-label="Reason" required /><SubmitButton className={`btn btn-sm min-h-7 text-xs ${p.status === 'active' ? 'btn-danger' : 'btn-secondary'}`}>{p.status === 'active' ? 'Suspend account' : 'Reactivate'}</SubmitButton></ActionForm></details>
+              )}
+            </td></tr>))}</tbody></table></div>
+      <p className="hint mt-3"><a className="underline" href="/app/export/members">Download the member list (CSV)</a></p>
     </>
   );
 }

@@ -3,14 +3,17 @@ import 'server-only';
 export const env = {
   siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, ''),
   databaseUrl: process.env.DATABASE_URL || '',
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '',
+  // The club's Supabase project. Both values are public by design (the publishable key only works through row-level security).
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://oinrhzcawnxkqvjyfbja.supabase.co',
+  supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nUWO8j7-7msDVYZVeCEBew_a3-023rY',
   supabaseSecret: process.env.SUPABASE_SECRET_KEY || '',
   resendKey: process.env.RESEND_API_KEY || '',
   emailFrom: process.env.EMAIL_FROM || 'BAUBC <onboarding@resend.dev>',
   formSecret: process.env.GOOGLE_FORM_WEBHOOK_SECRET || '',
   gmailSecret: process.env.GMAIL_WEBHOOK_SECRET || '',
   cronSecret: process.env.CRON_SECRET || '',
+  setupToken: process.env.SETUP_TOKEN || '',
+  googleSignIn: process.env.AUTH_GOOGLE_ENABLED === 'true',
   previewSecret: process.env.PREVIEW_SECRET || 'baubc-preview-mode-not-for-production-use-0001',
 };
 

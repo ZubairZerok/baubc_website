@@ -3,7 +3,7 @@ import { PageTitle, Stat } from '@/components/portal/Shell';
 import { Status } from '@/components/ui/Status';
 import { LedgerStamp } from '@/components/ui/Stamp';
 import { Empty } from '@/components/ui/Empty';
-import { GrowthRings } from '@/components/portal/GrowthRings';
+import { RayChart } from '@/components/portal/RayChart';
 import { withClaims } from '@/server/db';
 import { requireSession } from '@/server/session';
 import { fmtDate } from '@/lib/format';
@@ -12,7 +12,7 @@ export default async function RecordPage() {
   const session = await requireSession('/app/record');
   const d = await withClaims(session.claims, async (tx) => ({
     ledger: await tx.query(`select id::text, amount, kind, category, reason, created_at, reverses_entry_id::text from app.point_ledger where person_id = authz.current_person_id() order by id desc limit 100`),
-    byYear: await tx.query(`select extract(year from period_month)::int y, category, sum(amount)::int pts from app.point_ledger where person_id = authz.current_person_id() group by 1, 2 order by 1`),
+    byCat: await tx.query(`select category, sum(amount)::int pts from app.point_ledger where person_id = authz.current_person_id() group by 1`),
     ach: await tx.query(`select id, kind, title, description, occurred_on, status from app.achievement_records where person_id = authz.current_person_id() order by occurred_on desc`),
     certs: await tx.query(`select serial_no, verification_code, title, subtitle, issued_at, revoked_at from app.issued_documents where recipient_person_id = authz.current_person_id() order by issued_at desc`),
     units: await tx.query(`select u.name, um.position_title, um.term_label, um.ended_at from app.unit_memberships um join app.org_units u on u.id = um.unit_id where um.person_id = authz.current_person_id()`),
@@ -22,10 +22,10 @@ export default async function RecordPage() {
   return (
     <>
       <PageTitle label="Verified record" title="My record" actions={<Link href="/print/cv" target="_blank" className="btn btn-secondary btn-sm">Generate my CV</Link>}>
-        Everything here comes from verified, locked records. You cannot edit it, but you can <Link href="/app/profile" className="underline text-link">request a correction</Link>.
+        Everything here comes from verified, locked records. You cannot edit it, but you can <Link href="/app/profile" className="underline text-brand">request a correction</Link>.
       </PageTitle>
-      <div className="grid lg:grid-cols-[320px_1fr] gap-6 mb-8">
-        <div className="panel grid gap-3 justify-items-center"><GrowthRings data={d.byYear as any} /><span className="text-xs text-muted text-center">Each ring is a year; thickness is verified points.</span></div>
+      <div className="grid lg:grid-cols-[360px_1fr] gap-6 mb-8">
+        <div className="panel grid gap-3"><span className="label text-muted">Your burst</span><RayChart data={d.byCat as any} /><span className="text-xs text-muted">Each ray of the mark is one kind of work. It grows as your verified points do.</span></div>
         <div className="grid sm:grid-cols-2 gap-3 content-start">
           <Stat label="Verified points" value={total} />
           <Stat label="Events attended" value={d.attended?.n ?? 0} hint="From QR check-ins" />

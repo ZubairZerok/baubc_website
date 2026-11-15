@@ -1,19 +1,18 @@
 const TZ = 'Asia/Dhaka';
 
-export function fmtDate(d: string | Date | null | undefined, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }, lang: 'en' | 'bn' = 'en') {
+export function fmtDate(d: string | Date | null | undefined, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }) {
   if (!d) return '';
-  return new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', { timeZone: TZ, ...opts }).format(new Date(d));
+  return new Intl.DateTimeFormat('en-GB', { timeZone: TZ, ...opts }).format(new Date(d));
 }
-export const fmtDateTime = (d: string | Date | null | undefined, lang: 'en' | 'bn' = 'en') =>
-  fmtDate(d, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }, lang);
+export const fmtDateTime = (d: string | Date | null | undefined) =>
+  fmtDate(d, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 export const fmtTime = (d: string | Date | null | undefined) => fmtDate(d, { hour: '2-digit', minute: '2-digit' });
 
-export function fmtMoney(v: number | string | null | undefined, lang: 'en' | 'bn' = 'en') {
-  const n = Number(v ?? 0);
-  return '৳ ' + new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-IN', { maximumFractionDigits: 2 }).format(n);
+export function fmtMoney(v: number | string | null | undefined) {
+  return '৳ ' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(Number(v ?? 0));
 }
-export function fmtNum(v: number | string | null | undefined, lang: 'en' | 'bn' = 'en') {
-  return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-IN').format(Number(v ?? 0));
+export function fmtNum(v: number | string | null | undefined) {
+  return new Intl.NumberFormat('en-IN').format(Number(v ?? 0));
 }
 export function relTime(d: string | Date) {
   const s = (Date.now() - new Date(d).getTime()) / 1000;

@@ -7,11 +7,11 @@ export const metadata: Metadata = { title: 'Verify a certificate' };
 export default function VerifyPage() {
   return (
     <>
-      <PageHero label="Verification" title={<>Verify a <span className="serif-i">certificate</span></>} bn="সনদ যাচাই">Every BAUBC certificate has a serial number and a verification code. Scan the QR on the certificate or enter the code here.</PageHero>
-      <div className="wrap py-12 max-w-2xl">
-        <form action={verifyLookupAction} className="panel grid gap-3">
-          <div className="field"><label htmlFor="code">Verification code or serial number</label><input id="code" name="code" className="input font-mono uppercase" required placeholder="e.g. BAUBC-CERT-2027-000123" /></div>
-          <button className="btn btn-primary w-max">Verify</button>
+      <PageHero label="Verification" title={<>Check it <em className="serif-i text-brand">yourself.</em></>}>Every BAUBC certificate carries a serial number and a code. Scan the QR on the certificate, or type the code here.</PageHero>
+      <div className="wrap py-14 max-w-2xl">
+        <form action={verifyLookupAction} className="glass-strong rounded-[26px] p-7 grid gap-4">
+          <div className="field"><label htmlFor="code">Verification code or serial number</label><input id="code" name="code" className="input font-mono uppercase" required placeholder="BAUBC-CERT-2027-000123" /></div>
+          <button className="btn btn-primary btn-lg w-max">Verify</button>
         </form>
       </div>
     </>

@@ -16,7 +16,7 @@ export default async function IntegrationsPage() {
   const configured: Record<string, boolean> = { google_form: !!env.formSecret, gmail_appsscript: !!env.gmailSecret, resend: !!env.resendKey, meta_page: false, bkash_pgw: false };
   return (
     <>
-      <PageTitle label="Admin" title="Integrations & email" actions={session.isSuperAdmin ? <ActionForm action={runJobsNow}><SubmitButton className="btn btn-ghost btn-sm border-line">Run background jobs now</SubmitButton></ActionForm> : undefined}>
+      <PageTitle label="Admin" title="Integrations & email" actions={session.isSuperAdmin ? <ActionForm action={runJobsNow}><SubmitButton className="btn btn-secondary btn-sm">Run background jobs now</SubmitButton></ActionForm> : undefined}>
         Status of connected services, the webhook endpoints the Apps Scripts call, and every email the platform sent{isPreview ? ' (in preview mode emails are logged here instead of sent)' : ''}.
       </PageTitle>
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mb-8">
