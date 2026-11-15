@@ -204,7 +204,7 @@ export async function saveEvent(_: ActionResult, fd: FormData) {
     if (id) {
       await tx.query(`update app.events set title=$2, subtitle=$3, summary=$4, body=$5, category=$6, status=$7, venue=$8, starts_at=$9, ends_at=$10, date_label=$11,
         reg_opens_at=$12, reg_closes_at=$13, eligibility=$14, refund_policy=$15, cover_tone=$16, featured=$17 where id=$1`, [id, ...vals]);
-      await tx.query(`select app.audit('event.updated','event',$1,null,null)`, [id]);
+      await tx.query(`select app.log_action('event.updated','event',$1,null)`, [id]);
       return 'Event saved.';
     }
     const slug = s(fd, 'slug') || s(fd, 'title').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -308,7 +308,7 @@ export async function saveSetting(_: ActionResult, fd: FormData) {
       return 'This is a sensitive setting, so the other Super Admin has to confirm it before it takes effect.';
     }
     await tx.query(`update app.site_settings set value = $2::jsonb, updated_at = now(), updated_by = authz.current_person_id() where key = $1`, [key, JSON.stringify(value)]);
-    await tx.query(`select app.audit('setting.updated','site_setting',$1,null,$2::jsonb)`, [key, JSON.stringify(value)]);
+    await tx.query(`select app.log_action('setting.updated','site_setting',$1,$2::jsonb)`, [key, JSON.stringify(value)]);
     return 'Saved. The website now shows the new details.';
   }, { path: '/' });
 }
@@ -321,7 +321,7 @@ export async function saveUnit(_: ActionResult, fd: FormData) {
     const id = s(fd, 'id');
     const vals = [s(fd, 'name'), s(fd, 'summary') || null, lines(s(fd, 'responsibilities')), b(fd, 'is_public'), n(fd, 'sort') ?? 100, s(fd, 'kind') || 'wing'];
     if (!vals[0]) throw new Error('NAME_REQUIRED');
-    if (id) { await tx.query(`update app.org_units set name=$2, summary=$3, responsibilities=$4::text[], is_public=$5, sort=$6, kind=$7 where id=$1`, [id, ...vals]); await tx.query(`select app.audit('unit.updated','org_unit',$1,null,null)`, [id]); return 'Wing saved.'; }
+    if (id) { await tx.query(`update app.org_units set name=$2, summary=$3, responsibilities=$4::text[], is_public=$5, sort=$6, kind=$7 where id=$1`, [id, ...vals]); await tx.query(`select app.log_action('unit.updated','org_unit',$1,null)`, [id]); return 'Wing saved.'; }
     await tx.query(`insert into app.org_units(slug, name, summary, responsibilities, is_public, sort, kind) values ($1,$2,$3,$4::text[],$5,$6,$7)`, [slugify(s(fd, 'name')), ...vals]);
     return 'Wing created. It appears on the Wings page now.';
   }, { path: '/' });
@@ -357,7 +357,7 @@ export async function saveCycle(_: ActionResult, fd: FormData) {
     if (!vals[0]) throw new Error('NAME_REQUIRED');
     if (id) await tx.query(`update app.membership_cycles set label=$2, status=$3, opens_at=$4, closes_at=$5, intake_form_url=$6, notes=$7 where id=$1`, [id, ...vals]);
     else await tx.query(`insert into app.membership_cycles(label, status, opens_at, closes_at, intake_form_url, notes) values ($1,$2,$3,$4,$5,$6)`, vals);
-    await tx.query(`select app.audit('cycle.saved','membership_cycle',$1,null,$2::jsonb)`, [id || vals[0], JSON.stringify({ status })]);
+    await tx.query(`select app.log_action('cycle.saved','membership_cycle',$1,$2::jsonb)`, [id || vals[0], JSON.stringify({ status })]);
     return status === 'open' ? 'Recruitment is open. The Join page is accepting applications.' : status === 'closed' ? 'Recruitment is closed. The Join page says so.' : 'Recruitment cycle saved.';
   }, { path: '/' });
 }
@@ -435,7 +435,7 @@ export async function savePerk(_: ActionResult, fd: FormData) {
     else perk = (await tx.one(`insert into app.perks(title, partner, description, terms, mode, url, shared_code, min_points, distribution_permission, ends_at, status) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning id::text`, vals))!.id;
     const codes = lines(s(fd, 'codes'));
     const added = codes.length ? (await tx.one(`select app.add_perk_codes($1,$2::text[]) n`, [perk, codes]))!.n : 0;
-    await tx.query(`select app.audit('perk.saved','perk',$1,null,null)`, [perk]);
+    await tx.query(`select app.log_action('perk.saved','perk',$1,null)`, [perk]);
     return `Perk saved${added ? ` with ${added} new one-time codes` : ''}.`;
   });
 }
@@ -448,7 +448,7 @@ export async function openPrivacyRequest(_: ActionResult, fd: FormData) {
   return act(async (tx) => { await tx.query(`select app.open_privacy_request($1,$2)`, [s(fd, 'kind'), s(fd, 'details')]); return 'Request received. The club answers privacy requests within 30 days.'; });
 }
 export async function handlePrivacyRequest(_: ActionResult, fd: FormData) {
-  return act(async (tx) => { await tx.query(`update app.privacy_requests set status = $2, handled_by = authz.current_person_id() where id = $1`, [s(fd, 'id'), s(fd, 'status')]); await tx.query(`select app.audit('privacy.handled','privacy_request',$1,null,$2::jsonb)`, [s(fd, 'id'), JSON.stringify({ status: s(fd, 'status') })]); return 'Privacy request updated.'; }, { flash: true });
+  return act(async (tx) => { await tx.query(`update app.privacy_requests set status = $2, handled_by = authz.current_person_id() where id = $1`, [s(fd, 'id'), s(fd, 'status')]); await tx.query(`select app.log_action('privacy.handled','privacy_request',$1,$2::jsonb)`, [s(fd, 'id'), JSON.stringify({ status: s(fd, 'status') })]); return 'Privacy request updated.'; }, { flash: true });
 }
 
 // ── integrations & operations ────────────────────────────────────────────────

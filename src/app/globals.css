@@ -47,8 +47,12 @@
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────────── */
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: 104px; scroll-behavior: smooth; }
-body { background: var(--paper); color: var(--ink); font-family: var(--font-sans); font-size: 1rem; line-height: 1.55; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: clip; }
+@layer base {
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 104px; scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-sans); font-size: 1rem; line-height: 1.55; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: clip; }
+}
+
+@layer components {
 h1, h2, h3, h4 { text-wrap: balance; }
 p { text-wrap: pretty; }
 ::selection { background: var(--brand); color: var(--lime-200); }
@@ -247,3 +251,5 @@ img { max-width: 100%; }
   radial-gradient(30% 30% at 35% 0%, #F6FFCF 0%, transparent 70%), var(--paper); }
 .portal-ambient::after { content: ""; position: absolute; inset: 0; background-image: var(--pat-diamonds); opacity: .45; }
 .ray-grow { transform-box: view-box; transform-origin: 590px 436px; animation: ray-in 900ms var(--ease) both; animation-delay: calc(var(--i) * 80ms); }
+
+}

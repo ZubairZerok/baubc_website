@@ -37,7 +37,7 @@ const { page } = await newPage();
 let ticketUrl = '';
 
 console.log('Public site');
-for (const path of ['/', '/about', '/events', '/insights', '/insights/decoded-monpura-2009', '/wings', '/members', '/advisors', '/gallery', '/resources', '/contact', '/join', '/verify/PREVIEWCERT0001', '/privacy']) {
+for (const path of ['/', '/setup', '/login', '/about', '/events', '/insights', '/insights/decoded-monpura-2009', '/wings', '/members', '/advisors', '/gallery', '/resources', '/contact', '/join', '/verify/PREVIEWCERT0001', '/privacy']) {
   await step(`GET ${path}`, async () => { const r = await page.goto(BASE + path); if (r.status() !== 200) throw new Error(`status ${r.status()}`); await noErrors(page); });
 }
 await shot(page, 'home-desktop');
@@ -89,7 +89,7 @@ await step('ticket now shows a QR code', async () => {
   await page.locator('[aria-label="Ticket QR code"]').waitFor();
 });
 await shot(page, 'ticket-confirmed');
-const code = (await page.locator('.font-mono.tracking-widest').first().innerText()).replace(/\s/g, '');
+const code = (await page.locator('[data-ticket-code]').first().innerText()).replace(/\s/g, '');
 
 console.log('Approvals (two distinct teacher approvers)');
 await step('first teacher approver approves', async () => {
@@ -114,10 +114,11 @@ await step('wing lead approves a submission in scope', async () => {
   await page.locator('article', { hasText: 'Poster for Case Studies EP 02' }).locator('button:has-text("Approve")').click();
   await page.getByRole('status').filter({ hasText: 'points posted to the ledger' }).first().waitFor({ timeout: 10000 });
 });
-await step('member sees verified points and Growth Rings', async () => {
+await step('member sees verified points and their burst', async () => {
   await as(page, 'Lamia Chowdhury');
   await page.goto(`${BASE}/app/record`);
   await page.getByText('Poster for Case Studies EP 02').first().waitFor();
+  await page.getByText('Your burst').waitFor();
 });
 await shot(page, 'member-record');
 
@@ -137,11 +138,11 @@ await step('event manager checks the ticket in once; second scan is a duplicate'
 
 console.log('Every workspace page per persona');
 const personas = {
-  'Tahsin Ahmed': ['/app', '/app/approvals', '/app/review', '/app/manage/tasks', '/app/manage/people', '/app/admin/applications', '/app/finance', '/app/finance?tab=disburse', '/app/finance?tab=book', '/app/finance?tab=refunds', '/app/events/manage', '/app/scan', '/app/admin/people', '/app/admin/content', '/app/admin/inbox', '/app/admin/integrations', '/app/admin/audit', '/app/admin/settings', '/app/notifications', '/app/profile'],
+  'Tahsin Ahmed': ['/app', '/app/approvals', '/app/review', '/app/manage/tasks', '/app/manage/people', '/app/admin/applications', '/app/finance', '/app/finance?tab=disburse', '/app/finance?tab=book', '/app/finance?tab=refunds', '/app/events/manage', '/app/scan', '/app/admin/people', '/app/admin/content', '/app/admin/inbox', '/app/admin/integrations', '/app/admin/audit', '/app/admin/settings', '/app/admin/wings', '/app/admin/perks', '/app/admin/content?tab=posts', '/app/admin/content?tab=library', '/app/admin/content?tab=reach', '/app/leaderboard', '/app/notifications', '/app/profile'],
   'Dr. Mahbubur Rahman': ['/app', '/app/notices', '/app/dues', '/app/profile'],
   'Nusrat Jahan': ['/app', '/app/review', '/app/manage/tasks', '/app/manage/people', '/app/admin/applications', '/app/admin/people'],
   'Mehedi Hasan': ['/app', '/app/admin/content', '/app/admin/inbox'],
-  'Lamia Chowdhury': ['/app', '/app/tasks', '/app/record', '/app/events', '/app/perks', '/app/notices', '/app/profile', '/print/cv'],
+  'Lamia Chowdhury': ['/app', '/app/tasks', '/app/record', '/app/leaderboard', '/app/events', '/app/perks', '/app/notices', '/app/profile', '/print/cv'],
   'Imran Kabir': ['/app', '/app/application', '/app/events', '/app/profile'],
 };
 for (const [name, paths] of Object.entries(personas)) {
@@ -155,7 +156,47 @@ await page.goto(`${BASE}/app/admin/applications?id=c0000000-0000-4000-8000-00000
 await shot(page, 'admin-applications');
 await step('audit chain verifies in the UI', async () => { await page.goto(`${BASE}/app/admin/audit`); await page.getByText('Chain verified').waitFor(); });
 
+console.log('New admin flows');
+await step('settings save as plain fields', async () => {
+  await page.goto(`${BASE}/app/admin/settings`);
+  const f = page.locator('form', { hasText: 'Club details' });
+  await f.locator('input[name=tagline]').fill('Plant ideas. Harvest founders.');
+  await f.locator('button:has-text("Save")').click();
+  await f.getByRole('status').filter({ hasText: 'Saved' }).waitFor({ timeout: 10000 });
+});
+await step('bad bKash number is refused', async () => {
+  const f = page.locator('form', { hasText: 'bKash payments' });
+  await f.locator('input[name=bkash_number]').fill('12345');
+  await f.locator('button:has-text("Save")').click();
+  await f.getByRole('status').filter({ hasText: 'valid Bangladeshi mobile number' }).waitFor({ timeout: 10000 });
+});
+await step('HR officer places a member in a wing', async () => {
+  await as(page, 'Nusrat Jahan');
+  await page.goto(`${BASE}/app/admin/wings`);
+  const f = page.locator('form', { has: page.locator('#as-p') });
+  await f.locator('#as-t').fill('Coordinator');
+  await f.locator('button:has-text("Place")').click();
+  await f.getByRole('status').filter({ hasText: 'Placed' }).waitFor({ timeout: 10000 });
+});
+await step('CSV export downloads under the caller’s permissions', async () => {
+  const r = await page.request.get(`${BASE}/app/export/applications`);
+  if (r.status() !== 200 || !(await r.text()).includes('full_name,email')) throw new Error(`status ${r.status()}`);
+  await as(page, 'Lamia Chowdhury');
+  const denied = await page.request.get(`${BASE}/app/export/members`);
+  if (denied.status() !== 403) throw new Error(`member got ${denied.status()}`);
+  const mine = await page.request.get(`${BASE}/app/export/my-data`);
+  if (!(await mine.json()).profile) throw new Error('no profile in my data');
+});
+
 const { page: m } = await newPage({ width: 390, height: 844 });
+console.log('Phone width: no sideways scrolling');
+for (const path of ['/', '/about', '/events', '/events/startup-summit-2027', '/insights', '/wings', '/members', '/join', '/contact', '/login']) {
+  await step(`390px ${path}`, async () => {
+    await m.goto(BASE + path);
+    const w = await m.evaluate(() => document.documentElement.scrollWidth);
+    if (w > 392) throw new Error(`page is ${w}px wide`);
+  });
+}
 await m.goto(BASE + '/'); await shot(m, 'home-mobile');
 await m.goto(BASE + '/events/startup-summit-2027'); await shot(m, 'event-mobile');
 

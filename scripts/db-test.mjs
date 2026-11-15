@@ -270,6 +270,12 @@ await test('refund flow: request → approval → different person pays out', as
   if (done.status !== 'completed' || done.pstatus !== 'refunded') throw new Error(JSON.stringify(done));
 });
 
+await test('officers can log their own actions; members cannot', async () => {
+  await as(HR, (q) => q(`select app.log_action('export.members','membership',null,null)`));
+  await rejects(() => as(M1, (q) => q(`select app.log_action('export.members','membership',null,null)`)), 'PERMISSION_DENIED');
+  await rejects(() => as(HR, (q) => q(`select app.audit('x.y','z',null,null,null)`)), 'permission denied');
+});
+
 console.log('Intake & audit');
 await test('Google Form intake refuses password fields', () => rejects(() => as('system', (q) => q(`select app.ingest_application('google_form','{"response_id":"r-x","email":"a@b.com","full_name":"A B","password":"x"}','h')`)), 'FORBIDDEN_FIELD'));
 await test('intake creates person, application and activation; replay is a no-op', async () => {

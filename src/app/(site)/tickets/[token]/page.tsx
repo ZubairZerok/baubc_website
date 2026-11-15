@@ -59,7 +59,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
             {confirmed ? (
               <>
                 <QR value={r.ticket_code} size={208} />
-                <span className="font-mono text-sm tracking-[.25em] text-lime-200">{r.ticket_code.match(/.{1,4}/g)?.join(' ')}</span>
+                <span data-ticket-code className="font-mono text-sm tracking-[.25em] text-lime-200">{r.ticket_code.match(/.{1,4}/g)?.join(' ')}</span>
                 <span className="text-xs text-canopy-muted text-center">Show this at the door. It works once.</span>
               </>
             ) : (

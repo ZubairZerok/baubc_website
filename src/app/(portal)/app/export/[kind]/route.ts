@@ -27,7 +27,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ kind: st
   if (kind === 'applications') {
     if (!can(session, 'membership.review')) return deny();
     const rows = await withClaims(session.claims, async (tx) => {
-      await tx.query(`select app.audit('export.applications','application',null,null,$1::jsonb)`, [JSON.stringify({ status: q.get('status') })]);
+      await tx.query(`select app.log_action('export.applications','application',null,$1::jsonb)`, [JSON.stringify({ status: q.get('status') })]);
       return tx.query(`select p.full_name, p.email, p.student_id, p.academic_department department, p.academic_session session, p.batch_level level, a.status_key status, a.preferred_units, a.submitted_at, a.late_submission late
         from app.applications a join app.people p on p.id = a.person_id where ($1::text is null or a.status_key = $1) order by a.submitted_at desc`, [q.get('status') || null]);
     });
@@ -36,7 +36,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ kind: st
   if (kind === 'members') {
     if (!can(session, 'people.read') && !can(session, 'membership.review')) return deny();
     const rows = await withClaims(session.claims, async (tx) => {
-      await tx.query(`select app.audit('export.members','membership',null,null,null)`);
+      await tx.query(`select app.log_action('export.members','membership',null,null)`);
       return tx.query(`select m.member_no, p.full_name, p.email, p.student_id, p.academic_department department, p.academic_session session, m.status_key status, m.finalized_at::date joined_on,
           (select string_agg(u.name || ' (' || um.position_title || ')', '; ') from app.unit_memberships um join app.org_units u on u.id = um.unit_id where um.person_id = p.id and um.ended_at is null) wings,
           coalesce((select sum(l.amount) from app.point_ledger l where l.person_id = p.id), 0)::int points
@@ -50,7 +50,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ kind: st
     const rows = await withClaims(session.claims, async (tx) => {
       const ok = await tx.one(`select (authz.has_perm('event.manage') or authz.has_perm('event.manage','event',$1::uuid)) v`, [event]);
       if (!ok?.v) return null;
-      await tx.query(`select app.audit('export.registrations','event',$1,null,null)`, [event]);
+      await tx.query(`select app.log_action('export.registrations','event',$1,null)`, [event]);
       return tx.query(`select r.name, r.email, r.phone, r.institution, r.team_name, t.name ticket, r.status, r.source, r.created_at,
           exists (select 1 from app.checkins c where c.registration_id = r.id and c.result = 'ok') checked_in
         from app.registrations r join app.ticket_types t on t.id = r.ticket_type_id where r.event_id = $1 order by r.created_at`, [event]);

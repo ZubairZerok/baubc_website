@@ -15,11 +15,11 @@ export default async function WingsPage() {
       <section className="wrap py-16"><div className="reveal" data-r="scale"><WingsBurst wings={wings as any} /></div></section>
       <section className="wrap pb-6 grid md:grid-cols-2 gap-5">
         {wings.map((w: any, i: number) => (
-          <article id={w.slug} key={w.slug} className="panel spot lift grid grid-cols-[auto_1fr] gap-5 scroll-mt-28 reveal" style={{ ['--d' as any]: i % 2 }}>
+          <article id={w.slug} key={w.slug} className="panel spot lift grid sm:grid-cols-[auto_1fr] gap-5 scroll-mt-28 reveal" style={{ ['--d' as any]: i % 2 }}>
             <svg viewBox="120 90 820 820" className="size-20 shrink-0" aria-hidden="true">{RAYS.map((r, j) => <path key={r.id} d={r.d} fill={j === i % 6 ? '#016737' : 'rgba(1,103,55,.14)'} />)}</svg>
-            <div className="grid gap-3 content-start">
+            <div className="grid gap-3 content-start min-w-0">
               <span className="eyebrow">Wing {String(i + 1).padStart(2, '0')}</span>
-              <h2 className="display-md text-[1.9rem]">{w.name}</h2>
+              <h2 className="display-md text-[1.9rem] break-words">{w.name}</h2>
               {w.summary && <p className="text-ink-2">{w.summary}</p>}
               {w.responsibilities?.length > 0 && <ul className="flex flex-wrap gap-2">{w.responsibilities.map((r: string) => <li key={r} className="chip chip-ok">{r}</li>)}</ul>}
             </div>

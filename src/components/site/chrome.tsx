@@ -71,7 +71,7 @@ export function SiteFooter({ club, social }: { club: Record<string, any>; social
           <span className="flex gap-5"><Link href="/privacy" className="hover:text-lime-200">Privacy</Link><Link href="/login" className="hover:text-lime-200">Sign in</Link></span>
         </div>
       </div>
-      {isPreview && <div className="fixed left-3 bottom-3 z-40 glass-strong rounded-full px-3 py-1.5 text-[11px] font-semibold no-print flex items-center gap-2"><Diamond size={7} className="text-harvest" />Preview mode · sample data</div>}
+      {isPreview && <div className="fixed left-3 bottom-3 z-40 glass-strong rounded-full px-3 py-1.5 text-[11px] font-semibold text-ink no-print flex items-center gap-2"><Diamond size={7} className="text-harvest" />Preview mode · sample data · <a href="/login" className="underline">try a role</a></div>}
     </footer>
   );
 }
