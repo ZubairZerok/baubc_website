@@ -1,4 +1,11 @@
 {
-  "regions": ["sin1"],
-  "crons": [{ "path": "/api/jobs/run", "schedule": "* * * * *" }]
+  "regions": [
+    "syd1"
+  ],
+  "crons": [
+    {
+      "path": "/api/jobs/run",
+      "schedule": "* * * * *"
+    }
+  ]
 }

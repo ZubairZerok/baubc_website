@@ -1,0 +1,26 @@
+# Supabase CLI configuration for the BAUBC project.
+# Link once with: supabase link --project-ref oinrhzcawnxkqvjyfbja
+project_id = "baubc"
+
+[api]
+# The app talks to Postgres directly; tables live in the "app" schema, which is deliberately NOT exposed through the Data API.
+schemas = ["public"]
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**"]
+minimum_password_length = 10
+# Sign-ups stay technically enabled, but every one passes through app.hook_before_user_created,
+# which only admits people holding a live BAUBC activation link or invitation.
+enable_signup = true
+
+[auth.email]
+enable_confirmations = false
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/app/hook_before_user_created"

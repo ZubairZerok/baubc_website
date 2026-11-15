@@ -211,6 +211,65 @@ await test('last Super Admin cannot be removed', async () => {
   await rejects(() => as(SA1, (q) => q(`select app.revoke_role($1,'test')`, [b.id])), 'LAST_SUPER_ADMIN');
 });
 
+console.log('Audit fixes');
+const ED = P('0a');
+await test('sign-up gate: email sign-up needs a live activation hash', async () => {
+  await as('system', (q) => q(`insert into app.people(kind, full_name, email) values ('student','Gate Test','gate@example.org')`));
+  const pid = (await one(db.query(`select id from app.people where email='gate@example.org'`))).id;
+  await db.query(`insert into app.account_provisions(person_id, email, source, token_hash, expires_at) values ($1,'gate@example.org','admin_invite','gate-hash', now() + interval '1 day')`, [pid]);
+  const ev = (h) => JSON.stringify({ user: { email: 'gate@example.org', app_metadata: { provider: 'email' }, user_metadata: h ? { provision_hash: h } : {} } });
+  const ok = await one(db.query(`select app.hook_before_user_created($1::jsonb) r`, [ev('gate-hash')]));
+  if (JSON.stringify(ok.r) !== '{}') throw new Error('valid hash refused');
+  const bad = await one(db.query(`select app.hook_before_user_created($1::jsonb) r`, [ev('wrong')]));
+  if (!bad.r.error) throw new Error('wrong hash allowed');
+  const none = await one(db.query(`select app.hook_before_user_created($1::jsonb) r`, [JSON.stringify({ user: { email: 'stranger@example.org', app_metadata: { provider: 'google' }, user_metadata: {} } })]));
+  if (!none.r.error) throw new Error('stranger allowed');
+});
+await test('bootstrap refuses when Super Admins exist', () => rejects(() => as('system', (q) => q(`select app.bootstrap_super_admins('[{"email":"a@x.org","full_name":"A","token_hash":"1"},{"email":"b@x.org","full_name":"B","token_hash":"2"}]')`)), 'ALREADY_SET_UP'));
+await test('anon cannot call bootstrap or needs_setup', () => rejects(() => as('anon', (q) => q(`select app.needs_setup()`)), 'permission denied'));
+await test('HR places a member in a wing as lead; lead role follows', async () => {
+  const unit = (await one(db.query(`select id from app.org_units order by sort limit 1`))).id;
+  await as(HR, (q) => q(`select app.assign_unit('b0000000-0000-4000-8000-00000000000c',$1,'Coordinator',true)`, [unit]));
+  const r = await one(db.query(`select count(*)::int n from app.role_assignments where person_id='b0000000-0000-4000-8000-00000000000c' and role_key='team_lead' and scope_id=$1 and revoked_at is null`, [unit]));
+  if (r.n !== 1) throw new Error('no lead role');
+});
+await test('member cannot place people in wings', () => rejects(() => as(M1, (q) => q(`select app.assign_unit('b0000000-0000-4000-8000-00000000000c',(select id from app.org_units limit 1),'x',false)`)), 'PERMISSION_DENIED'));
+await test('Super Admin cannot suspend themselves', () => rejects(() => as(SA1, (q) => q(`select app.set_account_status('b0000000-0000-4000-8000-000000000001','suspended','test')`)), 'SOD_VIOLATION'));
+await test('account status change needs a reason', () => rejects(() => as(SA1, (q) => q(`select app.set_account_status('b0000000-0000-4000-8000-00000000000d','suspended','')`)), 'REASON_REQUIRED'));
+await test('leaderboard hidden from anon when members-only', async () => {
+  const r = await as('anon', (q) => q(`select count(*)::int n from app.leaderboard('all')`));
+  if (r.rows[0].n !== 0) throw new Error('leaked to anon');
+  const m = await as(M1, (q) => q(`select count(*)::int n from app.leaderboard('all')`));
+  if (m.rows[0].n < 1) throw new Error('member sees nothing');
+});
+await test('my_data returns only my own profile', async () => {
+  const r = await as(M1, (q) => q(`select app.my_data() d`));
+  if (r.rows[0].d.profile.email !== 'preview.member@baubc.test') throw new Error('wrong profile');
+});
+await test('privacy request: one open request per kind', async () => {
+  await as(M1, (q) => q(`select app.open_privacy_request('erasure','please')`));
+  await rejects(() => as(M1, (q) => q(`select app.open_privacy_request('erasure','again')`)), 'ALREADY_OPEN');
+});
+await test('photo URL must be in my own storage folder', () => rejects(() => as(M1, (q) => q(`select app.set_my_photo('https://evil.example.com/x.png')`)), 'INVALID_PHOTO_URL'));
+await test('editors cannot create perks; perk codes stay private', async () => {
+  await rejects(() => as(ED, (q) => q(`insert into app.perks(title, partner, description, mode, distribution_permission) values ('x','y','z','link','p')`)), 'row-level security|permission denied');
+  await rejects(() => as(M1, (q) => q(`select * from private.perk_codes`)), 'permission denied');
+});
+await test('refund flow: request → approval → different person pays out', async () => {
+  const pay = await one(db.query(`select id from app.payments where status='verified' limit 1`));
+  if (!pay) throw new Error('no verified payment in sample data');
+  const rid = (await as(FO, (q) => q(`select app.request_refund($1,'Event cancelled') id`, [pay.id]))).rows[0].id;
+  await as(FO, (q) => q(`select app.submit_refund($1)`, [rid]));
+  await rejects(() => as(FO, (q) => q(`select app.complete_refund($1,'TRX1')`, [rid])), 'NOT_APPROVED');
+  const ar = await one(db.query(`select id from app.approval_requests where refund_id=$1`, [rid]));
+  await as(TA1, (q) => q(`select app.decide_approval($1,'approve','ok')`, [ar.id]));
+  const st = await one(db.query(`select status from app.refunds where id=$1`, [rid]));
+  if (st.status !== 'approved') throw new Error(`status ${st.status}`);
+  await as(FO, (q) => q(`select app.complete_refund($1,'trx-refund-1')`, [rid]));
+  const done = await one(db.query(`select r.status, p.status pstatus from app.refunds r join app.payments p on p.id=r.payment_id where r.id=$1`, [rid]));
+  if (done.status !== 'completed' || done.pstatus !== 'refunded') throw new Error(JSON.stringify(done));
+});
+
 console.log('Intake & audit');
 await test('Google Form intake refuses password fields', () => rejects(() => as('system', (q) => q(`select app.ingest_application('google_form','{"response_id":"r-x","email":"a@b.com","full_name":"A B","password":"x"}','h')`)), 'FORBIDDEN_FIELD'));
 await test('intake creates person, application and activation; replay is a no-op', async () => {
