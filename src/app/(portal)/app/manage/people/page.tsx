@@ -1,3 +1,4 @@
+import { AnnounceMom } from '@/components/portal/AnnounceMom';
 import { PageTitle } from '@/components/portal/Shell';
 import { ActionForm, SubmitButton } from '@/components/ui/forms';
 import { adjustPoints, decideBestMember, decideCorrection, issueAchievement, reversePoints, verifyAchievement } from '@/app/actions/portal';
@@ -17,7 +18,7 @@ export default async function PointsRecognitionPage() {
     recent: await tx.query(`select l.id::text, l.amount, l.reason, l.kind, l.created_at, p.full_name, exists (select 1 from app.point_ledger r where r.reverses_entry_id = l.id) reversed
       from app.point_ledger l join app.people p on p.id = l.person_id order by l.id desc limit 15`),
     shortlist: can(session, 'recognition.decide') ? await tx.query(`select person_id::text, full_name, points::int, tasks_approved::int, attended::int from app.best_member_shortlist($1::date)`, [period]) : [],
-    awards: await tx.query(`select r.period, p.full_name, r.citation from app.recognition_awards r join app.people p on p.id = r.person_id order by period desc limit 6`),
+    awards: await tx.query(`select r.period, p.full_name, r.citation, p.handle, p.public_profile from app.recognition_awards r join app.people p on p.id = r.person_id order by period desc limit 6`),
     corrections: can(session, 'people.verify') ? await tx.query(`select c.id, c.field, c.old_value, c.new_value, c.reason, p.full_name from app.profile_change_requests c join app.people p on p.id = c.person_id where c.status = 'requested' order by c.created_at`) : [],
   }));
   const MemberSelect = ({ id }: { id: string }) => <select id={id} name="person_id" className="select">{d.members.map((m: any) => <option key={m.id} value={m.id}>{m.full_name} · {m.pts} pts</option>)}</select>;
@@ -36,6 +37,7 @@ export default async function PointsRecognitionPage() {
               <div className="field"><label htmlFor="bm-c">Citation</label><textarea id="bm-c" name="citation" className="textarea min-h-[70px]" required placeholder="What they did and why it mattered" /></div>
               <SubmitButton>Record decision</SubmitButton>
             </ActionForm>
+            {d.awards[0] && <AnnounceMom a={d.awards[0] as any} />}
             {d.awards.length > 0 && <ul className="text-sm grid gap-1">{d.awards.map((a: any) => <li key={a.period}><b>{fmtDate(a.period, { month: 'short', year: 'numeric' })}</b>: {a.full_name}</li>)}</ul>}
           </section>
         )}

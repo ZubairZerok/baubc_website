@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@electric-sql/pglite'],
   outputFileTracingIncludes: {
-    '/**': ['./supabase/migrations/**/*.sql', './supabase/preview/**/*.sql'],
+    '/**': ['./supabase/migrations/**/*.sql', './supabase/preview/**/*.sql', './src/assets/fonts/*'],
   },
   poweredByHeader: false,
   async headers() {

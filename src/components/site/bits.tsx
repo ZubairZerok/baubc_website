@@ -11,7 +11,7 @@ const TONES: Record<string, { bg: string; hot: string; ghost: string; fg: string
 };
 
 /** Generative cover: the logo's rays, cropped, turned and lit differently for every item. */
-export function Cover({ tone = 'canopy', seed = 'x', label, title, numeral, className = '' }: { tone?: string; seed?: string; label?: string | null; title?: string; numeral?: string | number | null; className?: string }) {
+export function Cover({ tone = 'canopy', seed = 'x', label, title, numeral, className = '', photo, eager = false }: { tone?: string; seed?: string; label?: string | null; title?: string; numeral?: string | number | null; className?: string; photo?: string | null; eager?: boolean }) {
   const c = TONES[tone] ?? TONES.canopy;
   let h = 2166136261; for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
   const rnd = () => ((h = (Math.imul(h, 1103515245) + 12345) >>> 0) % 1000) / 1000;
@@ -24,7 +24,12 @@ export function Cover({ tone = 'canopy', seed = 'x', label, title, numeral, clas
           {RAYS.map((r, i) => <path key={r.id} d={r.d} fill={lit[i] ? c.hot : c.ghost} />)}
         </g>
       </svg>
-      <div className="relative h-full p-4 sm:p-5 flex flex-col justify-between gap-3">
+      {photo && <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" referrerPolicy="no-referrer" className="absolute inset-0 -z-10 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]" />
+        <span className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/25" aria-hidden="true" />
+      </>}
+      <div className={`relative h-full p-4 sm:p-5 flex flex-col justify-between gap-3 ${photo ? 'text-white' : ''}`}>
         {label ? <span className="label opacity-90">{label}</span> : <span />}
         <div className="flex items-end justify-between gap-3">
           {title && <span className="display-md text-[clamp(1.3rem,1rem+1.2vw,2rem)] leading-[1.02] max-w-[13ch]">{title}</span>}
@@ -80,7 +85,7 @@ export function EventCard({ e, i = 0 }: { e: EventRow; i?: number }) {
 export function PostCard({ p, i = 0, dark = false }: { p: PostRow; i?: number; dark?: boolean }) {
   return (
     <Link href={`/insights/${p.slug}`} className="group grid gap-4 reveal" style={{ ['--d' as any]: i % 4 }} lang={p.lang === 'bn' ? 'bn' : undefined}>
-      <Cover tone={p.cover_tone} seed={p.slug} label={p.cover_label} numeral={p.kind === 'episode' ? p.episode_no : null} className="aspect-[4/3] cut rounded-[20px] shadow-[var(--shadow-sm)]" />
+      <Cover tone={p.cover_tone} seed={p.slug} label={p.cover_label} photo={p.cover_url} numeral={p.kind === 'episode' && !p.cover_url ? p.episode_no : null} className="aspect-[4/3] cut rounded-[20px] shadow-[var(--shadow-sm)]" />
       <div className="grid gap-1.5">
         {p.lang === 'bn' && <span className={`label ${dark ? 'text-lime-200' : 'text-green'}`}>বাংলা · {p.author_name ?? 'বাউবিসি'}</span>}
         <h3 className={`heading text-[1.2rem] transition-colors ${p.lang === 'bn' ? 'post-bn !text-[1.32rem]' : ''} ${dark ? 'group-hover:text-lime-200' : 'group-hover:text-brand'}`}>{p.title}</h3>

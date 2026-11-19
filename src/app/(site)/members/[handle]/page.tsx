@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Arrow, Mark } from '@/components/brand/Mark';
 import { Avatar } from '@/components/ui/Avatar';
 import { CopyButton } from '@/components/site/client';
-import { getPublicProfile, getSettings } from '@/server/queries/public';
+import { getPublicProfile, getSettings, getTeacherRecord } from '@/server/queries/public';
 import { env } from '@/server/env';
 import { fmtDate, fmtNum } from '@/lib/format';
 
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const p = await getPublicProfile((await params).handle);
   if (!p) return { title: 'Member', robots: { index: false } };
   const role = p.units.find((u) => u.lead)?.title ?? p.units[0]?.name ?? (p.kind === 'teacher' ? 'Advisor' : 'Member');
-  return { title: p.name, description: `${p.name} · ${role} at BAUBC`, robots: { index: false, follow: true }, openGraph: { title: `${p.name} · BAUBC`, type: 'profile' } };
+  return { title: p.name, description: `${p.name} · ${role} at BAUBC`, robots: { index: false, follow: true }, openGraph: { title: `${p.name} · BAUBC`, type: 'profile', images: [{ url: `${env.siteUrl}/api/og/member/${p.handle}`, width: 1200, height: 630 }] } };
 }
 
 const month = (d: string) => new Date(d).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -22,7 +22,7 @@ const KIND: Record<string, string> = { position: 'Position', award: 'Award', con
 
 export default async function ProfilePage({ params }: Params) {
   const { handle } = await params;
-  const [p, settings] = await Promise.all([getPublicProfile(handle), getSettings()]);
+  const [p, settings, teacher] = await Promise.all([getPublicProfile(handle), getSettings(), getTeacherRecord(handle)]);
   if (!p || settings.features.members_directory === false) notFound();
   const lead = p.units.find((u) => u.lead);
   const isMom = p.awards.length > 0;
@@ -63,7 +63,7 @@ export default async function ProfilePage({ params }: Params) {
               <CopyButton value={url} label="Copy profile link" />
             </div>
           </div>
-          {p.stats && (
+          {p.stats && p.kind !== 'teacher' && (
             <dl className="grid grid-cols-3 lg:grid-cols-1 gap-3 lg:w-56 fade-up" style={{ ['--i' as any]: 1 }}>
               {([['Points', p.stats.points_total], ['Rank this month', p.stats.rank_month ? `#${p.stats.rank_month}` : '—'], ['Events attended', p.stats.events]] as const).map(([k, v]) => (
                 <div key={k} className="glass-strong rounded-[22px] px-4 py-3.5 grid">
@@ -78,6 +78,18 @@ export default async function ProfilePage({ params }: Params) {
 
       <div className="wrap py-14 grid lg:grid-cols-[1fr_360px] gap-10 items-start">
         <div className="grid gap-10 min-w-0">
+          {teacher && (
+            <section className="grid gap-4 reveal">
+              <span className="eyebrow">Advisor · decisions</span>
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div className="mom rounded-[24px] p-5 grid"><span className="display-md text-5xl tnum">{teacher.approved}</span><span className="text-sm text-ink-2 mt-1">decisions approved and co-signed</span></div>
+                {Object.entries({ disbursement: 'Payments released', membership_finalize: 'Memberships finalised', points_award: 'Large point awards', refund: 'Refunds' }).filter(([k]) => teacher.kinds[k]).slice(0, 2).map(([k, l]) => (
+                  <div key={k} className="panel !p-5 grid"><span className="display-md text-4xl tnum">{teacher.kinds[k]}</span><span className="text-sm text-ink-2 mt-1">{l}</span></div>
+                ))}
+              </div>
+              <p className="text-sm text-muted">Money and membership decisions at BAUBC need a teacher&apos;s approval, and large ones need two. Only these totals are public.</p>
+            </section>
+          )}
           {p.bio && (
             <section className="grid gap-3 reveal">
               <span className="eyebrow">About</span>

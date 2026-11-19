@@ -272,15 +272,16 @@ export async function savePost(_: ActionResult, fd: FormData) {
   return act(async (tx) => {
     const id = s(fd, 'id');
     const vals = [s(fd, 'title'), s(fd, 'dek') || null, s(fd, 'body') || null, s(fd, 'series') || null, n(fd, 'episode_no'), s(fd, 'kind') || 'article',
-      s(fd, 'cover_label') || null, s(fd, 'cover_tone') || 'canopy', s(fd, 'status') || 'draft', s(fd, 'facebook_url') || null, s(fd, 'youtube_url') || null];
+      s(fd, 'cover_label') || null, s(fd, 'cover_tone') || 'canopy', s(fd, 'status') || 'draft', s(fd, 'facebook_url') || null, s(fd, 'youtube_url') || null, s(fd, 'cover_url') || null];
+    if (vals[11] && !/^https:\/\/\S{4,800}$/i.test(String(vals[11]))) throw new Error('INVALID_VALUE: the cover photo must be an https:// link');
     if (id) {
-      await tx.query(`update app.posts set title=$2, dek=$3, body=$4, series=$5, episode_no=$6, kind=$7, cover_label=$8, cover_tone=$9, status=$10, facebook_url=$11, youtube_url=$12,
+      await tx.query(`update app.posts set title=$2, dek=$3, body=$4, series=$5, episode_no=$6, kind=$7, cover_label=$8, cover_tone=$9, status=$10, facebook_url=$11, youtube_url=$12, cover_url=$13,
         published_at = case when $10 = 'published' then coalesce(published_at, now()) else published_at end where id=$1`, [id, ...vals]);
       return 'Saved.';
     }
     const slug = s(fd, 'title').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
-    await tx.query(`insert into app.posts(slug, title, dek, body, series, episode_no, kind, cover_label, cover_tone, status, facebook_url, youtube_url, published_at, created_by)
-      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, case when $10 = 'published' then now() end, authz.current_person_id())`, [slug, ...vals]);
+    await tx.query(`insert into app.posts(slug, title, dek, body, series, episode_no, kind, cover_label, cover_tone, status, facebook_url, youtube_url, cover_url, published_at, created_by)
+      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, case when $10 = 'published' then now() end, authz.current_person_id())`, [slug, ...vals]);
     return 'Post created.';
   }, { path: '/' });
 }

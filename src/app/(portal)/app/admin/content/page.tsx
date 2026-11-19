@@ -67,6 +67,7 @@ export default async function ContentAdmin({ searchParams }: { searchParams: Pro
               <div className="field col-span-2"><label htmlFor="po-l">Cover label</label><input id="po-l" name="cover_label" className="input" defaultValue={p?.cover_label ?? ''} placeholder="EP 05 · TITLE · YEAR" /></div>
               <div className="field"><label htmlFor="po-c">Cover colour</label><select id="po-c" name="cover_tone" className="select" defaultValue={p?.cover_tone ?? 'canopy'}><option value="canopy">Green</option><option value="harvest">Lime</option><option value="river">Deep green</option><option value="paper">Light</option></select></div>
             </div>
+            <div className="field"><label htmlFor="po-img">Cover photo link <span className="text-muted font-normal">(optional, https://; use a photo the club has the right to use)</span></label><input id="po-img" name="cover_url" type="url" className="input" defaultValue={p?.cover_url ?? ''} placeholder="https://" /></div>
             <div className="field"><label htmlFor="po-b">Body <span className="text-muted font-normal">(leave a blank line between paragraphs)</span></label><textarea id="po-b" name="body" className="textarea min-h-[200px]" defaultValue={p?.body ?? ''} /></div>
             <div className="grid grid-cols-2 gap-3">
               <div className="field"><label htmlFor="po-fb">Facebook post link</label><input id="po-fb" name="facebook_url" className="input" defaultValue={p?.facebook_url ?? ''} /></div>

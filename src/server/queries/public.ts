@@ -37,7 +37,7 @@ export async function getAvailability(eventId: string) {
 export const getEventPeople = cache(async (eventId: string) =>
   anon((tx) => tx.query(`select name, role, title, bio from app.event_people where event_id = $1 order by sort`, [eventId])));
 
-export type PostRow = { id: string; slug: string; lang?: 'en' | 'bn'; title_bn?: string | null; kind: string; series: string | null; episode_no: number | null; title: string; dek: string | null; body: string | null; topics: string[]; cover_tone: string; cover_label: string | null; facebook_url: string | null; youtube_url: string | null; author_name: string | null; stats: any; published_at: string | null };
+export type PostRow = { id: string; slug: string; cover_url?: string | null; lang?: 'en' | 'bn'; title_bn?: string | null; kind: string; series: string | null; episode_no: number | null; title: string; dek: string | null; body: string | null; topics: string[]; cover_tone: string; cover_label: string | null; facebook_url: string | null; youtube_url: string | null; author_name: string | null; stats: any; published_at: string | null };
 export const getPosts = cache(async () =>
   anon((tx) => tx.query<PostRow>(`select * from app.posts where status = 'published' order by published_at desc nulls last`)));
 export const getPost = cache(async (slug: string) =>
@@ -75,6 +75,8 @@ export const getPublicProfile = cache(async (handle: string) => {
   if (!/^[a-z0-9-]{1,40}$/i.test(handle)) return null;
   return anon(async (tx) => ((await tx.one<{ p: PublicProfile | null }>(`select app.public_profile($1) p`, [handle]))?.p ?? null));
 });
+export type TeacherRecord = { title: string; approved: number; returned: number; kinds: Record<string, number> };
+export const getTeacherRecord = cache(async (handle: string) => anon(async (tx) => ((await tx.one<{ r: TeacherRecord | null }>(`select app.teacher_record($1) r`, [handle]))?.r ?? null)));
 export async function getRecentRegistrations(eventId: string) {
   const rows = await anon((tx) => tx.query<{ initial: string; via: string; at: string | Date }>(`select initial, via, at from app.recent_registrations($1, 6)`, [eventId]));
   return rows.map((r) => ({ initial: r.initial, via: r.via, at: new Date(r.at).toISOString() }));

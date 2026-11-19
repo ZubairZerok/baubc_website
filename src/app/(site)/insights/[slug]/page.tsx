@@ -60,7 +60,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       </header>
 
       <div className="wrap -mt-2 md:-mt-4">
-        <div className="group reveal" data-r="scale"><Cover tone={p.cover_tone} seed={p.slug} label={p.cover_label} numeral={p.kind === 'episode' ? p.episode_no : null} className="aspect-[16/7] cut rounded-[28px] shadow-[var(--shadow)]" /></div>
+        <div className="group reveal" data-r="scale"><Cover tone={p.cover_tone} seed={p.slug} label={p.cover_label} photo={p.cover_url} eager numeral={p.kind === 'episode' && !p.cover_url ? p.episode_no : null} className="aspect-[16/7] cut rounded-[28px] shadow-[var(--shadow)]" /></div>
       </div>
 
       <div className="wrap py-14 grid lg:grid-cols-[1fr_340px] gap-12 items-start">

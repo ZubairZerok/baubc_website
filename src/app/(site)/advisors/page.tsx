@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import { PageHero } from '@/components/site/bits';
 import { Avatar } from '@/components/ui/Avatar';
@@ -15,10 +16,11 @@ export default async function AdvisorsPage() {
         {advisors.length ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {advisors.map((a: any, i: number) => (
-              <article key={a.id} className="panel spot lift grid grid-cols-[auto_1fr] gap-4 reveal" style={{ ['--d' as any]: i % 3 }}>
+              <Link key={a.id} href={a.handle ? `/members/${a.handle}` : '/advisors'} className="group panel spot lift grid grid-cols-[auto_1fr] gap-4 reveal" style={{ ['--d' as any]: i % 3 }}>
                 <Avatar name={a.full_name} photoUrl={a.photo_url} size={64} />
-                <div className="grid gap-1 content-start"><span className="eyebrow">{a.title}</span><h2 className="heading text-xl">{a.full_name}</h2>{a.bio && <p className="text-sm text-ink-2 mt-1">{a.bio}</p>}</div>
-              </article>
+                <div className="grid gap-1 content-start"><span className="eyebrow">{a.title}</span><h2 className="heading text-xl group-hover:text-brand transition-colors">{a.full_name}</h2>{a.bio && <p className="text-sm text-ink-2 mt-1">{a.bio}</p>}
+                  <span className="text-sm text-muted mt-1"><b className="text-ink tnum">{a.decisions}</b> decisions co-signed · <span className="text-brand font-semibold">View profile →</span></span></div>
+              </Link>
             ))}
           </div>
         ) : <Empty title="Advisor profiles are on their way">Advisors appear here once they choose to make their profile public.</Empty>}
