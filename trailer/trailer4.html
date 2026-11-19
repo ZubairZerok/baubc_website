@@ -1,0 +1,1150 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>BAUBC Trailer v4</title>
+<link rel="stylesheet" href="base.css">
+<style>
+@font-face{font-family:AnekBn;src:url(fonts/AnekBangla-700-bn.woff2);font-weight:700}
+@font-face{font-family:HindBn;src:url(fonts/HindSiliguri-400-bn.woff2);font-weight:400}
+@font-face{font-family:HindBn;src:url(fonts/HindSiliguri-600-bn.woff2);font-weight:600}
+.bn{font-family:HindBn,Int,sans-serif}
+.bnd{font-family:AnekBn,Bric,sans-serif;font-weight:700;letter-spacing:0;line-height:1.25}
+.scene{position:absolute;inset:0;transform-origin:960px 540px;will-change:transform,filter,opacity}
+.bframe{position:absolute;border-radius:18px;overflow:hidden;background:var(--paper);box-shadow:0 70px 130px -50px rgb(1 50 25/.55),0 0 0 1px rgb(255 255 255/.7)}
+.bchrome{position:absolute;left:0;top:0;right:0;height:42px;background:rgb(255 255 255/.86);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 16px;z-index:5}
+.bchrome i{width:11px;height:11px;border-radius:9px;display:inline-block;margin-right:6px}
+.url{height:28px;min-width:360px;border-radius:9px;background:rgb(10 32 21/.06);display:flex;align-items:center;justify-content:center;gap:8px;font:500 13px Int;color:var(--ink-2);margin:0 auto}
+.sk{border-radius:8px;background:rgb(10 32 21/.08)}
+.hlx{font-weight:600;color:var(--ink);padding:.05em .15em;border-radius:.25em;-webkit-box-decoration-break:clone;box-decoration-break:clone;background:linear-gradient(100deg,rgb(201 245 59/0) 0%,rgb(201 245 59/.9) 3%,rgb(224 255 115/.95) 97%,rgb(224 255 115/0) 100%) no-repeat 0 85%/0% 75%}
+.phone{position:absolute;width:400px;height:866px;border-radius:56px;overflow:hidden;background:var(--paper);box-shadow:0 70px 120px -40px rgb(0 0 0/.5)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:56px;border:12px solid #0A140E;pointer-events:none}
+.phone .notch{position:absolute;left:50%;top:10px;width:120px;height:32px;border-radius:99px;background:#0A140E;transform:translateX(-50%);z-index:3}
+.rc{position:absolute;border-radius:26px;overflow:hidden;box-shadow:0 40px 70px -30px rgb(1 50 25/.6)}
+.chip2{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:99px;font:600 15px Int;border:1.5px solid rgb(10 32 21/.18);background:rgb(255 255 255/.7)}
+.chip2.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dcard{position:absolute;border-radius:20px;padding:20px;background:rgb(255 255 255/.7);border:1.5px solid var(--line)}
+.dcard.on{border-color:var(--brand);background:linear-gradient(160deg,#fff,#F2FFC6);box-shadow:0 18px 36px -24px rgb(1 103 55/.55)}
+.field2{height:50px;border-radius:14px;border:1.5px solid rgb(10 32 21/.18);background:#fff;display:flex;align-items:center;padding:0 16px;font:500 17px Int}
+.lbl2{font:600 13px Int;color:var(--ink-2);margin-bottom:6px}
+</style></head>
+<body><div id="stage"></div>
+<script src="lib.js"></script>
+<script>
+// ═════════════════════════════ timing (128 BPM) ═════════════════════════════
+const BPM=128, B=60/BPM, BAR=4*B;
+const bt=(bar,beat=0)=>(bar*4+beat)*B;
+const DUR=88.75;
+const SCN={intro:[0,2],hero:[2,4],routes:[4,8],events:[8,14],bangla:[14,18],reels:[18,21],profile:[21,24],teacher:[24,27],dash:[27,30],bkash:[30,33],mom:[33,36],perks:[36,38],contact:[38,41],mobile:[41,43],outro:[43,47]};
+const T=(k)=>[bt(SCN[k][0]),bt(SCN[k][1])];
+
+// ═════════════════════════════ content builders ═════════════════════════════
+const ROUTES=[
+ ['/','Plant ideas. Harvest founders.','hero'],['/about','About BAUBC','text'],['/events','What\'s on next','grid'],['/events/event-2','Event 2: Innovation Summit','event'],
+ ['/insights','Insights','grid'],['/insights/bangla-article','কৃষির সমস্যাই পরের বড় ব্যবসা','bn'],['/reels','BAUBC, in motion.','reels'],['/wings','Six wings','wings'],
+ ['/members','The people doing the work','people'],['/members/member-a','Member A','profile'],['/leaderboard','Leaderboard','board'],['/gallery','Gallery','gallery'],
+ ['/resources','Resources','list'],['/advisors','Advisors','people'],['/join','Join BAUBC','form'],['/contact','Talk to a real person.','form'],['/verify','Verify a certificate','verify'],['/privacy','Privacy','text']];
+function miniPage([path,title,kind],i){
+  const tone=['#EEFFB3','#C5F4D4','#E0FF73','#DDF6E3'][i%4];
+  let body='';
+  const skl=(w,h=12,m=10)=>`<div class="sk" style="width:${w}%;height:${h}px;margin-top:${m}px"></div>`;
+  if(kind==='grid'||kind==='gallery') body=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px">${[1,2,3].map(n=>`<div style="border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 10px 20px -14px rgb(1 77 42/.4)"><div style="position:relative;height:${kind==='gallery'?190:130}px">${kind==='grid'?banner(n):cover(n)}</div>${kind==='grid'?`<div style="padding:12px">${skl(70,12,0)}${skl(45,10)}</div>`:''}</div>`).join('')}</div>`;
+  else if(kind==='people') body=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px">${'ABCDEF'.split('').map(l=>`<div style="display:flex;gap:12px;align-items:center;padding:14px;border-radius:16px;background:#fff">${av(l,48)}<div style="flex:1"><div style="font:700 15px Bric">Member ${l}</div>${skl(80,9,7)}</div></div>`).join('')}</div>`;
+  else if(kind==='profile') body=`<div style="display:flex;gap:30px;align-items:center;margin-top:20px">${av('A',150,'border-radius:30%;font-size:66px')}<div style="flex:1"><div class="tag" style="background:#0A2015;color:#E0FF73">★ Member of the Month</div>${skl(60,14,16)}${skl(40)}</div><div style="display:grid;gap:10px">${['1,240','#1','9'].map(v=>`<div style="padding:12px 18px;border-radius:16px;background:#fff;font:700 26px Bric">${v}</div>`).join('')}</div></div>`;
+  else if(kind==='board') body=`<div style="margin-top:20px;display:grid;gap:10px">${'ACBDE'.split('').map((l,j)=>`<div style="display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:14px;background:${j?'#fff':'#EEFFB3'}"><b style="width:22px;font:700 18px Bric">${j+1}</b>${av(l,34)}<b style="font:600 15px Int">Member ${l}</b><b style="margin-left:auto;font:700 15px Int">${1240-j*90}</b></div>`).join('')}</div>`;
+  else if(kind==='event') body=`<div style="position:relative;height:200px;border-radius:18px;overflow:hidden;margin-top:18px">${banner(2)}</div>${skl(55,16,18)}${skl(80)}`;
+  else if(kind==='reels') body=`<div style="display:flex;gap:14px;margin-top:22px;align-items:flex-end">${[0,1,2,3,4].map(n=>`<div style="position:relative;flex:none;width:${n%2?260:140}px;height:${n%2?146:250}px;border-radius:18px;overflow:hidden">${reelArt(n)}</div>`).join('')}</div>`;
+  else if(kind==='wings') body=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px">${[1,2,3,4,5,6].map(n=>`<div style="padding:18px;border-radius:16px;background:#fff"><div style="width:40px;height:40px;border-radius:12px;background:${['#EEFFB3','#DCE8FB','#FFF1CC','#DDF6E3','#FBE1DC','#E8ECDD'][n-1]}"></div><div style="font:700 16px Bric;margin-top:10px">Wing ${n}</div>${skl(80,9,8)}</div>`).join('')}</div>`;
+  else if(kind==='form'||kind==='verify') body=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px;max-width:760px">${[0,1,2,3].map(()=>`<div><div class="sk" style="width:40%;height:9px"></div><div style="height:44px;border-radius:12px;background:#fff;border:1.5px solid rgb(10 32 21/.14);margin-top:8px"></div></div>`).join('')}</div><div style="margin-top:18px;width:200px;height:48px;border-radius:99px;background:#0A2015"></div>`;
+  else if(kind==='bn') body=`<div class="bn" style="font-size:19px;line-height:1.9;color:var(--ink-2);margin-top:20px;max-width:780px">বাংলাদেশের কৃষক প্রতিদিন এমন অনেক সমস্যার মুখোমুখি হন। <span class="hlx" style="background-size:100% 75%">প্রতিটি অপূর্ণ চাহিদাই আসলে একটি ব্যবসার সম্ভাবনা।</span></div>`;
+  else body=`${skl(90)}${skl(84)}${skl(88)}${skl(60)}<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px">${[0,1,2].map(()=>`<div style="height:110px;border-radius:16px;background:#fff"></div>`).join('')}</div>`;
+  const big=kind==='hero';
+  return `<div class="bframe" style="left:0;top:0;width:1200px;height:720px">
+    <div class="bchrome"><span><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><div class="url">🔒 baubc &nbsp;${path==='/'?'/':path.replace(/\//g,' / ').replace(/^ \/ /,'/ ')}</div><span style="width:40px"></span></div>
+    <div style="position:absolute;inset:42px 0 0;background:radial-gradient(60% 70% at 12% 10%,${tone},transparent 60%),var(--paper)">
+      <div style="position:absolute;inset:0;background-image:var(--pat);opacity:.55"></div>
+      <div style="position:absolute;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--line)"><span style="display:flex;gap:8px;align-items:center">${markSVG('#016737',26)}<b class="disp" style="font-size:18px">BAUBC</b></span><span style="display:flex;gap:18px;font:500 12px Int;color:var(--ink-2)">${['About','Events','Insights','Reels','Wings','Members','Contact'].map(x=>`<span>${x}</span>`).join('')}</span><span style="width:70px;height:30px;border-radius:9px;background:var(--ink)"></span></div>
+      <div style="position:absolute;left:56px;right:56px;top:96px">
+        <div class="lbl" style="color:var(--leaf)">◆ ${path==='/'?'Home':path.split('/')[1]}</div>
+        <div class="${kind==='bn'?'bnd':'disp'}" style="font-size:${big?86:kind==='bn'?54:58}px;margin-top:10px;max-width:${big?900:1000}px">${title}</div>
+        ${body}
+      </div>
+      ${big?`<div style="position:absolute;right:60px;top:150px;width:300px;height:300px;transform:rotate(45deg);border-radius:40px;background:var(--grad-lime)"></div><div style="position:absolute;right:120px;top:210px">${markSVG('#016737',180)}</div>`:''}
+    </div></div>`;
+}
+function reelArt(n){
+  const pal=[['#016737','#014D2A','#E0FF73'],['#F5B63A','#F07F3C','#3A1A00'],['#1D5FD1','#0E2E6E','#DCE8FB'],['#C9F53B','#8FDD55','#0A2015'],['#5B3FD1','#2A1B6E','#E0FF73'],['#0E7C86','#073B40','#C5F4D4']][n%6];
+  const titles=['Event 2 recap','Pitch in 60s','Case study','Behind the scenes','Summit highlights','Meet the wings'];
+  return `<div style="position:absolute;inset:0;background:radial-gradient(120% 90% at 80% 0%,${pal[0]},${pal[1]} 70%);color:${pal[2]};overflow:hidden">
+    <div style="position:absolute;inset:0;background-image:var(--rays-l);opacity:.9"></div>
+    <div style="position:absolute;right:-18%;top:8%;width:70%;aspect-ratio:1;transform:rotate(45deg);border-radius:18%;background:rgb(255 255 255/.12)"></div>
+    <div style="position:absolute;left:10%;top:12%;opacity:.95">${markSVG(pal[2],60)}</div>
+    <div class="disp" style="position:absolute;right:8%;bottom:30%;font-size:120px;color:transparent;-webkit-text-stroke:2px ${pal[2]};opacity:.4">0${n+1}</div>
+    <div style="position:absolute;left:8%;right:8%;bottom:8%;color:#fff"><div style="display:inline-block;padding:4px 10px;border-radius:99px;background:rgb(255 255 255/.18);font:600 11px Int">${(n+2)*1.3|0}.${n}K views</div><div class="disp" style="font-size:22px;margin-top:8px;letter-spacing:-.01em">${titles[n%6]}</div></div>
+    <div style="position:absolute;right:8%;top:6%;width:40px;height:40px;border-radius:99px;background:#C9F53B;display:grid;place-items:center;color:#0A2015;font-size:16px">▶</div>
+  </div>`;
+}
+
+// ═════════════════════════════ DOM ═════════════════════════════
+const st=$('stage');
+st.innerHTML=`
+<svg width="0" height="0" style="position:absolute"><defs>
+ <linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EEFF9E"/><stop offset=".45" stop-color="#D4FA4E"/><stop offset="1" stop-color="#8FDD55"/></linearGradient>
+ <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+ ${Object.keys(SCN).map(k=>`<filter id="mb-${k}" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB"><feGaussianBlur id="mbg-${k}" stdDeviation="0 0"/></filter>`).join('')}
+</defs></svg>
+<div id="bgDark" class="layer" style="background:radial-gradient(120% 90% at 50% 40%,#0B4A2A 0%,#032213 55%,#010D06 100%)"><div class="layer" style="background-image:var(--rays-l);opacity:.5"></div></div>
+<div id="bgLime" class="layer" style="background:radial-gradient(70% 80% at 18% 12%,#E9FFA0 0%,transparent 60%),radial-gradient(60% 70% at 92% 30%,#D2F76A 0%,transparent 60%),linear-gradient(180deg,#EFFBC4,#F5F8EC)"><div class="layer" style="background-image:var(--pat);opacity:.6"></div></div>
+<div id="leaks" class="layer" style="mix-blend-mode:screen;pointer-events:none"><div id="leak1" class="abs" style="width:1200px;height:1200px;border-radius:50%;background:radial-gradient(circle,rgb(224 255 115/.35),transparent 65%)"></div><div id="leak2" class="abs" style="width:1000px;height:1000px;border-radius:50%;background:radial-gradient(circle,rgb(31 168 91/.4),transparent 65%)"></div></div>
+<div id="bokeh" class="layer"></div>
+<div id="world" class="layer" style="transform-origin:960px 540px">
+
+<!-- ── 1 INTRO ── -->
+<div id="sc-intro" class="scene"><div id="iz" class="layer" style="transform-origin:1045px 346px">
+  <svg class="abs" style="left:730px;top:200px;overflow:visible" width="460" height="460" viewBox="150 120 760 760">
+   <g id="iglow" filter="url(#glow)" opacity="0">${MARK.map(d=>`<path fill="#C9F53B" d="${d}"/>`).join('')}</g>
+   ${MARK.map((d,i)=>`<path id="ip${i}" d="${d}" fill="url(#gl)" style="transform-box:fill-box;transform-origin:center"/>`).join('')}
+  </svg>
+  <div id="iwm" class="abs disp" style="left:0;right:0;top:700px;text-align:center;font-size:170px;color:#fff;letter-spacing:.02em">${'BAUBC'.split('').map(c=>`<span class="w iwl">${c}</span>`).join('')}</div>
+</div></div>
+
+<!-- ── 2 HERO ── -->
+<div id="sc-hero" class="scene">
+  <div id="hb" class="bframe" style="left:160px;top:70px;width:1600px;height:900px">
+    <div class="bchrome" id="hchrome"><span><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><div class="url">🔒 baubc &nbsp;/</div><span style="width:40px"></span></div>
+    <div class="layer" style="top:42px;background:radial-gradient(60% 70% at 15% 20%,#E7FF8F,transparent 62%),radial-gradient(50% 60% at 85% 40%,#CDF55A,transparent 62%),radial-gradient(60% 50% at 60% 100%,#C5F4D4,transparent 60%),linear-gradient(180deg,#EEFBC2,#F5F8EC)"><div class="layer" style="background-image:var(--pat);opacity:.7"></div>
+      <div class="abs" style="left:0;right:0;top:0;height:74px;display:flex;align-items:center;justify-content:space-between;padding:0 44px;border-bottom:1px solid var(--line)"><span style="display:flex;gap:10px;align-items:center">${markSVG('#016737',34)}<b class="disp" style="font-size:24px">BAUBC</b></span><span style="display:flex;gap:28px;font:500 15px Int;color:var(--ink-2)">${['About','Events','Insights','Reels','Wings','Members','Contact'].map(x=>`<span>${x}</span>`).join('')}</span><span class="btn bp" style="height:42px;font-size:14px">Join →</span></div>
+      <div class="abs" style="left:90px;top:170px;width:820px">
+        <span id="h0" class="tag glass" style="color:var(--brand)"><span class="dia"></span>Bangladesh Agricultural University Business Club</span>
+        <div class="disp" style="font-size:136px;margin-top:30px"><div id="h1">Plant ideas.</div><div id="h2"><span class="serif" style="color:var(--brand)">Harvest</span> founders.</div></div>
+        <p id="h3" style="font-size:21px;line-height:1.55;color:var(--ink-2);max-width:640px;margin-top:26px">The student-run innovation ecosystem at BAU, where agriculture, technology and business strategy meet.</p>
+        <div id="h4" style="display:flex;gap:14px;margin-top:28px"><span class="btn bp">Join the club →</span><span class="btn bs">See what's on</span></div>
+      </div>
+      <div id="hart" class="abs" style="left:980px;top:140px;width:560px;height:600px">
+        <div class="abs" style="left:60px;top:40px;width:470px;height:470px;transform:rotate(45deg);border-radius:60px;background:var(--grad-lime);box-shadow:0 60px 90px -40px rgb(1 103 55/.5)"></div>
+        <div class="abs" style="left:150px;top:130px">${markSVG('#016737',290)}</div>
+      </div>
+    </div>
+  </div>
+  <div id="hc1" class="abs glass" style="left:1180px;top:200px;width:290px;border-radius:22px;padding:16px 18px"><div class="lbl" style="color:var(--leaf)">◆ Next up</div><div class="disp" style="font-size:22px;margin-top:6px">Event 2 · Innovation Summit</div><div style="font-size:14px;color:var(--muted);margin-top:4px">Dec 12 · Main Hall</div></div>
+  <div id="hc2" class="abs glass" style="left:1500px;top:640px;width:250px;border-radius:22px;padding:16px 18px"><div class="lbl">Live seats</div><div style="display:flex;align-items:baseline;gap:8px"><span class="disp tnum" style="font-size:44px">128</span><span style="font-size:14px;color:var(--muted)">/ 300</span></div></div>
+  <div id="hc3" class="abs glass" style="left:120px;top:760px;width:300px;border-radius:22px;padding:14px 16px;display:flex;gap:12px;align-items:center">${av('A',44)}<div><div class="lbl" style="color:var(--leaf)">★ Member of the Month</div><b style="font:700 16px Bric">Member A</b></div></div>
+</div>
+
+<!-- ── 3 ROUTES ── -->
+<div id="sc-routes" class="scene">
+  ${ROUTES.map((r,i)=>`<div id="rt${i}" class="abs" style="left:360px;top:180px;width:1200px;height:720px;transform-origin:600px 360px">${miniPage(r,i)}</div>`).join('')}
+  <div id="rlabel" class="abs mono" style="left:110px;bottom:120px;font-size:64px;color:#0A2015;letter-spacing:-.02em"></div>
+  <div id="rcount" class="abs mono" style="right:110px;top:110px;font-size:22px;color:#016737;font-weight:600"></div>
+  <div id="rtitle" class="abs disp" style="left:0;right:0;top:360px;text-align:center;font-size:132px;color:#0A2015;text-shadow:0 0 60px rgb(245 248 236),0 0 30px rgb(245 248 236),0 0 12px rgb(245 248 236)"><span id="rt1w">18 public pages.</span><br><span id="rt2w" class="serif" style="color:#016737;font-size:110px">Open to everyone.</span></div>
+</div>
+
+<!-- ── 4 EVENTS + GOOGLE FORM ── -->
+<div id="sc-events" class="scene">
+  <div id="eb" class="bframe" style="left:160px;top:70px;width:1600px;height:900px;transform-origin:800px 450px">
+    <div class="bchrome"><span><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><div class="url" id="eurl">🔒 baubc &nbsp;/ events</div><span style="width:40px"></span></div>
+    <div id="egrid" class="layer" style="top:42px;padding:70px 70px 0;background:linear-gradient(180deg,#F5F8EC,#EAF1D9)">
+      <div class="lbl" style="color:var(--leaf)">◆ Events</div><div class="disp" style="font-size:72px;margin-top:10px">What's <span class="serif" style="color:var(--brand)">on next</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:44px">${[1,2,3].map(n=>`<div id="ec${n}" class="card" style="overflow:hidden"><div style="position:relative;height:300px;overflow:hidden"><div id="ecb${n}" class="layer">${banner(n)}</div></div><div style="padding:22px 24px"><div class="disp" style="font-size:30px">Event ${n}</div><div style="font:500 15px Int;color:var(--muted);margin-top:6px">Dec ${['','04','12','20'][n]} · ${['','Hall 1','Main Hall','Room 3'][n]}</div></div></div>`).join('')}</div>
+    </div>
+    <div id="edet" class="layer" style="top:42px;background:var(--paper)">
+      <div style="position:relative;height:360px">${banner(2,true)}</div>
+      <div style="display:grid;grid-template-columns:1fr 520px;gap:40px;padding:34px 60px">
+        <div><div style="display:flex;gap:10px"><span class="tag" style="background:var(--lime1);color:var(--brand)"><span class="dia"></span>Filling fast</span><span class="tag" style="background:#fff;border:1px solid var(--line)">Dec 12 · 10:00 AM</span></div>
+          <div class="disp" style="font-size:68px;margin-top:18px">Event 2: <span class="serif" style="color:var(--brand)">Innovation</span> Summit</div>
+          <p style="font-size:19px;line-height:1.6;color:var(--ink-2);margin-top:14px;max-width:640px">Talks, pitches and hands-on sessions. Open to everyone.</p>
+          <span class="btn bl" style="margin-top:22px;height:58px;padding:0 30px;font-size:17px">Register now →</span></div>
+        <div class="card" style="padding:22px 24px;height:420px;overflow:hidden;position:relative">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div class="lbl">Live registrations</div><span class="tag" style="background:#FBE1DC;color:#C2371F;font-size:11px;padding:5px 10px"><i id="edot" style="width:8px;height:8px;border-radius:9px;background:#C2371F"></i>Live</span></div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px"><span id="ecount" class="disp tnum" style="font-size:80px;transform-origin:left center">124</span><span style="color:var(--muted);font-size:16px">/ 300 seats</span></div>
+          <div style="height:8px;border-radius:9px;background:rgb(10 32 21/.08);margin-top:6px"><div id="ebar" style="width:41%;height:100%;border-radius:9px;background:linear-gradient(90deg,#016737,#1FA85B)"></div></div>
+          <div id="elist" style="position:relative;margin-top:16px;height:240px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="gf" class="abs" style="left:1200px;top:110px;width:580px;height:840px;border-radius:22px;overflow:hidden;background:#F0EBF8;box-shadow:0 60px 120px -40px rgb(40 20 90/.55);padding:22px">
+    <div style="display:flex;align-items:center;gap:10px;font:600 15px Int;color:#4A2C8A;margin:2px 4px 14px"><svg width="22" height="28" viewBox="0 0 22 28"><path d="M0 3a3 3 0 0 1 3-3h11l8 8v17a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3z" fill="#7248B9"/><path d="M14 0v8h8z" fill="#A98ADB"/><circle cx="6" cy="13" r="1.5" fill="#fff"/><rect x="9" y="12" width="8" height="2" rx="1" fill="#fff"/><circle cx="6" cy="18" r="1.5" fill="#fff"/><rect x="9" y="17" width="8" height="2" rx="1" fill="#fff"/></svg>Google Forms<span style="margin-left:auto;font:600 12px Int;color:#fff;background:#673AB7;border-radius:99px;padding:5px 11px">Responses <span id="gfr" class="tnum">124</span></span></div>
+    <div style="background:#fff;border-radius:14px;border-top:12px solid #673AB7;padding:22px 26px"><div class="disp" style="font-size:30px">Event 2 · Registration</div><div style="font-size:15px;color:#555;margin-top:8px">Responses sync to the website instantly</div></div>
+    ${[['Full name','gfn'],['Email','gfe'],['Department','gfd']].map(([l,id])=>`<div style="background:#fff;border-radius:14px;padding:18px 26px;margin-top:12px"><div style="font:500 16px Int">${l} <span style="color:#D93025">*</span></div><div style="margin-top:12px;border-bottom:1.5px solid #673AB7;height:32px;font:400 17px Int" id="${id}"></div></div>`).join('')}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span id="gfs" class="btn" style="background:#673AB7;color:#fff;height:46px;border-radius:8px">Submit</span><span id="gfok" style="font:600 15px Int;color:#1E8E3E">✓ Response recorded</span></div>
+  </div>
+  <div id="orbs" class="layer" style="pointer-events:none"></div>
+</div>
+
+<!-- ── 5 BANGLA ARTICLES ── -->
+<div id="sc-bangla" class="scene">
+  <div id="bngrid" class="layer">
+    <div class="abs" style="left:150px;top:110px"><div class="lbl" style="color:var(--leaf)">◆ Insights</div><div class="disp" style="font-size:84px;margin-top:10px">Fresh from <span class="serif" style="color:var(--brand)">the club blog</span></div>
+      <div style="display:flex;gap:10px;margin-top:22px"><span class="chip2">Everything</span><span class="chip2 on bn" id="bnchip">বাংলা লেখা</span><span class="chip2">DECODED</span><span class="chip2">Case Studies</span></div></div>
+    ${[['কৃষির সমস্যাই হতে পারে পরের বড় ব্যবসা','B','উদ্যোগ',0],['মাঠ থেকে বাজার: একটি সবজির দামের গল্প','C','কেস স্টাডি',1],['প্রথম পিচ ডেক: দশটি স্লাইডে আপনার গল্প','D','স্টার্টআপ',2]].map(([t,a,lab,i])=>`<div id="bc${i}" class="abs" style="left:${150+i*560}px;top:430px;width:520px">
+      <div style="position:relative;height:300px;border-radius:24px;overflow:hidden;box-shadow:0 30px 50px -30px rgb(1 77 42/.5)">${cover(i+1)}<span class="tag" style="position:absolute;left:18px;top:18px;background:rgb(255 255 255/.75)"><span class="bn" style="font-size:13px">${lab}</span></span></div>
+      <div class="bn" style="font:600 13px HindBn;color:var(--green);margin-top:16px">বাংলা · লিখেছেন Member ${a}</div>
+      <div class="bnd" style="font-size:31px;margin-top:6px">${t}</div></div>`).join('')}
+  </div>
+  <div id="bnart" class="layer" style="overflow:hidden">
+    <div id="bnread" class="abs" style="left:0;top:0;width:1920px;height:6px;background:linear-gradient(90deg,#016737,#C9F53B);transform-origin:0 50%;z-index:4"></div>
+    <div id="bnscroll" class="abs" style="left:0;top:0;width:1920px">
+      <div style="position:relative;height:700px;background:radial-gradient(60% 70% at 15% 20%,#E7FF8F,transparent 62%),linear-gradient(180deg,#EEFBC2,#F5F8EC);overflow:hidden">
+        <div class="layer" style="background-image:var(--pat);opacity:.7"></div>
+        <div class="abs" style="left:160px;top:120px;width:1300px">
+          <div style="display:flex;gap:10px"><span class="tag" style="background:#fff">← গভীর পাঠ</span><span class="tag" style="background:#0A2015;color:#E0FF73">বাংলা</span></div>
+          <div class="bnd" id="bntitle" style="font-size:96px;margin-top:22px;max-width:1300px">${'কৃষির সমস্যাই হতে পারে পরের বড় ব্যবসা'.split(' ').map(w=>`<span class="w bnw" style="display:inline-block">${w}</span>`).join(' ')}</div>
+          <div id="bndek" class="bn" style="font-size:26px;color:var(--ink-2);margin-top:18px;max-width:1000px">মাঠে যে কষ্ট রোজ চোখে পড়ে, সেখানেই লুকিয়ে থাকে একজন উদ্যোক্তার প্রথম সুযোগ।</div>
+          <div id="bnauth" style="display:flex;align-items:center;gap:18px;margin-top:26px"><span style="display:inline-flex;align-items:center;gap:12px;padding:6px 18px 6px 6px;border-radius:18px;background:rgb(255 255 255/.8);box-shadow:var(--shadow)">${av('B',50,'border-radius:14px')}<span><span class="bn" style="font-size:13px;color:var(--muted);display:block">লিখেছেন</span><b style="font:700 18px Int">Member B</b></span></span><span class="bn" style="font-size:18px;color:var(--ink-2)">১৩ নভেম্বর ২০২৬ · ৬ মিনিটের পাঠ</span></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 440px;gap:70px;padding:60px 160px">
+        <div class="bn" style="font-size:27px;line-height:1.95;color:var(--ink-2);display:grid;gap:34px">
+          <p>বাংলাদেশের কৃষক প্রতিদিন এমন অনেক সমস্যার মুখোমুখি হন, যেগুলো আমরা শহর থেকে প্রায় দেখতেই পাই না। সঠিক সময়ে ভালো বীজ না পাওয়া, ফসল তোলার পর দ্রুত নষ্ট হয়ে যাওয়া, কিংবা ন্যায্য দাম না পাওয়া।</p>
+          <p><span id="hl0" class="hlx">প্রতিটি অপূর্ণ চাহিদাই আসলে একটি ব্যবসার সম্ভাবনা।</span></p>
+          <div class="bnd" style="font-size:44px;color:var(--ink)"><span style="display:inline-block;width:20px;height:20px;background:#C9F53B;transform:rotate(45deg);margin-right:16px"></span>ছোট করে শুরু করুন</div>
+          <p>একটি গ্রাম, একটি ফসল, দশজন কৃষক: এটুকু দিয়েই জানা যায় ধারণাটি কাজ করে কি না। <span id="hl1" class="hlx">ছোট পরীক্ষা দ্রুত শেখায়, আর ভুলের দামও কম রাখে।</span></p>
+          <div id="bnq" style="position:relative;padding:44px 50px;border-radius:30px;background:linear-gradient(135deg,#0A2015,#016737);color:#fff;overflow:hidden"><div class="layer" style="background-image:var(--rays-l)"></div><div class="abs" style="left:0;top:0;bottom:0;width:8px;background:#C9F53B"></div><div class="serif abs" style="right:30px;top:-40px;font-size:200px;color:#C9F53B;opacity:.35">“</div><div class="bnd" style="position:relative;font-size:46px;line-height:1.45">যে সমস্যা আপনি নিজের চোখে দেখেননি, তার সমাধান বিক্রি করা সবচেয়ে কঠিন।</div></div>
+          <p><span id="hl2" class="hlx">কৃষি আর ব্যবসা আলাদা কিছু নয়; দুটো মিলেই তৈরি হয় আগামীর অর্থনীতি।</span></p>
+        </div>
+        <div><div id="bnkeys" class="glass" style="border-radius:26px;padding:28px;position:relative"><div class="lbl bn" style="color:var(--leaf);font-size:15px">◆ মূল কথা</div>
+          ${['প্রতিটি অপূর্ণ চাহিদাই আসলে একটি ব্যবসার সম্ভাবনা।','ছোট পরীক্ষা দ্রুত শেখায়, আর ভুলের দামও কম রাখে।','কৃষি আর ব্যবসা আলাদা কিছু নয়।'].map((k,i)=>`<div id="bk${i}" class="bn" style="display:flex;gap:14px;margin-top:18px;font-size:20px;line-height:1.5;border-radius:14px;padding:8px"><span style="flex:none;width:30px;height:30px;display:grid;place-items:center;background:#C9F53B;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);font:700 14px HindBn">${'১২৩'[i]}</span>${k}</div>`).join('')}
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 6 REELS ── -->
+<div id="sc-reels" class="scene">
+  <div class="abs" style="left:150px;top:110px"><div class="lbl" style="color:var(--leaf)">◆ Reels · YouTube</div><div id="rvt" class="disp" style="font-size:104px;margin-top:10px">BAUBC, <span class="serif" style="color:var(--brand)">in motion.</span></div></div>
+  <div class="abs" style="right:150px;top:200px;display:flex;gap:12px"><span class="btn bs">All reels</span><span class="btn bp" style="background:#FF0033">▶ Subscribe</span></div>
+  <div id="rrail" class="abs" style="left:150px;top:400px;height:560px;display:flex;gap:26px;align-items:flex-end">${[0,1,2,3,4,5,6,7].map(n=>`<div id="rv${n}" style="position:relative;flex:none;width:${n%3===1?720:315}px;height:${n%3===1?405:560}px;border-radius:30px;overflow:hidden;box-shadow:0 40px 70px -30px rgb(1 50 25/.6)">${reelArt(n)}</div>`).join('')}</div>
+  <div id="rbox" class="layer" style="background:rgb(2 14 7/.86)">
+    <div id="rstage" class="abs" style="border-radius:30px;overflow:hidden;box-shadow:0 60px 120px -30px rgb(0 0 0/.8)">${reelArt(2)}<div class="abs" style="left:0;right:0;bottom:0;height:6px;background:rgb(255 255 255/.25)"><div id="rprog" style="height:100%;width:0;background:#FF0033"></div></div></div>
+    <div id="rbar" class="abs" style="left:610px;right:610px;bottom:56px;display:flex;align-items:center;justify-content:space-between;color:#fff"><span><b style="font:700 22px Bric">Case study</b><br><span style="font-size:14px;opacity:.7">3 of 8 · 4.2K views</span></span><span class="btn bl">Open on YouTube</span></div>
+    <div class="abs" style="left:60px;top:500px;width:64px;height:64px;border-radius:99px;background:rgb(255 255 255/.12);border:1px solid rgb(255 255 255/.25);color:#fff;display:grid;place-items:center;font-size:22px">←</div>
+    <div class="abs" style="right:60px;top:500px;width:64px;height:64px;border-radius:99px;background:#C9F53B;color:#0A2015;display:grid;place-items:center;font-size:22px">→</div>
+  </div>
+</div>
+
+<!-- ── 7 PROFILE ── -->
+<div id="sc-profile" class="scene">
+  <div id="pdir" class="layer">
+    <div class="abs" style="left:150px;top:100px"><div class="lbl" style="color:var(--leaf)">◆ Members</div><div class="disp" style="font-size:84px;margin-top:10px">The people <span class="serif" style="color:var(--brand)">doing the work.</span></div></div>
+    ${'ABCDEF'.split('').map((l,i)=>`<div id="pd${i}" class="card" style="position:absolute;left:${150+(i%3)*545}px;top:${370+Math.floor(i/3)*250}px;width:515px;height:220px;padding:26px;display:flex;gap:20px">
+      <div style="position:relative;width:84px;height:84px;flex:none">${av(l,84,'border-radius:28%;font-size:38px')}${l==='A'?'<span style="position:absolute;right:-8px;bottom:-8px;width:32px;height:32px;border-radius:99px;background:#F5B63A;border:3px solid #fff;display:grid;place-items:center;font-size:14px">★</span>':''}</div>
+      <div><div class="disp" style="font-size:28px">Member ${l}</div><div style="font:500 15px Int;color:var(--brand);margin-top:4px">Wing ${i%3+1}${i<2?' · Lead':''}</div><div style="font:500 14px Int;color:var(--muted);margin-top:4px">Department ${'XYZ'[i%3]} · Session 202${4-i%2}-2${5-i%2}</div><div style="font:600 14px Int;color:var(--brand);margin-top:12px">View profile →</div></div></div>`).join('')}
+  </div>
+  <div id="pprof" class="layer" style="background:radial-gradient(60% 70% at 15% 20%,#E7FF8F,transparent 62%),linear-gradient(180deg,#EEFBC2,#F5F8EC)">
+    <div class="layer" style="background-image:var(--pat);opacity:.6"></div>
+    <div class="abs" style="left:150px;top:110px"><span class="tag" style="background:#fff">← All members</span></div>
+    <div id="pav" class="abs" style="left:150px;top:230px;width:260px;height:260px">
+      <div id="pring" class="abs" style="inset:-16px;border-radius:32%"></div><div class="abs" style="inset:-6px;border-radius:31%;background:#fff"></div>
+      ${av('A',260,'position:absolute;left:0;top:0;border-radius:30%;font-size:120px;background:radial-gradient(circle at 30% 25%,#1FA85B,#016737 60%,#014D2A)')}
+      <span class="abs" style="right:-14px;bottom:-14px;width:74px;height:74px;border-radius:99px;background:#F5B63A;border:6px solid #fff;display:grid;place-items:center;font-size:32px">★</span></div>
+    <div class="abs" style="left:480px;top:220px;width:900px">
+      <div id="pp0" style="display:flex;gap:10px"><span class="tag" style="background:#0A2015;color:#E0FF73">★ Member of the Month · October 2026</span><span class="tag" style="background:#fff">BAUBC member</span></div>
+      <div id="pp1" class="disp" style="font-size:130px;margin-top:16px">Member A</div>
+      <div id="pp2" style="font:600 24px Int;color:var(--brand);margin-top:10px">Head of Wing 2</div>
+      <div id="pp3" style="font:400 20px Int;color:var(--ink-2);margin-top:8px">Department X · Session 2024-25 · Member since 2025</div>
+      <div id="pp4" style="display:flex;gap:12px;margin-top:22px"><span class="btn bp">LinkedIn ↗</span><span class="btn bs">Copy profile link</span></div>
+    </div>
+    <div class="abs" style="right:150px;top:220px;width:270px;display:grid;gap:14px">${[['Points','ps0','1,240'],['Rank this month','ps1','#1'],['Events attended','ps2','9']].map(([l,id])=>`<div class="glass" style="border-radius:22px;padding:16px 20px"><div id="${id}" class="disp tnum" style="font-size:48px"></div><div style="font-size:14px;color:var(--muted)">${l}</div></div>`).join('')}</div>
+    <div class="abs" style="left:150px;top:640px;width:1100px;display:grid;gap:14px">${[['Position','Head of Wing 2, 2026–27'],['Contribution','Designed the Event 2 visual identity'],['Recognition','Member of the Month · October 2026']].map(([k,v],i)=>`<div id="pr${i}" class="card" style="padding:18px 24px;display:flex;align-items:center;gap:16px"><span style="width:14px;height:14px;background:#016737;transform:rotate(45deg)"></span><span class="lbl">${k}</span><b style="font:700 19px Int">${v}</b><span class="tag" style="margin-left:auto;background:#DDF6E3;color:#016737">◆ Verified</span></div>`).join('')}</div>
+    <div id="ppriv" class="abs" style="right:150px;top:640px;width:440px;border-radius:26px;padding:26px;background:#0A2015;color:#fff;box-shadow:var(--shadow)"><div style="display:flex;gap:14px;align-items:center"><div style="width:52px;height:52px;border-radius:16px;background:#C9F53B;display:grid;place-items:center;color:#0A2015"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="10" width="14" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><b class="disp" style="font-size:28px">Only what they choose.</b></div><div style="margin-top:12px;font-size:17px;opacity:.8">Phone, email and student ID are never public.</div></div>
+  </div>
+</div>
+
+<!-- ── 8 LOGIN + DASHBOARD ── -->
+<div id="sc-dash" class="scene">
+  <div id="lg" class="abs dglass" style="left:680px;top:190px;width:560px;height:660px;border-radius:30px;overflow:hidden;color:#fff;padding:44px 48px">
+    <div style="display:flex;align-items:center;justify-content:space-between">${markSVG('#E0FF73',36)}<span class="tag" style="background:rgb(224 255 115/.14);color:#E0FF73;font-size:11px"><span class="dia"></span>Invite only · no sign-ups</span></div>
+    <div style="margin-top:34px">${av('A',76,'font-size:34px;background:#C9F53B;color:#0A2015')}</div>
+    <div class="disp" style="font-size:46px;margin-top:20px">Two-step<br><span class="serif" style="color:#E0FF73">verification</span></div>
+    <div style="display:flex;gap:12px;margin-top:34px">${[0,1,2,3,4,5].map(i=>`<div id="ot${i}" style="width:66px;height:80px;border-radius:16px;background:rgb(255 255 255/.09);border:1.5px solid rgb(255 255 255/.22);display:grid;place-items:center" class="disp"><span id="od${i}" style="font-size:40px"></span></div>`).join('')}</div>
+    <div id="lok" style="display:flex;align-items:center;gap:10px;margin-top:30px;font:600 19px Int;color:#E0FF73"><div style="width:34px;height:34px;border-radius:99px;background:#C9F53B;display:grid;place-items:center;color:#0A2015">✓</div>Verified. Welcome back, Member A</div>
+  </div>
+  <div id="db" class="layer" style="background:var(--paper)">
+    <div class="layer" style="background-image:var(--pat);opacity:.45"></div>
+    <div class="abs" style="left:0;top:0;bottom:0;width:280px;background:linear-gradient(180deg,#016737,#014D2A);color:#fff;padding:34px 22px">
+      <div style="display:flex;align-items:center;gap:10px;padding:0 10px">${markSVG('#E0FF73',36)}<span class="disp" style="font-size:24px">BAUBC</span></div>
+      <div style="margin-top:44px;display:grid;gap:6px">${['Overview','Events','Tasks','Perks','Leaderboard','Profile'].map((x,i)=>`<div style="padding:13px 16px;border-radius:14px;font:500 16px Int;${i==0?'background:rgb(224 255 115/.16);color:#E0FF73':'color:rgb(255 255 255/.75)'}">${x}</div>`).join('')}</div></div>
+    <div class="abs" style="left:330px;top:46px;right:50px">
+      <div class="lbl">Wednesday, Nov 18</div><div class="disp" style="font-size:58px;margin-top:8px">Good evening, <span class="serif" style="color:var(--brand)">Member A</span></div>
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:22px;margin-top:28px">
+        <div class="card" style="padding:24px 26px"><div style="display:flex;justify-content:space-between"><div class="lbl">My tasks</div><span id="dprog" style="font:600 14px Int;color:var(--brand)"></span></div>
+          <div style="display:grid;gap:12px;margin-top:16px">${[1,2,3,4].map(n=>`<div id="dt${n}" style="display:flex;align-items:center;gap:14px;padding:18px;border-radius:16px;background:var(--paper);position:relative"><div id="dtb${n}" style="width:30px;height:30px;border-radius:9px;border:2px solid rgb(10 32 21/.25);display:grid;place-items:center;color:#fff;font-weight:700"></div><span style="font:600 19px Int">Task ${n}</span><span style="margin-left:auto;font:600 15px Int;color:var(--brand)">+50 points</span><span id="dtp${n}" class="abs disp" style="right:24px;top:-12px;font-size:30px;color:var(--leaf)">+50</span></div>`).join('')}</div>
+          <div style="display:flex;gap:22px;margin-top:22px"><div><div class="lbl">Points</div><div id="dpts" class="disp tnum" style="font-size:58px"></div></div><div><div class="lbl">Rank</div><div id="drank" class="disp tnum" style="font-size:58px"></div></div></div></div>
+        <div class="card" style="padding:24px 26px"><div class="lbl">Leaderboard · November</div><div id="dlb" style="position:relative;margin-top:16px;height:560px">${'ABCDEFG'.split('').map(l=>`<div id="dl${l}" class="abs" style="left:0;right:0;height:68px;display:flex;align-items:center;gap:14px;padding:0 16px;border-radius:16px;${l=='A'?'background:linear-gradient(90deg,#EEFFB3,#F8FFDD);border:1px solid #C9F53B':''}"><span id="dlr${l}" class="disp tnum" style="width:30px;font-size:22px;color:var(--muted)"></span>${av(l,42)}<span style="font:600 18px Int">Member ${l}</span><span id="dlp${l}" class="tnum" style="margin-left:auto;font:700 18px Int"></span></div>`).join('')}</div></div>
+      </div></div>
+  </div>
+</div>
+
+<!-- ── 9 MoM + PERKS ── -->
+<div id="sc-perks" class="scene">
+  <div id="mrays" class="abs" style="left:-40px;top:-460px;width:2000px;height:2000px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgb(224 255 115/.12) 0deg 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 0%,transparent 60%)"></div>
+  <div id="conf" class="layer"></div>
+  <div id="mom" class="abs" style="left:610px;top:100px;width:700px;height:880px;transform-style:preserve-3d">
+    <div id="momF" class="layer" style="border-radius:34px;overflow:hidden;backface-visibility:hidden;background:linear-gradient(160deg,#FFFFFF 0%,#F8FFDD 55%,#EEFFB3 100%);box-shadow:0 80px 160px -40px rgb(0 0 0/.6);padding:52px;text-align:center">
+      <div class="layer" style="background-image:var(--pat);opacity:.6"></div>
+      <div style="position:relative"><span class="tag" style="background:#0A2015;color:#E0FF73;font-size:14px;padding:10px 18px">★ Member of the Month</span></div>
+      <div style="position:relative;margin:44px auto 0;width:230px;height:230px"><div id="mring" class="abs" style="inset:-14px;border-radius:50%;background:conic-gradient(#C9F53B,#1FA85B,#F5B63A,#C9F53B)"></div><div class="abs" style="inset:-6px;border-radius:50%;background:#fff"></div>${av('A',230,'position:absolute;left:0;top:0;font-size:110px;background:radial-gradient(circle at 30% 25%,#1FA85B,#016737 60%,#014D2A)')}<div class="abs" style="right:-6px;bottom:6px;width:64px;height:64px;border-radius:50%;background:#F5B63A;display:grid;place-items:center;border:5px solid #fff;font-size:28px">★</div></div>
+      <div class="disp" style="position:relative;font-size:88px;margin-top:34px">Member A</div>
+      <div class="serif" style="position:relative;font-size:40px;color:var(--brand)">October 2026</div>
+      <div style="position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px">${[['1,240','points'],['4 / 4','tasks'],['9','events']].map(([a,b])=>`<div style="background:#fff;border-radius:18px;padding:16px 8px;border:1px solid var(--line)"><div class="disp" style="font-size:36px">${a}</div><div class="lbl" style="margin-top:4px">${b}</div></div>`).join('')}</div>
+      <div id="mshine" class="abs" style="top:-20%;left:0;width:200px;height:140%;background:linear-gradient(90deg,transparent,rgb(255 255 255/.85),transparent);transform:skewX(-18deg);mix-blend-mode:overlay"></div>
+    </div>
+    <div class="layer" style="border-radius:34px;overflow:hidden;backface-visibility:hidden;transform:rotateY(180deg);background:radial-gradient(120% 100% at 50% 0%,#1FA85B,#016737 45%,#012615);color:#fff;display:grid;place-items:center;text-align:center"><div class="layer" style="background-image:var(--pat-l)"></div><div style="position:relative">${markSVG('#E0FF73',120)}<div class="disp" style="font-size:76px;margin-top:30px">Rewards<br><span class="serif" style="color:#E0FF73">unlocked</span></div></div></div>
+  </div>
+  <div id="pkw" class="layer">
+    <div id="pkt" class="abs" style="left:150px;top:110px"><div class="lbl" style="color:var(--leaf)">◆ Member A · Perks</div><div class="disp" style="font-size:96px;margin-top:12px">Your <span class="serif" style="color:var(--brand)">perks</span></div></div>
+    ${[['Claude Pro','3-month subscription',claudeLogo(64),'#FBEFE9','AI'],['Course Bundle','Business & strategy track',ICON.book,'#DCE8FB','Learning'],['Summit Pass','Free entry · Event 2',ICON.ticket,'#FFF1CC','Events'],['Mentor Session','1:1 with an alumni mentor',ICON.chat,'#DDF6E3','Growth']].map((d,i)=>`<div id="pk${i}" class="abs glass" style="left:${150+i*410}px;top:380px;width:380px;height:500px;border-radius:30px;padding:32px;overflow:hidden">
+      <div style="width:110px;height:110px;border-radius:30px;background:${d[3]};display:grid;place-items:center">${d[2]}</div><div class="lbl" style="margin-top:30px">${d[4]}</div><div class="disp" style="font-size:42px;margin-top:8px">${d[0]}</div><div style="font:500 17px Int;color:var(--muted);margin-top:8px">${d[1]}</div>
+      <div id="pkc${i}" class="abs" style="left:32px;right:32px;bottom:112px;padding:12px 16px;border-radius:16px;border:1px dashed rgb(10 32 21/.22);background:rgb(255 255 255/.8)"><div class="lbl">Your code</div><div class="mono" style="font-size:20px;font-weight:600">${['CLAUDE-7Q2X','','SUMMIT-MEMBER',''][i]}</div></div>
+      <div class="abs" style="left:32px;right:32px;bottom:32px;height:62px;border-radius:999px;background:var(--ink);color:#fff;display:grid;place-items:center;font:600 18px Int;overflow:hidden">Claim perk<span id="pkb${i}" class="abs" style="inset:0;display:grid;place-items:center;background:var(--lime);color:var(--ink)">Claimed ✓</span></div></div>`).join('')}
+    <div id="toast" class="abs glass" style="left:1390px;top:150px;border-radius:999px;padding:16px 26px;display:flex;align-items:center;gap:14px;font:600 19px Int;white-space:nowrap"><div style="width:32px;height:32px;border-radius:99px;background:var(--brand);display:grid;place-items:center;color:#E0FF73">✓</div>Claude Pro code delivered to your account</div>
+  </div>
+</div>
+
+<!-- ── 10 CONTACT DESK ── -->
+<div id="sc-contact" class="scene">
+  <div class="abs" style="left:150px;top:90px"><div class="lbl" style="color:var(--leaf)">◆ Contact desk</div><div class="disp" style="font-size:96px;margin-top:10px">Talk to <span class="serif" style="color:var(--brand)">a real person.</span></div></div>
+  <div id="cdesk" class="abs card" style="left:150px;top:330px;width:1620px;height:680px;padding:40px">
+    <div class="disp" style="font-size:24px"><span style="display:inline-grid;place-items:center;width:30px;height:30px;background:#016737;color:#E0FF73;font-size:14px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);margin-right:10px">1</span>Who are you?</div>
+    ${[['I study at BAU','Questions, help, joining'],['Company or organisation','Sponsorship, hiring, talks'],['Someone else','Teachers, alumni, media']].map(([a,b],i)=>`<div id="cw${i}" class="dcard" style="left:${40+i*360}px;top:90px;width:340px;height:150px"><div style="width:46px;height:46px;border-radius:14px;background:#EEFFB3;display:grid;place-items:center;font-size:22px">${['🎓','🏢','👤'][i]}</div><b style="display:block;font:700 19px Bric;margin-top:12px">${a}</b><span style="font-size:14px;color:var(--muted)">${b}</span></div>`).join('')}
+    <div class="disp abs" style="left:40px;top:268px;font-size:24px"><span style="display:inline-grid;place-items:center;width:30px;height:30px;background:#016737;color:#E0FF73;font-size:14px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);margin-right:10px">2</span>What do you need?</div>
+    <div class="abs" style="left:40px;top:320px;display:flex;gap:10px">${['Collaborate','Sponsor an event','Hire our members','Give a talk','Ask a question'].map((c,i)=>`<span id="cp${i}" class="chip2">${c}</span>`).join('')}</div>
+    <div class="abs" style="left:40px;top:396px;width:1040px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div><div class="lbl2">Your name</div><div class="field2" id="cf0"></div></div><div><div class="lbl2">Company</div><div class="field2" id="cf1"></div></div>
+      <div style="grid-column:span 2"><div class="lbl2">Message</div><div class="field2" id="cf2" style="height:84px;align-items:flex-start;padding-top:14px"></div></div>
+    </div>
+    <div class="abs" style="left:1130px;top:90px;width:450px">
+      <div class="disp" style="font-size:24px"><span style="display:inline-grid;place-items:center;width:30px;height:30px;background:#016737;color:#E0FF73;font-size:14px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);margin-right:10px">3</span>How should we reply?</div>
+      <div style="display:inline-flex;padding:5px;border-radius:99px;background:rgb(10 32 21/.06);margin-top:20px">${['Email','Call me','WhatsApp'].map((c,i)=>`<span id="cs${i}" style="padding:12px 20px;border-radius:99px;font:600 16px Int">${c}</span>`).join('')}</div>
+      <div class="lbl2" style="margin-top:24px">Phone number</div><div class="field2" id="cf3"></div>
+      <div id="csend" class="btn bp" style="margin-top:110px;height:62px;font-size:18px;padding:0 34px">Send message</div>
+    </div>
+  </div>
+  <div id="cdone" class="abs card" style="left:460px;top:250px;width:1000px;height:680px;display:grid;justify-items:center;align-content:center;text-align:center;gap:22px">
+    <div id="cchk" style="width:120px;height:120px;border-radius:99px;background:#C9F53B;display:grid;place-items:center;box-shadow:0 0 0 18px rgb(201 245 59/.25)"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#0A2015" stroke-width="3" stroke-linecap="round"><path id="cchkp" d="M5 12.5l4.5 4.5L19 7.5" stroke-dasharray="24" stroke-dashoffset="24"/></svg></div>
+    <div class="disp" style="font-size:70px">Message received.</div>
+    <div style="font-size:21px;color:var(--ink-2)">We reply on WhatsApp, usually within two working days.</div>
+    <div><div class="lbl">Your reference</div><div id="cref" class="mono" style="font-size:58px;font-weight:700;color:var(--brand);letter-spacing:.06em;margin-top:6px"></div></div>
+  </div>
+</div>
+
+<!-- ── 11 MOBILE ── -->
+<div id="sc-mobile" class="scene">
+  ${[0,1,2].map(k=>`<div id="ph${k}" class="phone" style="left:760px;top:107px"><div class="notch"></div><div id="phc${k}" class="abs" style="left:0;top:0;width:400px">${mobileScreen(k)}</div></div>`).join('')}
+</div>
+
+<!-- ── 12 OUTRO ── -->
+<div id="sc-outro" class="scene">
+  <svg id="ologo" class="abs" style="left:810px;top:160px;overflow:visible" width="300" height="300" viewBox="150 120 760 760">
+    <g id="oglow" filter="url(#glow)" opacity="0">${MARK.map(d=>`<path fill="#C9F53B" d="${d}"/>`).join('')}</g>
+    ${MARK.map((d,i)=>`<path id="op${i}" d="${d}" fill="url(#gl)" style="transform-box:fill-box;transform-origin:center"/>`).join('')}
+  </svg>
+  <div id="owm" class="abs disp" style="left:0;right:0;top:500px;text-align:center;font-size:190px;color:#fff;letter-spacing:.01em">${'BAUBC'.split('').map(c=>`<span class="w owl">${c}</span>`).join('')}</div>
+  <div id="otag" class="abs" style="left:0;right:0;top:720px;text-align:center;font:500 46px Int;color:rgb(255 255 255/.92)">${words('The Club of the','otw')} <span class="w otw serif" style="color:#E0FF73;font-size:62px">Future.</span></div>
+  <div class="abs" style="left:0;right:0;top:856px;display:flex;justify-content:center;gap:34px">
+    ${[['fb','Facebook'],['li','LinkedIn'],['android','Android'],['apple','iOS'],['web','Website']].map(([k,l],i)=>`<div id="oi${i}" style="display:grid;justify-items:center;gap:10px"><div class="dglass" style="width:82px;height:82px;border-radius:24px;display:grid;place-items:center"><div style="width:38px;height:38px">${ICON[k].replace('<svg ','<svg width="38" height="38" ')}</div></div><span style="font:500 14px Int;color:rgb(255 255 255/.7);letter-spacing:.04em">${l}</span></div>`).join('')}
+  </div>
+  <div id="flare" class="abs" style="left:0;top:520px;width:1920px;height:4px;background:linear-gradient(90deg,transparent,rgb(224 255 115/0) 20%,rgb(255 255 255/.95) 50%,rgb(224 255 115/0) 80%,transparent);filter:blur(1px)"></div>
+</div>
+</div><!-- /world -->
+
+<div id="cursor" class="abs" style="left:0;top:0;width:34px;height:34px;z-index:50"><div id="cring" class="abs" style="left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:3px solid #C9F53B"></div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M3 2l23 13.2-10 2.6 6.2 11.6-4.4 2.4-6.2-11.8-8.6 6.6z" fill="#0A2015" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg></div>
+<div id="cap" class="abs" style="left:0;right:0;bottom:44px;text-align:center;z-index:40"><div id="capK" class="tag" style="background:rgb(10 32 21/.88);color:#E0FF73;font-size:13px"></div><div id="capT" class="disp" style="font-size:58px;margin-top:12px;letter-spacing:-.025em"></div></div>
+<div id="flash" class="layer" style="background:#fff;mix-blend-mode:screen;z-index:60"></div>
+<div id="vig" class="layer" style="background:radial-gradient(ellipse at center,transparent 55%,rgb(0 20 8/.42) 100%);z-index:61;pointer-events:none"></div>
+<div id="grain" class="layer" style="z-index:62;opacity:.06;mix-blend-mode:overlay;pointer-events:none"></div>
+<div id="fade" class="layer" style="background:#000;z-index:70"></div>
+`;
+function mobileScreen(k){
+  const top=`<div style="height:54px"></div><div style="height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line)"><div style="display:flex;gap:8px;align-items:center">${markSVG('#016737',28)}<span class="disp" style="font-size:20px">BAUBC</span></div><div style="display:grid;gap:5px"><i style="width:22px;height:2.5px;background:var(--ink);border-radius:2px;display:block"></i><i style="width:22px;height:2.5px;background:var(--ink);border-radius:2px;display:block"></i><i style="width:14px;height:2.5px;background:var(--ink);border-radius:2px;display:block"></i></div></div>`;
+  if(k===0) return top+`<div style="padding:20px 22px"><span class="tag" style="background:#0A2015;color:#E0FF73;font-size:11px">বাংলা</span><div class="bnd" style="font-size:34px;margin-top:12px">কৃষির সমস্যাই হতে পারে পরের বড় ব্যবসা</div><div style="display:flex;gap:10px;align-items:center;margin-top:14px">${av('B',38,'border-radius:12px')}<span><span class="bn" style="font-size:12px;color:var(--muted);display:block">লিখেছেন</span><b style="font:700 15px Int">Member B</b></span></div>
+    <div class="bn" style="font-size:18px;line-height:1.85;color:var(--ink-2);margin-top:18px">বাংলাদেশের কৃষক প্রতিদিন এমন অনেক সমস্যার মুখোমুখি হন। <span class="hlx" style="background-size:100% 75%">প্রতিটি অপূর্ণ চাহিদাই আসলে একটি ব্যবসার সম্ভাবনা।</span> একজন উদ্যোক্তার প্রথম কাজ সমস্যাটি গভীরভাবে বোঝা। <span class="hlx" style="background-size:100% 75%">ছোট পরীক্ষা দ্রুত শেখায়।</span></div>
+    <div style="margin-top:18px;padding:22px;border-radius:22px;background:linear-gradient(135deg,#0A2015,#016737);color:#fff"><div class="bnd" style="font-size:22px;line-height:1.45">যে সমস্যা আপনি নিজের চোখে দেখেননি, তার সমাধান বিক্রি করা সবচেয়ে কঠিন।</div></div></div>`;
+  if(k===1) return top+`<div style="padding:20px 22px"><div class="lbl" style="color:var(--leaf);font-size:11px">◆ Reels</div><div class="disp" style="font-size:40px;margin-top:8px">BAUBC, <span class="serif" style="color:var(--brand)">in motion.</span></div></div><div style="padding:0 22px;display:grid;grid-template-columns:1fr 1fr;gap:12px">${[0,1,2,3,4,5].map(n=>`<div style="position:relative;height:300px;border-radius:20px;overflow:hidden">${reelArt(n)}</div>`).join('')}</div>`;
+  return top+`<div style="padding:22px;text-align:center"><div style="position:relative;width:150px;height:150px;margin:10px auto 0">${av('A',150,'border-radius:30%;font-size:66px')}<span style="position:absolute;right:-8px;bottom:-8px;width:44px;height:44px;border-radius:99px;background:#F5B63A;border:4px solid #fff;display:grid;place-items:center">★</span></div><div class="tag" style="background:#0A2015;color:#E0FF73;font-size:10px;margin-top:18px">★ Member of the Month</div><div class="disp" style="font-size:44px;margin-top:10px">Member A</div><div style="font:600 15px Int;color:var(--brand)">Head of Wing 2</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px">${[['1,240','Points'],['#1','Rank'],['9','Events']].map(([a,b])=>`<div class="card" style="padding:12px 6px"><div class="disp" style="font-size:24px">${a}</div><div style="font-size:11px;color:var(--muted)">${b}</div></div>`).join('')}</div>
+    ${['Head of Wing 2','Event 2 visual identity','Member of the Month'].map(x=>`<div class="card" style="padding:14px;margin-top:10px;text-align:left;font:600 14px Int">◆ ${x} <span style="float:right;color:var(--brand);font-size:12px">Verified</span></div>`).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Trailer v3 additions: new scenes, typewriter for all text, remapped timeline.
+// Loaded after the v2 page has built its DOM (see build3.py).
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── extra DOM ───────────────────────────────────────────────────────────────
+const W3=$('world');
+const fbIcon=(s=36)=>`<span style="display:inline-grid;place-items:center;width:${s}px;height:${s}px;border-radius:99px;background:#1877F2"><span style="width:${s*.55}px;height:${s*.55}px;display:block">${ICON.fb.replace('<svg ','<svg width="100%" height="100%" ')}</span></span>`;
+const ogCard=(w=600)=>`<div style="position:relative;width:${w}px;height:${w*.525}px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#F8FFDD,#EEFFB3 45%,#C9F53B);display:flex;align-items:center;gap:${w*.05}px;padding:0 ${w*.06}px">
+  <div style="position:absolute;right:-${w*.12}px;bottom:-${w*.18}px;opacity:.13">${markSVG('#016737',w*.6)}</div>
+  <div style="position:relative;flex:none;width:${w*.25}px;height:${w*.25}px;border-radius:99px;background:#C9F53B;padding:${w*.012}px"><div style="width:100%;height:100%;border-radius:99px;background:#fff;padding:${w*.008}px">${av('A',w*.22,'width:100%;height:100%;font-size:'+(w*.11)+'px;background:linear-gradient(135deg,#1FA85B,#014D2A)')}</div><span style="position:absolute;right:0;bottom:0;width:${w*.065}px;height:${w*.065}px;border-radius:99px;background:#F5B63A;border:3px solid #fff;display:grid;place-items:center;font-size:${w*.03}px">★</span></div>
+  <div style="position:relative"><div style="display:inline-block;padding:${w*.008}px ${w*.02}px;border-radius:99px;background:#0A2015;color:#E0FF73;font:600 ${w*.019}px Int;letter-spacing:.06em">★ MEMBER OF THE MONTH · OCTOBER 2026</div><div class="disp" style="font-size:${w*.085}px;margin-top:${w*.015}px">Member A</div><div style="font:600 ${w*.028}px Int;color:#016737;margin-top:${w*.01}px">Head of Wing 2</div><div style="display:flex;align-items:center;gap:8px;margin-top:${w*.03}px">${markSVG('#016737',w*.045)}<b class="disp" style="font-size:${w*.03}px">BAUBC</b></div></div></div>`;
+
+// replace the v2 events + mobile scenes, add teacher, bKash, Member-of-the-Month scenes
+$('sc-events').outerHTML=`<div id="sc-events" class="scene">
+  <div id="eb" class="bframe" style="left:160px;top:70px;width:1600px;height:900px;transform-origin:800px 450px">
+    <div class="bchrome"><span><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><div class="url" id="eurl" data-notw>🔒 baubc &nbsp;/ events</div><span style="width:40px"></span></div>
+    <div id="evp" class="layer" style="top:42px;overflow:hidden">
+      <div id="egrid" class="layer" style="padding:64px 70px 0;background:linear-gradient(180deg,#F5F8EC,#EAF1D9)">
+        <div class="lbl" style="color:var(--leaf)">◆ Events</div><div class="disp" style="font-size:72px;margin-top:10px">What's <span class="serif" style="color:var(--brand)">on next</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:40px">${[1,2,3].map(n=>`<div id="ec${n}" class="card" style="overflow:hidden"><div id="ecb${n}" style="position:relative;height:300px;overflow:hidden"><div class="layer">${banner(n)}</div></div><div id="ecy${n}" style="padding:22px 24px"><div class="disp" style="font-size:30px">Event ${n}</div><div style="font:500 15px Int;color:var(--muted);margin-top:6px">Dec ${['','04','12','20'][n]} · ${['','Hall 1','Main Hall','Room 3'][n]} · ${['','Free','৳ 300','৳ 150'][n]}</div><div style="display:flex;justify-content:space-between;margin-top:14px"><span class="tag" style="background:var(--lime1);color:var(--brand);font-size:11px">${['','Open','Filling fast','Open'][n]}</span><b style="font:600 15px Int;color:var(--brand)">Details →</b></div></div></div>`).join('')}</div>
+      </div>
+      <div id="edet" class="layer" style="background:var(--paper)">
+        <div style="height:360px"></div>
+        <div style="display:grid;grid-template-columns:1fr 520px;gap:44px;padding:30px 60px">
+          <div id="edl"><div style="display:flex;gap:10px"><span class="tag" style="background:var(--lime1);color:var(--brand)"><span class="dia"></span>Filling fast</span><span class="tag" style="background:#fff;border:1px solid var(--line)">Dec 12 · 10:00 AM</span><span class="tag" style="background:#fff;border:1px solid var(--line)">Main Hall</span></div>
+            <div class="disp" style="font-size:66px;margin-top:18px">Event 2: <span class="serif" style="color:var(--brand)">Innovation</span> Summit</div>
+            <p style="font-size:19px;line-height:1.6;color:var(--ink-2);margin-top:12px;max-width:640px">Talks, pitches and hands-on sessions. Open to everyone. Members check in with their digital ticket.</p>
+            <div style="display:flex;gap:14px;align-items:center;margin-top:22px"><span id="eReg" class="btn bl" style="height:60px;padding:0 32px;font-size:18px;box-shadow:0 14px 30px -12px rgb(143 211 19/.9)">Register now →</span><b style="font:600 17px Int">৳ 300 <span style="color:var(--muted);font-weight:500">· pay by bKash</span></b></div></div>
+          <div class="card" style="padding:22px 24px;height:430px;overflow:hidden;position:relative">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div class="lbl">Live registrations</div><span class="tag" style="background:#FBE1DC;color:#C2371F;font-size:11px;padding:5px 10px"><i id="edot" style="width:8px;height:8px;border-radius:9px;background:#C2371F"></i>Live</span></div>
+            <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px"><span id="ecount" data-notw class="disp tnum" style="font-size:80px;transform-origin:left center">124</span><span style="color:var(--muted);font-size:16px">/ 300 seats</span></div>
+            <div style="height:8px;border-radius:9px;background:rgb(10 32 21/.08);margin-top:6px"><div id="ebar" style="width:41%;height:100%;border-radius:9px;background:linear-gradient(90deg,#016737,#1FA85B)"></div></div>
+            <div id="elist" style="position:relative;margin-top:16px;height:250px"></div>
+          </div>
+        </div>
+      </div>
+      <div id="emorph" class="abs" style="overflow:hidden;z-index:6"><div id="emA" class="layer">${banner(2)}</div><div id="emB" class="layer">${banner(2,true)}</div></div>
+      <div id="eshade" class="layer" style="background:rgb(10 32 21/.38);z-index:7"></div>
+      <div id="ereg" class="abs" style="right:0;top:0;bottom:0;width:660px;background:#fff;box-shadow:-50px 0 90px -40px rgb(1 50 25/.45);z-index:8;padding:40px 46px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><div class="lbl" style="color:var(--leaf)">◆ Register · Event 2</div><span style="font-size:22px;color:var(--muted)">✕</span></div>
+        <div class="disp" style="font-size:44px;margin-top:10px">Hold your <span class="serif" style="color:var(--brand)">seat</span></div>
+        <div style="display:flex;gap:10px;margin-top:18px"><span class="dcard on" style="position:relative;padding:14px 18px;flex:1"><b style="font:700 16px Bric">Summit pass</b><br><span style="font-size:14px;color:var(--muted)">৳ 300 · person</span></span><span class="dcard" style="position:relative;padding:14px 18px;flex:1"><b style="font:700 16px Bric">Pitch track team</b><br><span style="font-size:14px;color:var(--muted)">৳ 1,200 · team</span></span></div>
+        ${[['Full name','rg0'],['Email','rg1'],['Phone','rg2'],['Institution / department','rg3']].map(([l,id])=>`<div class="lbl2" style="margin-top:16px">${l}</div><div class="field2" id="${id}" data-notw></div>`).join('')}
+        <div style="display:flex;align-items:center;gap:10px;margin-top:18px;font-size:15px"><span id="regConsent" style="width:24px;height:24px;border-radius:7px;border:2px solid rgb(10 32 21/.3);display:grid;place-items:center;color:#fff;font-weight:700"></span>I agree to the privacy notice</div>
+        <div id="regSubmit" class="btn bp" style="margin-top:20px;height:58px;width:100%;justify-content:center;font-size:17px">Hold my seat and pay →</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--muted);text-align:center">Pay by bKash after your seat is held · we never ask for your PIN</div>
+        <div id="eregok" class="layer" style="background:#fff;display:grid;place-items:center;text-align:center;padding:40px"><div><div style="margin:0 auto;width:96px;height:96px;border-radius:99px;background:#C9F53B;display:grid;place-items:center;font-size:42px">✓</div><div class="disp" style="font-size:48px;margin-top:20px">Seat held.</div><div style="font-size:18px;color:var(--ink-2);margin-top:8px">Ticket BAUBC-T-0125 · pay ৳ 300 by bKash</div><div class="tag" style="margin-top:18px;background:#0A2015;color:#E0FF73">Added to the live list</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div id="efb" class="abs" style="left:610px;top:96px;width:700px;border-radius:18px;background:#fff;box-shadow:0 60px 120px -30px rgb(0 0 0/.45);overflow:hidden;z-index:9">
+    <div style="height:56px;background:#fff;border-bottom:1px solid #e4e6eb;display:flex;align-items:center;gap:12px;padding:0 18px">${fbIcon(34)}<div style="flex:1;height:36px;border-radius:99px;background:#F0F2F5;display:flex;align-items:center;padding:0 16px;color:#65676B;font:500 15px Int">Search Facebook</div></div>
+    <div style="padding:16px 18px 0;display:flex;gap:12px;align-items:center"><div style="width:46px;height:46px;border-radius:99px;background:#016737;display:grid;place-items:center">${markSVG('#E0FF73',28)}</div><div><b style="font:700 16px Int;color:#050505">BAUBC</b><div style="font:500 13px Int;color:#65676B">2h · 🌐</div></div><span style="margin-left:auto;color:#65676B;font-size:22px">···</span></div>
+    <div style="padding:12px 18px;font:400 17px Int;line-height:1.5;color:#050505">Event 2: Innovation Summit is filling fast 🚀 Register in 30 seconds 👉 <span id="efbl" style="color:#1877F2;font-weight:600">forms.gle/baubc-event-2</span></div>
+    <div style="position:relative;height:330px">${banner(2,true)}</div>
+    <div style="padding:10px 18px;display:flex;justify-content:space-between;font:500 14px Int;color:#65676B;border-bottom:1px solid #e4e6eb"><span>👍❤️ <span id="efbr" data-notw>1.2K</span></span><span>86 comments · 54 shares</span></div>
+    <div style="display:flex;justify-content:space-around;padding:10px 0;font:600 15px Int;color:#65676B"><span>👍 Like</span><span>💬 Comment</span><span>↗ Share</span></div>
+  </div>
+  <div id="gf" class="abs" style="left:1200px;top:110px;width:580px;height:840px;border-radius:22px;overflow:hidden;background:#F0EBF8;box-shadow:0 60px 120px -40px rgb(40 20 90/.55);padding:22px;z-index:9">
+    <div style="display:flex;align-items:center;gap:10px;font:600 15px Int;color:#4A2C8A;margin:2px 4px 14px"><svg width="22" height="28" viewBox="0 0 22 28"><path d="M0 3a3 3 0 0 1 3-3h11l8 8v17a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3z" fill="#7248B9"/><path d="M14 0v8h8z" fill="#A98ADB"/><circle cx="6" cy="13" r="1.5" fill="#fff"/><rect x="9" y="12" width="8" height="2" rx="1" fill="#fff"/><circle cx="6" cy="18" r="1.5" fill="#fff"/><rect x="9" y="17" width="8" height="2" rx="1" fill="#fff"/></svg>Google Forms<span style="margin-left:auto;font:600 12px Int;color:#fff;background:#673AB7;border-radius:99px;padding:5px 11px">Responses <span id="gfr" data-notw class="tnum">124</span></span></div>
+    <div style="background:#fff;border-radius:14px;border-top:12px solid #673AB7;padding:22px 26px"><div class="disp" style="font-size:30px">Event 2 · Registration</div><div style="font-size:15px;color:#555;margin-top:8px">Linked from the BAUBC Facebook page · syncs to the website instantly</div></div>
+    ${[['Full name','gfn'],['Email','gfe'],['Department','gfd']].map(([l,id])=>`<div style="background:#fff;border-radius:14px;padding:18px 26px;margin-top:12px"><div style="font:500 16px Int">${l} <span style="color:#D93025">*</span></div><div style="margin-top:12px;border-bottom:1.5px solid #673AB7;height:32px;font:400 17px Int" id="${id}" data-notw></div></div>`).join('')}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span id="gfs" class="btn" style="background:#673AB7;color:#fff;height:46px;border-radius:8px">Submit</span><span id="gfok" style="font:600 15px Int;color:#1E8E3E">✓ Response recorded</span></div>
+  </div>
+  <div id="orbs" class="layer" style="pointer-events:none;z-index:10"></div>
+</div>`;
+
+$('sc-mobile').outerHTML=`<div id="sc-mobile" class="scene"><div id="mgrid" class="layer" style="transform-origin:0 0">${ROUTES.map((r,i)=>{const col=i%9,row=Math.floor(i/9);const x=168+col*198,y=row?590:150;
+  return `<div id="mg${i}" class="abs" style="left:${x-76}px;top:${y}px;width:152px;height:376px"><div class="phone" style="left:0;top:0;transform:scale(.38);transform-origin:0 0"><div class="notch"></div><div id="mgc${i}" class="abs" style="left:0;top:0;width:400px">${mobileMini(r,i)}</div></div><div id="mgl${i}" class="mono" style="position:absolute;left:-20px;right:-20px;top:342px;text-align:center;font-size:14px;font-weight:600;color:#016737">${r[0]}</div></div>`}).join('')}
+  <div id="mgring" class="abs" style="width:170px;height:350px;border-radius:30px;border:3px solid #C9F53B;box-shadow:0 0 0 8px rgb(201 245 59/.25)"></div></div></div>`;
+
+W3.insertAdjacentHTML('beforeend',`
+<div id="sc-teacher" class="scene">
+  <div id="tp" class="abs card" style="left:120px;top:120px;width:640px;height:820px;padding:40px;overflow:hidden">
+    <div class="layer" style="background:radial-gradient(70% 50% at 20% 0%,#EEFFB3,transparent 70%)"></div>
+    <div style="position:relative"><div class="lbl" style="color:var(--leaf)">◆ Advisors · public profile</div>
+      <div style="display:flex;gap:26px;align-items:center;margin-top:24px"><div style="position:relative;width:150px;height:150px;flex:none">${av('T',150,'border-radius:30%;font-size:70px;background:linear-gradient(135deg,#1D5FD1,#0E2E6E)')}</div>
+        <div><div class="tag" style="background:#DCE8FB;color:#1D5FD1">Club Advisor</div><div class="disp" style="font-size:64px;margin-top:10px">Teacher T</div><div style="font:500 18px Int;color:var(--ink-2)">Professor · Department X</div></div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:30px">${[['tq0','Decisions co-signed'],['tq1','Payments released'],['tq2','Memberships finalised']].map(([id,l])=>`<div class="mom" style="border-radius:20px;padding:16px"><div id="${id}" data-notw class="disp tnum" style="font-size:44px">0</div><div style="font-size:13px;color:var(--ink-2)">${l}</div></div>`).join('')}</div>
+      <div class="lbl" style="margin-top:30px">Recent decisions</div>
+      ${[['Membership finalised · Member G','approve'],['Refund ৳ 300 · Event 1','approve'],['Event 3 budget · ৳ 18,000','return']].map(([x,k],i)=>`<div id="td${i}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:#fff;border:1px solid var(--line);margin-top:10px"><span style="width:28px;height:28px;border-radius:99px;display:grid;place-items:center;font-weight:700;color:#fff;background:${k==='approve'?'#016737':'#F5B63A'}">${k==='approve'?'✓':'↺'}</span><b style="font:600 16px Int">${x}</b><span style="margin-left:auto;font:500 13px Int;color:var(--muted)">${k==='approve'?'Approved':'Sent back with a note'}</span></div>`).join('')}
+    </div>
+  </div>
+  <div id="tq" class="abs card" style="left:820px;top:120px;width:980px;height:820px;padding:40px;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div><div class="lbl">Approvals · waiting for you</div><div class="disp" style="font-size:44px;margin-top:6px">Event 2 · venue & sound</div></div><span class="disp tnum" style="font-size:52px">৳ 45,000</span></div>
+    <div style="font:500 17px Int;color:var(--ink-2);margin-top:8px">Requested by Member A · Finance checked the quotes ✓ · Policy: two teacher approvals</div>
+    <div style="display:flex;gap:0;margin-top:34px;align-items:center">${['Requested','Finance check','Teacher T','Teacher U'].map((s,i)=>`<div style="display:flex;align-items:center;${i<3?'flex:1':''}"><div style="display:grid;justify-items:center;gap:8px;width:130px"><span id="ts${i}" style="width:54px;height:54px;border-radius:99px;display:grid;place-items:center;font:700 22px Int;border:3px solid rgb(10 32 21/.15);background:#fff">${i+1}</span><b style="font:600 15px Int">${s}</b></div>${i<3?`<div style="flex:1;height:4px;border-radius:4px;background:rgb(10 32 21/.1);margin:0 -10px 26px;position:relative;overflow:hidden"><i id="tl${i}" style="position:absolute;inset:0;background:#016737;transform-origin:0 50%;transform:scaleX(0)"></i></div>`:''}</div>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:34px">${[['Quote 1','Sound & stage · ৳ 28,000'],['Quote 2','Venue booking · ৳ 17,000']].map(([a,b])=>`<div style="padding:16px 18px;border-radius:16px;background:var(--paper);border:1px solid var(--line)"><div class="lbl">${a}</div><b style="font:600 17px Int">${b}</b></div>`).join('')}</div>
+    <div id="tbtns" style="display:flex;gap:12px;margin-top:30px"><span id="tApprove" class="btn bp" style="height:58px;padding:0 34px;font-size:18px">Approve</span><span class="btn bs" style="height:58px">Send back with a note</span></div>
+    <div id="tmfa" class="abs" style="left:40px;top:470px;padding:22px 26px;border-radius:22px;background:#0A2015;color:#fff;box-shadow:var(--shadow)"><div style="font:600 15px Int;color:#E0FF73">Two-step check</div><div style="display:flex;gap:10px;margin-top:12px">${[0,1,2,3,4,5].map(i=>`<span id="tm${i}" data-notw class="disp" style="width:52px;height:62px;border-radius:14px;background:rgb(255 255 255/.1);border:1.5px solid rgb(255 255 255/.25);display:grid;place-items:center;font-size:30px"></span>`).join('')}</div></div>
+    <div id="tu" class="abs" style="right:40px;top:470px;display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm)">${av('U',54,'border-radius:16px;background:linear-gradient(135deg,#8A5A00,#F5B63A)')}<div><b style="font:700 18px Int">Teacher U approved</b><div style="font-size:14px;color:var(--muted)">2 of 2 · with two-step check</div></div></div>
+    <div id="tstamp" class="abs" style="left:340px;top:610px;padding:14px 34px;border:6px solid #016737;border-radius:18px;color:#016737;font:800 54px Bric;letter-spacing:.06em;transform:rotate(-8deg);background:rgb(201 245 59/.35)">APPROVED</div>
+    <div id="tdone" class="abs" style="left:40px;right:40px;bottom:40px;padding:16px 20px;border-radius:16px;background:#DDF6E3;color:#016737;font:600 17px Int">✓ Approved by both teachers · Finance can now release ৳ 45,000 · logged in the audit trail</div>
+  </div>
+</div>
+
+<div id="sc-bkash" class="scene">
+  <div id="bd" class="abs card" style="left:120px;top:120px;width:860px;height:820px;padding:40px">
+    <div class="lbl">Member A · Dues</div><div class="disp" style="font-size:56px;margin-top:6px">Monthly fee · <span class="serif" style="color:var(--brand)">November</span></div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:20px"><span class="disp tnum" style="font-size:80px">৳ 100</span><span id="bstat" data-notw class="tag" style="font-size:14px;background:#FBE1DC;color:#C2371F">Unpaid · due Nov 30</span></div>
+    <div style="margin-top:20px;padding:18px 20px;border-radius:18px;background:var(--paper);border:1px solid var(--line);font:500 17px Int;line-height:1.6">Send Money <b>৳ 100</b> to <b class="mono">01XXX-XXXXXX</b> (BAUBC, Personal) with reference <b class="mono">DUES-NOV</b>, then enter the Transaction ID below.</div>
+    <div id="bform" style="margin-top:22px"><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px"><div><div class="lbl2">bKash Transaction ID</div><div class="field2 mono" id="btx" data-notw></div></div><div><div class="lbl2">Sending number (last 4)</div><div class="field2 mono" id="bl4" data-notw></div></div></div>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:18px"><span id="bsub" class="btn" style="height:56px;padding:0 28px;font-size:17px;background:#E2136E;color:#fff">Submit payment</span><span class="tag" style="background:#DDF6E3;color:#016737">🔒 We never ask for your PIN</span></div></div>
+    <div id="bver" class="abs" style="left:40px;right:40px;bottom:40px;padding:18px 22px;border-radius:18px;background:#0A2015;color:#fff;display:flex;align-items:center;gap:14px"><span style="width:40px;height:40px;border-radius:99px;background:#C9F53B;color:#0A2015;display:grid;place-items:center;font-weight:800">✓</span><div><b style="font:700 18px Int">Verified by the finance officer</b><div style="font-size:14px;opacity:.75">Receipt BAUBC-INV-2026-00412 · matched TrxID and amount</div></div></div>
+  </div>
+  <div id="bp" class="phone" style="left:1180px;top:107px"><div class="notch"></div>
+    <div class="abs" style="left:0;right:0;top:0;height:200px;background:linear-gradient(160deg,#E2136E,#B10B55);color:#fff;padding:66px 26px 0"><div style="font:800 34px Bric;letter-spacing:-.02em">bKash</div><div id="bph" style="font:600 18px Int;margin-top:6px;opacity:.9">Send Money</div></div>
+    <div id="bp1" class="abs" style="left:0;right:0;top:200px;bottom:0;padding:26px">
+      <div class="lbl2">To</div><div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#FCE7F0">${markSVG('#016737',34)}<div><b style="font:700 17px Int">BAUBC</b><div class="mono" style="font-size:14px">01XXX-XXXXXX</div></div></div>
+      <div class="lbl2" style="margin-top:20px">Amount</div><div id="bamt" data-notw class="disp tnum" style="font-size:62px;color:#E2136E">৳</div>
+      <div class="lbl2" style="margin-top:14px">Reference</div><div id="bref" data-notw class="field2 mono" style="height:46px"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px">${'123456789·0⌫'.split('').map(k=>`<div style="height:54px;border-radius:12px;background:#F6F6F6;display:grid;place-items:center;font:600 22px Int">${k}</div>`).join('')}</div>
+    </div>
+    <div id="bp2" class="abs" style="left:0;right:0;top:200px;bottom:0;padding:40px 26px;background:#fff;text-align:center"><div style="font:600 20px Int">Enter your bKash PIN</div><div style="font-size:14px;color:var(--muted);margin-top:6px">Only inside the bKash app</div><div style="display:flex;justify-content:center;gap:14px;margin-top:30px">${[0,1,2,3,4].map(i=>`<span id="bpin${i}" style="width:20px;height:20px;border-radius:99px;border:2px solid #E2136E"></span>`).join('')}</div></div>
+    <div id="bp3" class="abs" style="left:0;right:0;top:200px;bottom:0;padding:40px 26px;background:#fff;text-align:center"><div style="margin:0 auto;width:96px;height:96px;border-radius:99px;background:#E2136E;color:#fff;display:grid;place-items:center;font-size:48px">✓</div><div style="font:700 24px Int;margin-top:18px">Send Money successful</div><div style="font-size:15px;color:var(--muted);margin-top:8px">৳ 100 to BAUBC · DUES-NOV</div><div style="margin-top:24px;padding:16px;border-radius:14px;background:#FCE7F0"><div class="lbl2">Transaction ID</div><div class="mono" style="font-size:26px;font-weight:700;letter-spacing:.06em">9KX7Q2M4AB</div></div></div>
+  </div>
+</div>
+
+<div id="sc-mom" class="scene">
+  <div id="m3rays" class="abs" style="left:-40px;top:-460px;width:2000px;height:2000px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgb(224 255 115/.12) 0deg 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 0%,transparent 60%)"></div>
+  <div id="m3conf" class="layer"></div>
+  <div id="m3card" class="abs" style="left:660px;top:120px;width:600px;height:780px;border-radius:34px;overflow:hidden;background:linear-gradient(160deg,#FFFFFF 0%,#F8FFDD 55%,#EEFFB3 100%);box-shadow:0 80px 160px -40px rgb(0 0 0/.6);padding:46px;text-align:center;transform-origin:300px 390px">
+    <div class="layer" style="background-image:var(--pat);opacity:.6"></div>
+    <div style="position:relative"><span class="tag" style="background:#0A2015;color:#E0FF73;font-size:14px;padding:10px 18px">★ Member of the Month</span></div>
+    <div style="position:relative;margin:38px auto 0;width:210px;height:210px"><div id="m3ring" class="abs" style="inset:-14px;border-radius:50%;background:conic-gradient(#C9F53B,#1FA85B,#F5B63A,#C9F53B)"></div><div class="abs" style="inset:-6px;border-radius:50%;background:#fff"></div>${av('A',210,'position:absolute;left:0;top:0;font-size:100px;background:radial-gradient(circle at 30% 25%,#1FA85B,#016737 60%,#014D2A)')}<div class="abs" style="right:-6px;bottom:6px;width:60px;height:60px;border-radius:50%;background:#F5B63A;display:grid;place-items:center;border:5px solid #fff;font-size:26px">★</div></div>
+    <div class="disp" style="position:relative;font-size:80px;margin-top:30px">Member A</div>
+    <div class="serif" style="position:relative;font-size:38px;color:var(--brand)">October 2026</div>
+    <div style="position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px">${[['1,240','points'],['4 / 4','tasks'],['9','events']].map(([a,b])=>`<div style="background:#fff;border-radius:18px;padding:14px 8px;border:1px solid var(--line)"><div class="disp" style="font-size:32px">${a}</div><div class="lbl" style="margin-top:4px">${b}</div></div>`).join('')}</div>
+  </div>
+  <div id="m3fb" class="abs" style="left:560px;top:70px;width:680px;border-radius:18px;background:#fff;box-shadow:0 60px 120px -30px rgb(0 0 0/.5);overflow:hidden">
+    <div style="padding:16px 18px 0;display:flex;gap:12px;align-items:center"><div style="width:46px;height:46px;border-radius:99px;background:#016737;display:grid;place-items:center">${markSVG('#E0FF73',28)}</div><div><b style="font:700 16px Int;color:#050505">BAUBC</b><div style="font:500 13px Int;color:#65676B">Just now · 🌐</div></div><span style="margin-left:auto">${fbIcon(30)}</span></div>
+    <div style="padding:12px 18px;font:400 17px Int;line-height:1.5;color:#050505">🏆 Member of the Month · October 2026<br>Congratulations, Member A! Led Event 2 and closed all four tasks on time. Thank you for raising the bar for all of us. 🌱 #BAUBC</div>
+    <div style="padding:0 18px">${ogCard(644)}</div>
+    <div style="padding:12px 18px;display:flex;justify-content:space-between;font:500 14px Int;color:#65676B;border-bottom:1px solid #e4e6eb"><span>👍❤️🎉 <b id="m3r" data-notw style="font-weight:600">0</b></span><span><span id="m3c" data-notw>0</span> comments · 31 shares</span></div>
+    <div style="display:flex;justify-content:space-around;padding:10px 0;font:600 15px Int;color:#65676B;border-bottom:1px solid #e4e6eb"><span id="m3like">👍 Like</span><span>💬 Comment</span><span>↗ Share</span></div>
+    <div style="padding:10px 18px 16px;display:grid;gap:10px">${[['B','Member B','Congratulations! Well deserved 🎉'],['T','Teacher T','Proud of you. Keep leading.']].map(([l,n,m],i)=>`<div id="m3k${i}" style="display:flex;gap:10px;align-items:flex-start">${av(l,36,l==='T'?'background:#1D5FD1':'')}<div style="padding:10px 14px;border-radius:18px;background:#F0F2F5"><b style="font:700 14px Int">${n}</b><div style="font:400 15px Int">${m}</div></div></div>`).join('')}</div>
+  </div>
+  <div id="m3ms" class="abs" style="left:1290px;top:70px;width:540px;height:920px;border-radius:30px;background:#fff;box-shadow:0 60px 120px -30px rgb(0 0 0/.5);overflow:hidden">
+    <div style="height:78px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid #eee"><div style="width:46px;height:46px;border-radius:99px;background:#016737;display:grid;place-items:center">${markSVG('#E0FF73',28)}</div><div><b style="font:700 17px Int">BAUBC Members</b><div style="font-size:13px;color:#65676B">64 members · Messenger</div></div><span style="margin-left:auto;width:34px;height:34px;border-radius:99px;background:linear-gradient(135deg,#00B2FF,#A033FF,#FF5C87);display:grid;place-items:center;color:#fff;font-size:18px">⚡</span></div>
+    <div style="padding:18px 18px;display:grid;gap:12px">
+      <div id="m3m0" style="display:flex;gap:10px;align-items:flex-end">${av('H',32)}<div style="max-width:380px"><div style="font-size:12px;color:#65676B;margin:0 0 4px 6px">Member H · admin</div><div style="padding:12px 16px;border-radius:20px;background:#F0F0F0;font:400 16px Int">📣 Member of the Month is out!</div></div></div>
+      <div id="m3m1" style="display:flex;gap:10px;align-items:flex-end">${av('H',32)}<div style="width:390px;border-radius:20px;overflow:hidden;background:#F0F0F0">${ogCard(390)}<div style="padding:10px 14px"><b style="font:700 14px Int">Member A · BAUBC</b><div style="font-size:13px;color:#65676B">baubc / members / member-a</div></div></div></div>
+      <div id="m3m2" style="display:flex;gap:10px;align-items:flex-end">${av('H',32)}<div style="position:relative;padding:12px 16px;border-radius:20px;background:#F0F0F0;font:400 16px Int;max-width:380px">🎉 <b style="color:#0866FF">@Member A</b>, you are BAUBC's Member of the Month for October!<span id="m3heart" class="abs" style="right:-6px;bottom:-14px;padding:2px 8px;border-radius:99px;background:#fff;box-shadow:0 2px 8px rgb(0 0 0/.15);font-size:13px">❤️ <b id="m3hc" data-notw>1</b></span></div></div>
+      <div id="m3m3" style="display:flex;justify-content:flex-end"><div style="padding:12px 16px;border-radius:20px;background:#0866FF;color:#fff;font:400 16px Int;max-width:340px">Thank you all! 🙏 Let's make Event 2 the best one yet.</div></div>
+      <div id="m3m4" style="display:flex;gap:10px;align-items:flex-end">${av('C',32)}<div style="padding:12px 16px;border-radius:20px;background:#F0F0F0;font:400 16px Int">Congrats!! 🔥</div></div>
+      <div id="m3typ" style="display:flex;gap:10px;align-items:center">${av('D',32)}<div style="padding:14px 18px;border-radius:20px;background:#F0F0F0;display:flex;gap:6px">${[0,1,2].map(i=>`<i id="m3d${i}" style="width:9px;height:9px;border-radius:99px;background:#8A8D91;display:block"></i>`).join('')}</div></div>
+    </div>
+  </div>
+</div>`);
+function mobileMini([path,title,kind],i){
+  const top=`<div style="height:54px"></div><div style="height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line)"><div style="display:flex;gap:8px;align-items:center">${markSVG('#016737',28)}<span class="disp" style="font-size:20px">BAUBC</span></div><div style="display:grid;gap:5px"><i style="width:22px;height:2.5px;background:var(--ink);display:block"></i><i style="width:22px;height:2.5px;background:var(--ink);display:block"></i><i style="width:14px;height:2.5px;background:var(--ink);display:block"></i></div></div>`;
+  const sk=(w,h=12,m=10)=>`<div class="sk" style="width:${w}%;height:${h}px;margin-top:${m}px"></div>`;
+  const card=(inner,h)=>`<div class="card" style="margin-top:14px;overflow:hidden;${h?`height:${h}px;`:''}">${inner}</div>`;
+  let b='';
+  if(kind==='hero') b=`<div style="position:relative;height:250px;margin-top:12px"><div style="position:absolute;left:70px;top:20px;width:220px;height:220px;transform:rotate(45deg);border-radius:40px;background:var(--grad-lime)"></div><div style="position:absolute;left:110px;top:60px">${markSVG('#016737',140)}</div></div><div style="display:flex;gap:10px;margin-top:10px"><span class="btn bp" style="height:44px;font-size:14px">Join the club →</span></div>`;
+  else if(kind==='grid'||kind==='gallery') b=[1,2,3].map(n=>card(`<div style="position:relative;height:150px">${kind==='grid'?banner(n):cover(n)}</div>${kind==='grid'?`<div style="padding:12px 14px"><b class="disp" style="font-size:20px">Event ${n}</b>${sk(60,9,6)}</div>`:''}`)).join('');
+  else if(kind==='people') b='ABCDE'.split('').map(l=>card(`<div style="display:flex;gap:12px;align-items:center;padding:12px">${av(l,44,'border-radius:30%')}<div style="flex:1"><b class="disp" style="font-size:18px">Member ${l}</b>${sk(70,8,6)}</div></div>`)).join('');
+  else if(kind==='profile') b=`<div style="text-align:center;margin-top:16px">${av('A',130,'border-radius:30%;font-size:60px;margin:0 auto')}<div class="tag" style="margin-top:14px;background:#0A2015;color:#E0FF73;font-size:10px">★ Member of the Month</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">${['1,240','#1','9'].map(v=>`<div class="card" style="padding:10px"><b class="disp" style="font-size:22px">${v}</b></div>`).join('')}</div></div>`;
+  else if(kind==='board') b='ACBDEF'.split('').map((l,j)=>`<div style="display:flex;align-items:center;gap:12px;padding:12px;margin-top:8px;border-radius:14px;background:${j?'#fff':'#EEFFB3'}"><b class="disp" style="width:20px">${j+1}</b>${av(l,34)}<b style="font:600 15px Int">Member ${l}</b><b style="margin-left:auto;font:700 14px Int">${1240-j*90}</b></div>`).join('');
+  else if(kind==='event') b=card(`<div style="position:relative;height:170px">${banner(2)}</div><div style="padding:14px"><b class="disp" style="font-size:24px">Event 2</b>${sk(70,9,8)}</div>`)+`<div class="btn bl" style="width:100%;justify-content:center;margin-top:14px">Register now →</div>`+card(`<div style="padding:14px"><div class="lbl">Live registrations</div><b class="disp" style="font-size:40px">128</b></div>`);
+  else if(kind==='reels') b=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">${[0,1,2,3].map(n=>`<div style="position:relative;height:250px;border-radius:18px;overflow:hidden">${reelArt(n)}</div>`).join('')}</div>`;
+  else if(kind==='wings') b=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">${[1,2,3,4,5,6].map(n=>`<div class="card" style="padding:14px"><div style="width:34px;height:34px;border-radius:10px;background:${['#EEFFB3','#DCE8FB','#FFF1CC','#DDF6E3','#FBE1DC','#E8ECDD'][n-1]}"></div><b class="disp" style="font-size:16px;display:block;margin-top:8px">Wing ${n}</b></div>`).join('')}</div>`;
+  else if(kind==='form'||kind==='verify') b=[0,1,2,3].map(()=>`<div style="margin-top:14px">${sk(40,9,0)}<div style="height:44px;border-radius:12px;background:#fff;border:1.5px solid rgb(10 32 21/.14);margin-top:8px"></div></div>`).join('')+`<div class="btn bp" style="width:100%;justify-content:center;margin-top:18px">${kind==='verify'?'Verify':'Send'} →</div>`;
+  else if(kind==='bn') b=card(`<img src="assets/cover1.jpg" style="width:100%;height:170px;object-fit:cover;display:block">`)+`<div class="bn" style="font-size:16px;line-height:1.85;color:var(--ink-2);margin-top:12px">বাংলাদেশের কৃষক প্রতিদিন এমন অনেক সমস্যার মুখোমুখি হন। <span class="hlx" style="background-size:100% 75%">প্রতিটি অপূর্ণ চাহিদাই আসলে একটি ব্যবসার সম্ভাবনা।</span></div>`;
+  else if(kind==='list') b=[0,1,2,3,4].map(()=>card(`<div style="padding:14px;display:flex;gap:12px"><div style="width:40px;height:40px;border-radius:12px;background:#EEFFB3"></div><div style="flex:1">${sk(80,10,2)}${sk(50,8,8)}</div></div>`)).join('');
+  else b=`${sk(95)}${sk(88)}${sk(92)}${sk(70)}`+card('',140)+card('',120);
+  return `${top}<div style="padding:18px 22px"><div class="lbl" style="color:var(--leaf);font-size:11px">◆ ${path==='/'?'Home':path.split('/')[1]}</div><div class="${kind==='bn'?'bnd':'disp'}" style="font-size:${kind==='hero'?42:kind==='bn'?28:34}px;margin-top:8px;line-height:1.05">${title}</div>${b}</div>`;
+}
+
+// outro title: BAUBC Ecosystem
+$('owm').innerHTML='BAUBC'.split('').map(c=>`<span class="w owl">${c}</span>`).join('')+`<span class="w owl owe serif" style="color:#E0FF73;font-size:190px;letter-spacing:-.01em;margin-left:40px">Ecosystem</span>`;
+$('owm').style.fontSize='170px';$('owm').style.top='480px';
+$('otag').style.top='730px';
+// article covers (photos) in the Bangla scene
+[0,1,2].forEach(i=>{const c=$('bc'+i).firstElementChild;c.innerHTML=`<img src="assets/cover${i+1}.${i===2?'png':'jpg'}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><span style="position:absolute;inset:0;background:linear-gradient(0deg,rgb(0 0 0/.35),transparent 50%)"></span>`+c.innerHTML.replace(/^[\s\S]*?(<span class="tag")/,'$1');});
+{const hero=$('bntitle').parentElement;hero.style.width='980px';$('bntitle').style.fontSize='84px';
+ hero.parentElement.insertAdjacentHTML('beforeend',`<div id="bnhero" class="abs" style="right:150px;top:140px;width:640px;height:440px;border-radius:30px;overflow:hidden;box-shadow:0 50px 90px -40px rgb(1 50 25/.55)"><img src="assets/cover1.jpg" style="width:100%;height:100%;object-fit:cover"><span class="tag" style="position:absolute;left:18px;top:18px;background:rgb(255 255 255/.8)"><span class="bn">উদ্যোগ</span></span></div>`);}
+
+// ── dynamic text never goes through the typewriter ──────────────────────────
+['iwm','owm','rlabel','rcount','cref','ps0','ps1','ps2','dpts','drank','dprog','cf0','cf1','cf2','cf3','gfr','toast'].forEach(id=>{const e=$(id);if(e)e.setAttribute('data-notw','')});
+document.querySelectorAll('[id^="od"],[id^="dlr"],[id^="dlp"],[id^="dtp"],.otw').forEach(e=>e.setAttribute('data-notw',''));
+
+// ═══════════════════════════ typewriter for all text ═══════════════════════════
+const SEG=(typeof Intl!=='undefined'&&Intl.Segmenter)?new Intl.Segmenter('bn',{granularity:'grapheme'}):null;
+const graph=s=>SEG?Array.from(SEG.segment(s),x=>x.segment):Array.from(s);
+const TW=[];const CPS=260;
+function initTW(){document.querySelectorAll('.scene').forEach(scene=>{
+  const walker=document.createTreeWalker(scene,NodeFilter.SHOW_TEXT,{acceptNode:n=>{
+    if(!n.nodeValue.trim())return NodeFilter.FILTER_REJECT;
+    const p=n.parentElement;if(!p||p.closest('[data-notw],svg,style'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT;}});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(n=>{const g=graph(n.nodeValue);const host=document.createElement('span');host.className='tw';
+    const a=document.createElement('span'),c=document.createElement('span'),b=document.createElement('span');
+    c.className='twc';b.style.visibility='hidden';a.textContent='';b.textContent=n.nodeValue;host.append(a,c,b);n.replaceWith(host);
+    TW.push({host,a,c,b,g,start:null,shown:-1,scene});});
+});}
+const twStyle=document.createElement('style');twStyle.textContent='.twc{display:inline-block;width:.08em;height:.9em;margin:0 .02em;vertical-align:-.08em;background:#8FD313;opacity:0}';document.head.appendChild(twStyle);
+function visibleChain(el){for(let e=el;e&&e.id!=='stage';e=e.parentElement){const s=e.style;if(s.visibility==='hidden'||s.display==='none'||(s.opacity!==''&&+s.opacity<.03))return false;}return true;}
+function typewriter(t){
+  const sceneVis=new Map();
+  for(const w of TW){
+    let sv=sceneVis.get(w.scene);if(sv===undefined){sv=visibleChain(w.scene);sceneVis.set(w.scene,sv);}
+    if(w.start===null){if(sv&&visibleChain(w.host.parentElement))w.start=t;else{if(w.shown!==0){w.a.textContent='';w.b.textContent=w.g.join('');w.c.style.opacity=0;w.shown=0;}continue;}}
+    const n=Math.min(w.g.length,Math.max(0,Math.floor((t-w.start)*CPS)));
+    if(n!==w.shown){w.a.textContent=w.g.slice(0,n).join('');w.b.textContent=w.g.slice(n).join('');w.shown=n;}
+    w.c.style.opacity=(n<w.g.length&&w.g.length>8)?1:0;
+  }
+}
+// rendering a frame depends on what was visible before it: replay the previous seconds first
+window.seekTo=function(t){TW.forEach(w=>{w.start=null;w.shown=-1});const from=Math.max(0,t-4);for(let x=from;x<t;x+=1/60)render(x);render(t);};
+
+// ═════════════════════════════ static prep ═════════════════════════════
+const rnd=rng(42);
+const BK=[];{const b=$('bokeh');for(let i=0;i<40;i++){const d=document.createElement('div');const s=6+rnd()*rnd()*46;const z=rnd();
+  d.className='abs';d.style.cssText=`width:${s}px;height:${s}px;border-radius:${rnd()<.5?'3px':'50%'}`;b.appendChild(d);
+  BK.push({el:d,x:rnd()*1920,y:rnd()*1080,s,z,sp:.3+rnd()*1.2,ph:rnd()*6.28,dia:d.style.borderRadius==='3px'});}}
+{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');const im=x.createImageData(256,256);const r=rng(9);for(let i=0;i<im.data.length;i+=4){const v=r()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}x.putImageData(im,0,0);$('grain').style.backgroundImage=`url(${c.toDataURL()})`;}
+// key-line positions inside the article (measured once, untransformed)
+const _bs=$('bnscroll').getBoundingClientRect().top;const HLY=[0,1,2].map(i=>$('hl'+i).getBoundingClientRect().top-_bs);const QY=$('bnq').getBoundingClientRect().top-_bs;
+// registration list
+const REG=[{l:'A',hit:bt(11,2.6),via:'Website'},{l:'B',hit:bt(13,1.95),via:'Google Form'},{l:'C',hit:bt(13,2.8),via:'Google Form'},{l:'D',hit:bt(13,3.6),via:'Google Form'}].concat([...'EFG'].map(l=>({l,hit:-1,via:'Website'})));
+$('elist').innerHTML=REG.map(r=>`<div id="er${r.l}" class="abs" style="left:0;right:0;height:56px;display:flex;align-items:center;gap:12px;padding:0 10px;border-radius:14px"><span>${av(r.l,38)}</span><span style="font:600 17px Int">New registration</span><span style="font:500 13px Int;color:${r.via==='Website'?'var(--brand)':'#673AB7'}">via ${r.via}</span><span style="margin-left:auto;font:500 13px Int;color:var(--muted)">${r.hit<0?(['','','','','','12m','25m','41m'][' ABCDEFG'.indexOf(r.l)]+' ago'):'just now'}</span></div>`).join('');
+const ORB=REG.filter(r=>r.hit>0&&r.via!=='Website').map((r,i)=>{const d=document.createElement('div');d.className='abs';d.style.cssText='left:0;top:0;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:radial-gradient(circle,#fff 0%,#E0FF73 35%,#8FD313 70%,transparent 72%);box-shadow:0 0 34px 12px rgb(201 245 59/.7)';$('orbs').appendChild(d);
+  const tr=[];for(let k=0;k<10;k++){const e=document.createElement('div');e.className='abs';e.style.cssText=`left:0;top:0;width:${16-k}px;height:${16-k}px;margin:-${(16-k)/2}px 0 0 -${(16-k)/2}px;border-radius:50%;background:#E0FF73;filter:blur(${1+k*.5}px)`;$('orbs').appendChild(e);tr.push(e)}
+  return{el:d,tr,t0:r.hit-B*1.6,t1:r.hit,from:i===0?'gfs':'gfr'}});
+const _evp=$('evp').getBoundingClientRect(),_eb2=$('ecb2').getBoundingClientRect();const EV2=[_eb2.left-_evp.left,_eb2.top-_evp.top,_eb2.width,_eb2.height];
+const MO0=bt(9,0);
+const MF=[];{const r=rng(15);const c=$('m3conf');const cols=['#C9F53B','#E0FF73','#1FA85B','#F5B63A','#fff','#7BE08B'];
+ for(let i=0;i<120;i++){const d=document.createElement('div');d.className='abs';const w=8+r()*12;d.style.cssText=`left:0;top:0;width:${w}px;height:${w*(r()<.5?1:.45)}px;background:${cols[i%cols.length]};border-radius:${r()<.3?'50%':'2px'}`;c.appendChild(d);
+  const a=r()*Math.PI*2,sp=600+r()*1200;MF.push({el:d,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-500,rot:r()*720-360,t0:bt(33,.6)+r()*.12});}}
+const CF=[];{const r=rng(5);const c=$('conf');const cols=['#C9F53B','#E0FF73','#1FA85B','#F5B63A','#fff','#7BE08B'];
+ for(let i=0;i<130;i++){const d=document.createElement('div');d.className='abs';const w=8+r()*12;d.style.cssText=`left:0;top:0;width:${w}px;height:${w*(r()<.5?1:.45)}px;background:${cols[i%cols.length]};border-radius:${r()<.3?'50%':'2px'}`;c.appendChild(d);
+  const a=r()*Math.PI*2,sp=600+r()*1200;CF.push({el:d,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-500,rot:r()*720-360,t0:bt(25,2)+r()*.12});}}
+
+// ═════════════════════════════ captions & cues ═════════════════════════════
+const ROUTE_T=ROUTES.map((_,i)=>i<10?bt(4)+i*B:bt(6,2)+(i-10)*B/2), MOSAIC=bt(7,2);
+const CAPS=[
+  [bt(4,0),bt(7,2)-.1,'Every route','Every page. *Open to all.*'],
+  [bt(8,1),bt(10,1.4),'Events','Tap an event. It *opens* into its page.'],
+  [bt(10,2.4),bt(11,3),'Registration','Our own registration form, *built in.*'],
+  [bt(12,0),bt(13,3.6),'Facebook → Google Form','Sign-ups from Facebook land *live* on the site'],
+  [bt(14,1),bt(17,3),'বাংলা লেখা','Bangla articles. Key lines, *highlighted.*'],
+  [bt(18,1),bt(20,3),'YouTube','Our real reels, *playing* right on the site'],
+  [bt(21,2),bt(23,3),'Public profiles','Every member, one page. *Only what they choose.*'],
+  [bt(24,1),bt(26,3),'Advisors','Teachers *sign off* every big decision'],
+  [bt(27,1),bt(29,3),'Members','Invite-only. Tasks, points, a *live* leaderboard.'],
+  [bt(30,1),bt(32,3),'Monthly fees','Paid by bKash, checked by finance. *No PIN, ever.*'],
+  [bt(33,1),bt(35,3),'Recognition','Member of the Month, on *Facebook and Messenger*'],
+  [bt(36,1),bt(37,3),'Perks','Real perks, *straight to your account*'],
+  [bt(38,1),bt(40,3),'Contact desk','BAU students & companies: *talk to a real person*'],
+  [bt(41,1),bt(42,3),'Every screen','All 18 pages, *re-made for mobile*'],
+];
+const D=(d,bar,beat=0)=>bt(bar+d,beat);
+cue(0,'song');
+[0,1,2,3].forEach(i=>cue(bt(0,i),'impact',.55+i*.12));[0,1,2,3,4].forEach(i=>cue(bt(1,0)+i*B/2,'tick',.7));
+cue(bt(1,3),'whoosh',.9);cue(bt(2),'boom');cue(bt(3,2),'whoosh',.5);cue(bt(4)-.12,'whoosh',.8);
+ROUTE_T.forEach((x,i)=>cue(x,'blip',.55+i*.02));cue(MOSAIC,'impact',.75);cue(bt(8)-.1,'whoosh',.8);
+// events flow
+[0,1,2].forEach(i=>cue(bt(8)+i*B/2,'pop',.5));cue(bt(9,0)-.05,'click');cue(bt(9,0),'morph',.8);cue(bt(10,2),'click');cue(bt(10,2.1),'swoosh',.8);
+for(let i=0;i<36;i++)cue(bt(10,3)+i*B/8,'key',.3);cue(bt(11,1.6),'click',.7);cue(bt(11,2.45),'click');cue(bt(11,2.6),'success');
+cue(bt(11,3.3),'swoosh');cue(bt(12,1.45),'click');cue(bt(12,1.6),'whoosh',.7);for(let i=0;i<24;i++)cue(bt(12,2.6)+i*B/8,'key',.3);cue(bt(13,1),'click');
+ORB.forEach(o=>{cue(o.t0,'zap',.55);cue(o.t1,'ding')});
+// reused scenes (v2 cues moved to their new place)
+cue(D(2,12,3.4),'whoosh',.6);[0,1,2].forEach(i=>cue(bt(14,1)+i*B,'pop',.6));[0,1,2,3,4,5,6].forEach(i=>cue(D(2,13,0)+i*B/2,'tick',.45));
+cue(bt(15,1.5),'whoosh',.6);[bt(16,1),bt(16,3.4),bt(17,2)].forEach(x=>cue(x,'marker'));cue(bt(17,.8),'impact',.6);
+cue(bt(18)-.1,'whoosh',.8);[0,1,2,3,4,5].forEach(i=>cue(D(2,16,2)+i*B,'pop',.45));cue(bt(20,0)-.05,'click');cue(bt(20,0),'swoosh');cue(bt(20,.6),'pop',.6);
+cue(bt(21)-.1,'whoosh',.8);[0,1,2,3,4,5].forEach(i=>cue(D(2,19,0)+i*B/2,'pop',.45));cue(D(2,20,0),'click');cue(D(2,20,0)+.08,'swoosh');cue(D(2,21,2),'impact',.6);
+// teacher
+cue(bt(24)-.1,'whoosh',.8);[0,1,2].forEach(i=>cue(bt(24,3)+i*B/2,'pop',.5));cue(bt(25,.6),'click');[0,1,2,3,4,5].forEach(i=>cue(bt(25,1)+i*B/4,'tick',.8));
+cue(bt(25,2.8),'success',.8);cue(bt(25,3.3),'pop',.7);cue(bt(26,0),'success',.7);cue(bt(26,.2),'impact',.9);[0,1,2].forEach(i=>cue(bt(26,1)+i*B/2,'pop',.4));
+// dashboard (v2 +5 bars)
+cue(bt(27)-.1,'whoosh',.8);[0,1,2,3,4,5].forEach(i=>cue(D(5,22,1)+i*B/2,'tick',.8));cue(D(5,22,3)+.2,'success');cue(D(5,23)-.1,'whoosh',.8);
+[0,1,2,3].forEach(i=>{cue(D(5,23,1)+i*B,'pop',.7);cue(D(5,23,1)+i*B+.04,'coin',.6)});cue(D(5,24,2),'rise');
+// bKash
+cue(bt(30)-.1,'whoosh',.8);cue(bt(30,2),'swoosh');for(let i=0;i<5;i++)cue(bt(30,3)+i*B/5,'key',.4);for(let i=0;i<8;i++)cue(bt(31,0)+i*B/10,'key',.3);
+[0,1,2,3,4].forEach(i=>cue(bt(31,1.4)+i*B/4,'tick',.6));cue(bt(31,2.6),'success');for(let i=0;i<14;i++)cue(bt(31,3.2)+i*B/9,'key',.3);
+cue(bt(32,1.05),'click');cue(bt(32,2),'pop',.8);cue(bt(32,2.4),'coin',.9);
+// Member of the Month + Facebook + Messenger
+cue(bt(33)-.1,'whoosh',.8);cue(bt(33,.6),'impact');cue(bt(33,.6),'sparkle');cue(bt(34,0),'swoosh');cue(bt(34,2),'pop',.7);cue(bt(34,2.5),'pop',.5);cue(bt(34,3.2),'pop',.5);
+cue(bt(35,0),'swoosh');[0,1,2,3,4].forEach(i=>cue(bt(35,.5)+i*B*.6,'ding',.35));cue(bt(35,2.4),'pop',.6);
+// perks (v2 +9.25 bars), contact (+10), outro (+11)
+cue(bt(36)-.1,'whoosh',.8);[0,1,2,3].forEach(i=>cue(bt(36)+i*B/2,'pop',.6));cue(bt(36,2)-.05,'click');cue(bt(36,2),'sparkle',.8);cue(bt(36,2.2),'ding',.6);cue(bt(37,0)-.05,'click');cue(bt(37,0),'sparkle',.6);
+cue(bt(38)-.1,'whoosh',.8);[0,1,2].forEach(i=>cue(D(10,28,1)+i*B,'click',.6));[0,1,2].forEach(i=>cue(D(10,28,3)+i*B/2,'pop',.4));
+for(let i=0;i<30;i++)cue(D(10,29,1)+i*B/6,'key',.3);cue(D(10,30,0),'click');cue(D(10,30,0)+.1,'success');
+cue(bt(41)-.1,'whoosh',.8);for(let i=0;i<18;i++)cue(bt(41,.6)+i*B/14,'blip',.5+i*.02);cue(bt(41,2.4),'impact',.6);
+cue(bt(42,0),'riser',BAR);cue(bt(42,3)+.2,'whoosh');cue(bt(43),'boom');cue(bt(43),'impact');cue(bt(43,2),'shimmer');[0,1,2,3,4,5].forEach(i=>cue(bt(43,2)+i*B/2,'tick',.5));
+cue(bt(44,3),'sweep');[0,1,2,3,4].forEach(i=>cue(bt(45)+i*B/2,'pop',.6));cue(bt(46,2),'tail');
+// ═════════════════════════════ scene transitions ═════════════════════════════
+const TR={ // enter style, exit style
+  intro:['none','dive'], hero:['zoomFromDeep','zoomIn'], routes:['zoomOut','whipL'], events:['whipL','zoomIn'], bangla:['zoomOut','whipU'],
+  reels:['whipU','whipL'], profile:['whipL','zoomIn'], teacher:['zoomOut','whipL'], dash:['whipL','zoomIn'], bkash:['zoomOut','whipU'], mom:['whipU','whipL'],
+  perks:['whipL','whipL'], contact:['whipL','zoomIn'], mobile:['zoomOut','collapse'], outro:['none','none']};
+function sceneState(name,t){
+  const [a,b]=T(name); const [en,ex]=TR[name];
+  const pre=.34, post=.30;
+  if(t<a-(en==='none'?0:0)||t>b+(ex==='none'||ex==='morph'||ex==='collapse'||ex==='dive'?0.02:post)) return null;
+  let s=1,x=0,y=0,o=1,bx=0,by=0,r=0;
+  // entering
+  if(en!=='none'){const k=P(t,a,a+pre,E.o6),kv=1-k;
+    if(en==='zoomOut'||en==='zoomFromDeep'){s=L(en==='zoomFromDeep'?3.2:1.35,1,k);bx=by=kv*22;o=Math.min(1,(t-a)/.07);}
+    if(en==='whipL'){x=kv*1500;bx=kv*90;o=Math.min(1,(t-a)/.05);}
+    if(en==='whipU'){y=kv*900;by=kv*70;o=Math.min(1,(t-a)/.05);}}
+  // exiting (starts just before the boundary, overlaps the next scene's entry)
+  if(t>b-post){const k=P(t,b-post,b+.02,E.ie);
+    if(ex==='zoomIn'){s*=L(1,2.6,k);bx+=k*26;by+=k*26;o*=1-k*k;}
+    if(ex==='whipL'){x+=-k*1500;bx+=k*90;o*=1-k*k*k;}
+    if(ex==='whipU'){y+=-k*900;by+=k*70;o*=1-k*k*k;}}
+  return {s,x,y,o,bx,by,r};
+}
+function applyScene(name,t){
+  const el=$('sc-'+name), st_=sceneState(name,t);
+  if(!st_){S(el,{o:0});return false;}
+  S(el,{x:st_.x,y:st_.y,s:st_.s,o:st_.o});
+  const g=$('mbg-'+name);
+  if(st_.bx>0.4||st_.by>0.4){g.setAttribute('stdDeviation',`${st_.bx.toFixed(1)} ${st_.by.toFixed(1)}`);el.style.filter=`url(#mb-${name})`;}
+  else el.style.filter='none';
+  return true;
+}
+
+// ═════════════════════════════ render ═════════════════════════════
+let lastCap=-1;
+function render(t){
+  // backgrounds
+  const darkWin=(a,b,fa=.25,fb=.3)=>t<a-fa||t>b+fb?0:Math.min(P(t,a-fa,a,E.lin),1-P(t,b,b+fb,E.lin));
+  const darkO=Math.max(darkWin(-1,bt(2)-.05,.01,.3),darkWin(bt(27),bt(27,3)+.3,.2,.35),darkWin(bt(33),bt(36)-.35,.25,.35),darkWin(bt(42,3)+.3,99,.3,.1));
+  S($('bgLime'),{o:1-darkO});
+  S($('leak1'),{x:-300+Math.sin(t*.31)*500+t*6,y:-400+Math.cos(t*.23)*260,o:.55+.35*Math.sin(t*.7)});
+  S($('leak2'),{x:1100+Math.cos(t*.27)*420,y:300+Math.sin(t*.35)*300,o:.5+.3*Math.cos(t*.5)});
+  $('leaks').style.opacity=.3+darkO*.7;
+  BK.forEach(b=>{const x=(b.x+t*(18+b.z*60)*b.sp+Math.sin(t*.6+b.ph)*30)%2000-40,y=(b.y-t*(10+b.z*30)+Math.cos(t*.5+b.ph)*20+2160)%1160-40;
+    b.el.style.background=darkO>.5?`rgb(224 255 115/${.10+b.z*.25})`:`rgb(1 103 55/${.05+b.z*.12})`;S(b.el,{x,y,r:b.dia?45+t*20*b.sp:0,b:b.z>.6?(b.z-.6)*14:0,o:1})});
+  $('grain').style.backgroundPosition=`${Math.floor(rng(Math.floor(t*60))()*256)}px ${Math.floor(rng(Math.floor(t*60)+7)()*256)}px`;
+
+  // camera kick with the kick drum (beats from the drop to the outro), bigger on each bar
+  let kick=0;
+  const calm=t>=bt(14)-.1&&t<bt(18)+.1; // no beat pulse while articles are read
+  if(t>=bt(2)&&t<bt(47)&&!calm){const bi=Math.floor(t/B), dt=t-bi*B; const half=t>=bt(27)&&t<bt(28); if(!half||bi%2===0) kick=(bi%4===0?.022:.010)*Math.exp(-dt*11);}
+  S($('world'),{s:1+kick});
+
+  // ── INTRO
+  if(applyScene('intro',t)){
+    MARK.forEach((_,i)=>{const tb=bt(0,i),k=P(t,tb-.22,tb,E.i4);const off=[[-700,-500],[700,-420],[-640,560],[720,520]][i];
+      S($('ip'+i),{tr:`translate(${off[0]*(1-k)}px,${off[1]*(1-k)}px) rotate(${(1-k)*[-90,70,-50,110][i]}deg) scale(${L(2.6,1,k)})`,o:clamp((t-tb+.22)*6)});});
+    $('iglow').setAttribute('opacity',(P(t,bt(0,3),bt(1,0))*(.5+.3*Math.sin(t*6))).toFixed(3));
+    document.querySelectorAll('.iwl').forEach((el,i)=>{const tb=bt(1,0)+i*B/2,k=P(t,tb-.06,tb+.3,E.o6);S(el,{o:k,y:(1-k)*120,b:(1-k)*18,s:L(1.8,1,k)})});
+    $('iwm').style.letterSpacing=L(.24,.02,P(t,bt(1,0),bt(1,3),E.o6))+'em';
+    const zk=P(t,bt(1,3),bt(2)+.02,E.ie);
+    S($('iz'),{tr:`scale(${L(1,90,zk)}) rotate(${L(0,-20,zk)}deg)`});
+  }
+  // ── HERO
+  if(applyScene('hero',t)){const a=bt(2);
+    const pull=P(t,bt(3,2),bt(4)-.2,E.io5);
+    S($('hb'),{p:2200,s:L(1.2,.86,pull),rx:L(0,8,pull)+Math.sin(t*.8)*1.2,ry:L(0,-6,pull),y:L(30,10,pull)});
+    $('hchrome').style.opacity=pull;
+    [['h0',0],['h1',1],['h2',2],['h3',3],['h4',3.5]].forEach(([id,b])=>{const k=P(t,a+b*B*.5+.1,a+b*B*.5+.55,E.o6);S($(id),{o:k,y:(1-k)*90,b:(1-k)*14,s:L(1.15,1,k)})});
+    const ak=P(t,a+.15,a+1.2,E.o6);S($('hart'),{o:ak,s:L(.7,1,ak)*(1+.03*Math.sin(t*2)),r:L(-25,0,ak)});
+    [['hc1',bt(3,0)],['hc2',bt(3,1)],['hc3',bt(3,2)]].forEach(([id,tb],i)=>{const k=P(t,tb-.05,tb+.4,E.back);S($(id),{o:clamp(k*2),s:L(.5,1,k),y:Math.sin(t*1.4+i)*10,x:(1-k)*[200,200,-200][i]})});
+  }
+  // ── ROUTES
+  if(applyScene('routes',t)){
+    const times=ROUTE_T;
+    const mosaic=MOSAIC;
+    let cur=-1;
+    ROUTES.forEach((r,i)=>{const el=$('rt'+i),ti=times[i],next=i<17?times[i+1]:mosaic;
+      const col=i%6,row=Math.floor(i/6),gx=(col-2.5)*306,gy=(row-1)*196+30; // mosaic slot (card scaled .24)
+      if(t<mosaic-.02){
+        if(t<ti-.2||t>next+.25){S(el,{o:0});return;}
+        if(t>=ti) cur=i;
+        const s=K(t,[[ti-.2,.12],[ti,1,E.o6],[next-.04,1.05,E.lin],[next+.25,3.4,E.ie]]);
+        const ds=(K(t+1/240,[[ti-.2,.12],[ti,1,E.o6],[next-.04,1.05,E.lin],[next+.25,3.4,E.ie]])-s)*240;
+        const o=t<ti?P(t,ti-.2,ti-.05):1-P(t,next,next+.25,E.i);
+        S(el,{p:2400,s,o,ry:(i%2?-1:1)*K(t,[[ti-.2,26],[ti,0,E.o6],[next+.25,-8]]),rx:K(t,[[ti-.2,-14],[ti,0,E.o6]]),b:Math.min(26,Math.abs(ds)*1.6)});
+      } else {
+        const k=P(t,mosaic+(col+row)*.03,mosaic+(col+row)*.03+.5,E.o6);
+        const pullBack=K(t,[[mosaic,1.25],[bt(8),1,E.o4]]);
+        S(el,{tr:`translate(${(gx*k)*pullBack}px,${(gy*k)*pullBack}px) scale(${L(1.6,.24,k)*pullBack})`,o:clamp(k*3)*L(1,.45,P(t,mosaic+.2,mosaic+.5))});el.style.filter=(1-k)>.05?`blur(${((1-k)*12).toFixed(1)}px)`:'none';
+      }
+    });
+    const lab=$('rlabel'),showLab=t<mosaic&&cur>=0;
+    if(showLab){const ti=times[cur],k=P(t,ti,ti+.18,E.o6);lab.textContent='baubc'+(ROUTES[cur][0]==='/'?' /':ROUTES[cur][0].replace(/\//g,' / '));S(lab,{o:1,x:(1-k)*-60,b:(1-k)*8});
+      $('rcount').textContent=String(cur+1).padStart(2,'0')+' / 18';S($('rcount'),{o:1});}
+    else{S(lab,{o:0});S($('rcount'),{o:0});}
+    const tk=P(t,mosaic+.15,mosaic+.5,E.o6),tk2=P(t,mosaic+.3,mosaic+.7,E.o6);
+    S($('rt1w'),{o:tk,s:L(1.6,1,tk),b:(1-tk)*14});S($('rt2w'),{o:tk2,y:(1-tk2)*40,b:(1-tk2)*12});
+  }
+  // ── EVENTS (card morphs into the page → own registration form → Facebook post → Google Form → live)
+  if(applyScene('events',t)){
+    const a=bt(8);
+    const fade=P(t,MO0,MO0+.4,E.o6);
+    [1,2,3].forEach(n=>{const k=P(t,a+(n-1)*B*.5,a+(n-1)*B*.5+.5,E.o6);S($('ec'+n),{o:k*(n===2?1:1-fade),y:(1-k)*90,s:n===2?1:L(1,.92,fade)})});
+    const hov=P(t,bt(8,3.4),bt(8,3.8))*(1-P(t,MO0,MO0+.1));S($('ec2'),{y:-hov*10,s:1+hov*.02,o:1});
+    const mk=P(t,MO0,MO0+.7,E.io5);
+    S($('ecy2'),{o:1-P(t,MO0,MO0+.2)});
+    $('egrid').style.opacity=t>=MO0+.7?0:1;
+    S($('edet'),{o:P(t,MO0+.3,MO0+.6),y:(1-P(t,MO0+.3,MO0+.8,E.o6))*40});
+    const em=$('emorph');
+    if(t>=MO0){S(em,{o:1,tr:'none'});em.style.left=L(EV2[0],0,mk)+'px';em.style.top=L(EV2[1],0,mk)+'px';em.style.width=L(EV2[2],1600,mk)+'px';em.style.height=L(EV2[3],360,mk)+'px';em.style.borderRadius=L(18,0,mk)+'px';
+      S($('emA'),{o:1-P(t,MO0+.15,MO0+.45)});S($('emB'),{o:P(t,MO0+.12,MO0+.45),s:L(1.1,1,mk)});} else S(em,{o:0});
+    $('eurl').innerHTML=t<MO0+.3?'🔒 baubc &nbsp;/ events':'🔒 baubc &nbsp;/ events / event-2';
+    // the site's own registration form
+    const rk=P(t,bt(10,2.1),bt(10,2.9),E.o6), rc=P(t,bt(11,3.1),bt(11,3.6),E.io5);
+    S($('ereg'),{x:(1-rk)*700+rc*700,o:rk>0&&rc<1?1:0});S($('eshade'),{o:rk*(1-rc)});
+    const typ=(id,txt,t0,t1)=>{$(id).textContent=txt.slice(0,Math.floor(txt.length*clamp((t-t0)/(t1-t0))))};
+    typ('rg0','Member A',bt(10,3),bt(10,3.6));typ('rg1','member.a@club.mock',bt(10,3.6),bt(11,.4));typ('rg2','01XXXXXXXXX',bt(11,.4),bt(11,.9));typ('rg3','BAU · Department X',bt(11,.9),bt(11,1.4));
+    const cb=$('regConsent'),on=t>=bt(11,1.6);cb.style.background=on?'var(--brand)':'transparent';cb.style.borderColor=on?'var(--brand)':'rgb(10 32 21/.3)';cb.textContent=on?'✓':'';
+    $('regSubmit').style.transform=`scale(${t>bt(11,2.35)&&t<bt(11,2.5)?.95:1})`;
+    S($('eregok'),{o:P(t,bt(11,2.55),bt(11,2.8)),s:L(.96,1,P(t,bt(11,2.55),bt(11,2.9),E.back))});
+    // Facebook post with the Google Form link
+    const fk=P(t,bt(11,3.3),bt(12,.15),E.back), fo=P(t,bt(12,1.6),bt(12,2.3),E.io5);
+    S($('efb'),{o:clamp(fk*2)*(1-fo),y:(1-fk)*520-fo*60,x:-fo*520,s:L(.86,1,fk)*L(1,.55,fo),r:(1-fk)*-3});
+    $('efbl').style.background=t>bt(12,1.0)&&t<bt(12,1.7)?'#E7F3FF':'transparent';$('efbl').style.textDecoration=t>bt(12,1.0)&&t<bt(12,1.7)?'underline':'none';
+    // browser makes room; the Google Form grows out of the link
+    const mv=P(t,bt(12,1.6),bt(12,2.6),E.io5);
+    S($('eb'),{p:2400,x:L(0,-380,mv),s:L(1,.7,mv),ry:L(0,7,mv)});
+    const gk=P(t,bt(12,1.55),bt(12,2.5),E.io5),gf=$('gf');
+    if(t>=bt(12,1.5)){const lr=t<bt(12,2.4)?R($('efbl')):{left:900,top:300,width:10,height:10};gf.style.transformOrigin='0 0';
+      S(gf,{o:clamp(gk*5),tr:`translate(${(lr.left-1200)*(1-gk)}px,${(lr.top-110)*(1-gk)}px) scale(${L(.05,1,gk)}) rotateY(${(1-gk)*-20}deg)`});} else S(gf,{o:0});
+    typ('gfn','Member B',bt(12,2.6),bt(12,3.1));typ('gfe','member.b@club.mock',bt(12,3.1),bt(13,.1));typ('gfd','Department Y',bt(13,.1),bt(13,.5));
+    S($('gfok'),{o:P(t,bt(13,1.05),bt(13,1.25))});$('gfs').style.transform=`scale(${t>bt(13,.9)&&t<bt(13,1.05)?.92:1})`;
+    // live counter + list on the event page
+    const hits=REG.filter(r=>r.hit>0&&t>=r.hit).length;const cnt=124+hits;
+    $('ecount').textContent=cnt;$('gfr').textContent=cnt;$('ebar').style.width=(cnt/300*100).toFixed(1)+'%';
+    $('edot').style.opacity=.4+.6*Math.abs(Math.sin(t*5));
+    const lastHit=REG.filter(r=>r.hit>0&&t>=r.hit).map(r=>r.hit).sort((x,y)=>y-x)[0];
+    $('ecount').style.transform=`scale(${lastHit?1+.22*(1-P(t,lastHit,lastHit+.4,E.o)):1})`;
+    REG.forEach(r=>{const el=$('er'+r.l);let idx=0;
+      REG.forEach(q=>{if(q===r)return;if(q.hit>0&&(r.hit<0||q.hit>r.hit))idx+=P(t,q.hit,q.hit+.4,E.o6);else if(q.hit<0&&r.hit<0&&'EFG'.indexOf(q.l)<'EFG'.indexOf(r.l))idx+=1;});
+      const k=r.hit>0?P(t,r.hit,r.hit+.45,E.o6):1;S(el,{y:idx*60,x:(1-k)*-50,o:k*(idx<3.6?1:clamp(4.6-idx)),s:L(.9,1,k)});
+      el.style.background=`rgb(201 245 59/${((r.hit>0?P(t,r.hit,r.hit+.1)*(1-P(t,r.hit+.5,r.hit+1.4)):0)*.55).toFixed(3)})`;});
+    ORB.forEach(o=>{const on=t>=o.t0&&t<o.t1+.03;if(!on){S(o.el,{o:0});o.tr.forEach(e=>S(e,{o:0}));return;}
+      const k=clamp((t-o.t0)/(o.t1-o.t0));const a2=R($(o.from)),b2=R($('ecount'));const ax=a2.left+a2.width/2,ay=a2.top+a2.height/2,bx=b2.left+b2.width*.4,by=b2.top+b2.height/2;
+      const pt=k2=>{const e=E.io(k2);const cx2=(ax+bx)/2,cy2=Math.min(ay,by)-280;const u=1-e;return[u*u*ax+2*u*e*cx2+e*e*bx,u*u*ay+2*u*e*cy2+e*e*by]};
+      const[x,y]=pt(k);S(o.el,{o:1,x,y,s:1+Math.sin(k*Math.PI)*.7});o.tr.forEach((e,j)=>{const[x2,y2]=pt(clamp(k-(j+1)*.03));S(e,{o:(1-j/10)*.8,x:x2,y:y2})});});
+  }
+  // ── BANGLA (centred article, 2.39:1 film-frame cover, one steady camera move: no pulsing)
+  if(applyScene('bangla',t)){
+    const a=bt(14);
+    [0,1,2].forEach(i=>{const tb=a+B*.5+i*B*.5,k=P(t,tb-.1,tb+.45,E.o6);S($('bc'+i),{o:k,y:(1-k)*120,b:(1-k)*10,r:(1-k)*(i-1)*4})});
+    const chip=P(t,a+.2,a+.5,E.back);$('bnchip').style.transform=`scale(${L(.6,1,chip)})`;
+    const dv=P(t,bt(14,3.2),bt(15,0),E.ie), art=t>=bt(15,0);
+    S($('bngrid'),{tr:`scale(${L(1,2.8,dv)})`,o:art?0:1});$('bngrid').style.transformOrigin='410px 580px';$('bngrid').style.filter=dv>.05?`blur(${(dv*12).toFixed(1)}px)`:'none';
+    S($('bnart'),{o:art?1:0});
+    if(art){const a2=bt(15,0);
+      if(!BNY){const root=$('bnscroll');BNY={h:[0,1,2].map(i=>offTop($('hl'+i),root)),q:offTop($('bnq'),root),c:offTop($('bncine'),root)};}
+      document.querySelectorAll('.bnw').forEach((el,i)=>{const tb=a2+.05+i*B/3,k=P(t,tb,tb+.6,E.o6);S(el,{o:k,y:(1-k)*115,r:(1-k)*7,b:(1-k)*10})});
+      [['bndek',a2+B*2.2],['bnauth',a2+B*2.7]].forEach(([id,tb])=>{const k=P(t,tb,tb+.5,E.o6);S($(id),{o:k,y:(1-k)*30,b:(1-k)*6})});
+      const ck=P(t,bt(15,1.5),bt(15,3.2),E.io5);
+      $('bncine').style.clipPath=`inset(${L(46,0,ck).toFixed(2)}% 0 ${L(46,0,ck).toFixed(2)}% 0 round 30px)`;
+      S($('bncimg'),{s:L(1.2,1,P(t,bt(15,1.5),bt(16,2.5),E.o))});
+      const H=[bt(16,1),bt(16,3.4),bt(17,2)], at=(y)=>520-y;
+      const SY=[[bt(15,1.4),0],[bt(15,3.4),at(BNY.c+314),E.io5],[H[0]-.4,at(BNY.h[0]),E.io5],[H[1]-.4,at(BNY.h[1]),E.io5],[bt(17,.6),at(BNY.q+150),E.io5],[H[2]-.4,at(BNY.h[2]),E.io5]];
+      const sy=K(t,SY);
+      $('bnscroll').style.transform=`translateY(${sy.toFixed(1)}px) scale(${(1+P(t,bt(15,3.4),bt(18),E.lin)*.035).toFixed(4)})`;$('bnscroll').style.transformOrigin=`960px ${(-sy+520).toFixed(0)}px`;
+      ['hl0','hl1','hl2'].forEach((id,i)=>{const k=P(t,H[i],H[i]+.6,E.io);$(id).style.backgroundSize=`${(k*100).toFixed(1)}% 75%`;$('bk'+i).style.background=`rgb(201 245 59/${(P(t,H[i],H[i]+.3)*.55).toFixed(2)})`;});
+      const kk=P(t,bt(16,0),bt(16,.5),E.o6);S($('bnkeys'),{o:kk,x:(1-kk)*80});
+      const qk=P(t,bt(17,.8)-.05,bt(17,.8)+.3,E.back);S($('bnq'),{s:L(1.12,1,qk),o:clamp(qk*1.5)});
+      $('bnread').style.transform=`scaleX(${clamp((t-a2)/(bt(18)-a2)).toFixed(4)})`;}
+  }
+  // ── REELS (real thumbnails from the club channel; the Short plays from its real frames)
+  if(applyScene('reels',t)){
+    const a=bt(18);
+    const tk=P(t,a,a+.5,E.o6);S($('rvt'),{o:tk,x:(1-tk)*-120,b:(1-tk)*12});
+    const RX=[[a,900],[a+.5,0,E.o6],[bt(18,3),-300,E.io],[bt(19,1),-1050,E.io5],[bt(19,3.4),-2140,E.io5]];
+    const rx=K(t,RX),vx=(K(t+1/240,RX)-rx)*240;
+    $('rrail').style.transform=`translateX(${rx}px)`;$('rrail').style.filter=Math.abs(vx)>80?`blur(${Math.min(12,Math.abs(vx)/200).toFixed(1)}px)`:'none';
+    for(let n=0;n<6;n++){const tb=bt(18,2)+n*B*.8;const h=P(t,tb,tb+.2,E.o)*(1-P(t,tb+.55,tb+.85));S($('rv'+n),{y:-h*26,s:1+h*.03,r:-h*.6})}
+    const ob=P(t,bt(20,0),bt(20,.55),E.io5);
+    S($('rbox'),{o:ob>0?Math.min(1,ob*1.6):0});
+    const src=R($('rv4'));const tw=432,th=768,tx=744,ty=100;
+    const sg=$('rstage');sg.style.left=L(src.left,tx,ob)+'px';sg.style.top=L(src.top,ty,ob)+'px';sg.style.width=L(src.width,tw,ob)+'px';sg.style.height=L(src.height,th,ob)+'px';
+    const p0=bt(20,.6),fd=B*.85;
+    [0,1,2,3].forEach(i=>{const st=p0+i*fd;const inn=i===0?1:P(t,st,st+.09);const out=i===3?0:P(t,st+fd+.09,st+fd+.1);S($('rf'+i),{o:t<p0?(i?0:1):inn*(1-out),s:(i?L(1.14,1.03,P(t,st,st+.28,E.o6)):1.03)+.07*P(t,st,st+fd*1.3,E.lin)})});
+    S($('rplay'),{o:1-P(t,p0-.12,p0+.12),s:L(1,1.7,P(t,p0-.12,p0+.2))});
+    $('rprog').style.width=(clamp((t-p0)/(BAR*.82))*100).toFixed(1)+'%';
+    [0,1,2,3,4].forEach(i=>$('req'+i).style.transform=`scaleY(${t>p0?(.3+.7*Math.abs(Math.sin(t*9+i*1.7))).toFixed(3):.2})`);
+    S($('rbar'),{o:P(t,bt(20,1),bt(20,1.6)),y:(1-P(t,bt(20,1),bt(20,1.6),E.o6))*20});
+  }
+  // ── PROFILE
+  if(applyScene('profile',t))((t)=>{
+    const a=bt(19);
+    for(let i=0;i<6;i++){const tb=a+i*B/2,k=P(t,tb,tb+.4,E.back);S($('pd'+i),{o:clamp(k*2),s:L(.6,1,k),y:(1-k)*60})}
+    const zk=P(t,bt(20,0),bt(20,.9),E.io5),prof=t>=bt(20,.55);
+    S($('pdir'),{tr:`scale(${L(1,2.6,zk)})`,o:prof?0:1});$('pdir').style.transformOrigin='300px 470px';$('pdir').style.filter=zk>.05?`blur(${(zk*10).toFixed(1)}px)`:'none';
+    S($('pprof'),{o:prof?P(t,bt(20,.55),bt(20,.8)):0});
+    const p0=bt(20,.6);
+    const avk=P(t,p0,p0+.5,E.back);S($('pav'),{s:L(.5,1,avk),o:clamp(avk*2),r:(1-avk)*-12});
+    $('pring').style.background=`conic-gradient(from ${(t*140)%360}deg,#C9F53B,#1FA85B,#F5B63A,#C9F53B)`;
+    ['pp0','pp1','pp2','pp3','pp4'].forEach((id,i)=>{const k=P(t,p0+i*B*.5,p0+i*B*.5+.45,E.o6);S($(id),{o:k,y:(1-k)*60,b:(1-k)*12})});
+    const ck=P(t,bt(20,2),bt(21,0),E.o);$('ps0').textContent=fmt(1240*ck);$('ps1').textContent='#'+(ck<.6?3:ck<.85?2:1);$('ps2').textContent=Math.round(9*ck);
+    [0,1,2].forEach(i=>{const tb=bt(20,3)+i*B/2,k=P(t,tb,tb+.4,E.o6);S($('pr'+i),{o:k,x:(1-k)*-120})});
+    const pk=P(t,bt(21,2)-.05,bt(21,2)+.3,E.back);S($('ppriv'),{o:clamp(pk*2),s:L(1.5,1,pk),r:(1-pk)*6});
+  })(t-2*BAR);
+  // ── TEACHER (advisor profile + co-signing a decision)
+  if(applyScene('teacher',t)){
+    const a=bt(24);
+    rise($('tp'),t,a,.6,60,8);rise($('tq'),t,a+.2,.6,60,8);
+    const ck=P(t,a+.4,a+1.6,E.o);$('tq0').textContent=Math.round(42*ck);$('tq1').textContent=Math.round(24*ck);$('tq2').textContent=Math.round(18*ck);
+    [0,1,2].forEach(i=>{const k=P(t,bt(24,3)+i*B/2,bt(24,3)+i*B/2+.4,E.o6);S($('td'+i),{o:k,x:(1-k)*-80})});
+    const done=(i,tt)=>{const on=t>=tt,el=$('ts'+i);el.style.background=on?'#016737':'#fff';el.style.color=on?'#fff':'';el.style.borderColor=on?'#016737':'rgb(10 32 21/.15)';el.textContent=on?'✓':String(i+1);el.style.transform=`scale(${on?L(1.4,1,P(t,tt,tt+.3,E.o)):1})`;};
+    done(0,a+.5);done(1,a+.8);done(2,bt(25,2.8));done(3,bt(26,0));
+    [[0,a+.5],[1,a+.8],[2,bt(25,2.8)]].forEach(([i,tt])=>$('tl'+i).style.transform=`scaleX(${P(t,tt,tt+.5,E.io)})`);
+    $('tApprove').style.transform=`scale(${t>bt(25,.5)&&t<bt(25,.65)?.94:1})`;
+    S($('tbtns'),{o:1-P(t,bt(25,2.6),bt(25,2.9))});
+    const mf=P(t,bt(25,.7),bt(25,1),E.back)*(1-P(t,bt(25,2.6),bt(25,2.9)));S($('tmfa'),{o:clamp(mf*2),s:L(.8,1,mf)});
+    [0,1,2,3,4,5].forEach(i=>{const tt=bt(25,1)+i*B/4;$('tm'+i).textContent=t>=tt?'738264'[i]:'';$('tm'+i).style.borderColor=t>=bt(25,2.5)?'#C9F53B':'rgb(255 255 255/.25)'});
+    const uk=P(t,bt(25,3.3),bt(25,3.8),E.back);S($('tu'),{o:clamp(uk*2),x:(1-uk)*200});
+    const sk=P(t,bt(26,.2),bt(26,.5),E.i);S($('tstamp'),{o:sk>0?1:0,tr:`rotate(-8deg) scale(${L(2.6,1,sk)})`});
+    rise($('tdone'),t,bt(26,1),.5,30,6);
+  }
+  // ── LOGIN + DASHBOARD
+  if(applyScene('dash',t))((t)=>{
+    const a=bt(22);
+    const lk=P(t,a,a+.4,E.o6),ex=P(t,bt(23)-.35,bt(23)+.05,E.io5);
+    S($('lg'),{p:1800,o:lk*(1-ex),y:(1-lk)*80,rx:(1-lk)*14,s:L(.9,1,lk)*L(1,1.25,ex)});
+    [0,1,2,3,4,5].forEach(i=>{const tb=a+B+i*B/2,k=P(t,tb,tb+.2,E.back);$('od'+i).textContent=t>=tb?'481926'[i]:'';S($('od'+i),{s:L(.3,1,k),o:clamp((t-tb)*10)});
+      const ok=P(t,bt(22,3.4),bt(22,3.6));$('ot'+i).style.borderColor=t>=tb?(ok>0?'#C9F53B':'rgb(224 255 115/.7)'):'rgb(255 255 255/.22)'});
+    S($('lok'),{o:P(t,bt(22,3.4),bt(22,3.6))});
+    const dk=P(t,bt(23)-.25,bt(23)+.15,E.o6);
+    $('db').style.clipPath=dk<1?`inset(${L(190,0,dk)}px ${L(680,0,dk)}px ${L(230,0,dk)}px ${L(680,0,dk)}px round ${L(30,0,dk)}px)`:'none';S($('db'),{o:dk>0?1:0});
+    const done=[1,2,3,4].filter(n=>t>=bt(23,1)+(n-1)*B).length;
+    [1,2,3,4].forEach(n=>{const tb=bt(23,1)+(n-1)*B,on=t>=tb,k=P(t,tb,tb+.25,E.back);const bx=$('dtb'+n);bx.style.background=on?'var(--brand)':'transparent';bx.style.borderColor=on?'var(--brand)':'rgb(10 32 21/.25)';bx.textContent=on?'✓':'';bx.style.transform=`scale(${on?L(.5,1,k):1})`;
+      const pk=P(t,tb,tb+.7,E.o);S($('dtp'+n),{o:pk>0?Math.sin(pk*Math.PI):0,y:-pk*44,s:L(.6,1.15,pk)});$('dt'+n).style.background=on?`color-mix(in srgb,#EEFFB3 ${Math.round((1-P(t,tb+.2,tb+.9))*100)}%,#F5F8EC)`:'var(--paper)';});
+    $('dprog').textContent=`${done} / 4 done`;
+    const pts=1040+[1,2,3,4].reduce((s,n)=>s+50*P(t,bt(23,1)+(n-1)*B,bt(23,1)+(n-1)*B+.25),0);$('dpts').textContent=fmt(pts);
+    const rk=P(t,bt(24,2),bt(24,3.2),E.io5);$('drank').textContent='#'+(rk<.5?3:1);
+    const o0=['C','B','A','D','E','F','G'],o1=['A','C','B','D','E','F','G'],P0={A:pts,B:1180,C:1210,D:960,E:880,F:820,G:770};
+    o0.forEach((l,i)=>{const j=o1.indexOf(l);const lift=l=='A'?Math.sin(rk*Math.PI):0;S($('dl'+l),{y:L(i,j,rk)*76,x:lift*22,s:1+lift*.05,o:1});$('dl'+l).style.zIndex=l=='A'?3:1;
+      $('dl'+l).style.boxShadow=lift>.01?`0 ${20*lift}px ${40*lift}px -14px rgb(1 77 42/.45)`:'none';$('dlr'+l).textContent=Math.round(L(i,j,rk))+1;$('dlp'+l).textContent=fmt(P0[l]);});
+    // camera pushes into the dashboard
+    const cz=K(t,[[bt(23),1.04],[bt(23,1),1],[bt(24,1),1.08,E.io],[bt(24,3),1.14,E.io]]);
+    const fx=K(t,[[bt(23,1),960],[bt(24,1),800,E.io],[bt(24,3),1420,E.io]]),fy=K(t,[[bt(23,1),540],[bt(24,1),600,E.io],[bt(24,3),600,E.io]]);
+    $('db').style.transform=`translate(${-cz*(fx-960)}px,${-cz*(fy-540)}px) scale(${cz})`;
+  })(t-5*BAR);
+  // ── BKASH (monthly fee)
+  if(applyScene('bkash',t)){
+    const a=bt(30);
+    rise($('bd'),t,a,.6,60,8);
+    const pk=P(t,bt(30,2),bt(30,2.8),E.o6);S($('bp'),{p:2000,o:clamp(pk*2),x:(1-pk)*700,ry:(1-pk)*-30+Math.sin(t*.8)*2,y:Math.sin(t*1.1)*6});
+    $('bph').textContent=t<bt(31,1)?'Send Money':t<bt(31,2.6)?'Confirm with PIN':'Done';
+    const typ=(id,txt,t0,t1)=>{$(id).textContent=txt.slice(0,Math.floor(txt.length*clamp((t-t0)/(t1-t0))))};
+    $('bamt').textContent='৳ '+'100'.slice(0,Math.floor(3*clamp((t-bt(30,3))/(B*.9))));
+    typ('bref','DUES-NOV',bt(31,0),bt(31,.8));
+    S($('bp2'),{o:P(t,bt(31,1),bt(31,1.3))*(1-P(t,bt(31,2.6),bt(31,2.8))),x:(1-P(t,bt(31,1),bt(31,1.4),E.o6))*80});
+    [0,1,2,3,4].forEach(i=>{const on=t>=bt(31,1.4)+i*B/4;$('bpin'+i).style.background=on?'#E2136E':'transparent'});
+    const ok=P(t,bt(31,2.6),bt(31,2.9),E.back);S($('bp3'),{o:clamp(ok*2),s:L(.9,1,ok)});
+    typ('btx','9KX7Q2M4AB',bt(31,3.2),bt(32,.4));typ('bl4','4321',bt(32,.4),bt(32,.8));
+    $('bsub').style.transform=`scale(${t>bt(32,.95)&&t<bt(32,1.1)?.94:1})`;
+    const st=$('bstat');
+    if(t<bt(32,1.1)){st.textContent='Unpaid · due Nov 30';st.style.background='#FBE1DC';st.style.color='#C2371F';}
+    else if(t<bt(32,2.4)){st.textContent='Pending verification';st.style.background='#FFF1CC';st.style.color='#8A5A00';}
+    else{st.textContent='Paid ✓';st.style.background='#C9F53B';st.style.color='#0A2015';}
+    const sp=t>=bt(32,1.1)?P(t,t<bt(32,2.4)?bt(32,1.1):bt(32,2.4),(t<bt(32,2.4)?bt(32,1.1):bt(32,2.4))+.35,E.back):1;st.style.transform=`scale(${L(.7,1,sp)})`;
+    rise($('bver'),t,bt(32,2),.5,40,6);
+  }
+  // ── MEMBER OF THE MONTH → Facebook post → Messenger mention
+  if(applyScene('mom',t)){
+    const a=bt(33);
+    const mk=P(t,a,a+.6,E.back),mv=P(t,bt(34,0),bt(34,1),E.io5),mv2=P(t,bt(35,0),bt(35,1),E.io5);
+    S($('m3card'),{o:clamp(mk*2)*(1-mv2*.0),s:L(.5,1,mk)*L(1,.58,mv),x:L(0,-560,mv),y:Math.sin(t*1.2)*6,r:L(0,-4,mv)});
+    $('m3ring').style.transform=`rotate(${t*90}deg)`;S($('m3rays'),{r:t*10,o:1-P(t,bt(34),bt(34,1))});
+    MF.forEach(c=>{const dt=t-c.t0;if(dt<0||dt>3.5){S(c.el,{o:0});return}const drag=Math.exp(-dt*1.6),x=960+c.vx*(1-drag)/1.6,y=540+c.vy*(1-drag)/1.6+300*dt*dt;S(c.el,{x,y,r:c.rot*dt*2,o:1-P(dt,2.5,3.5)})});
+    const fk=P(t,bt(34,0),bt(34,.8),E.o6);
+    S($('m3fb'),{o:clamp(fk*2),y:(1-fk)*700,x:L(0,-330,mv2),s:L(1,.9,mv2)});
+    $('m3r').textContent=fmt(1248*P(t,bt(34,1),bt(35,2),E.o));$('m3c').textContent=Math.round(86*P(t,bt(34,1),bt(35,2),E.o));
+    $('m3like').style.color=t>=bt(34,2)?'#0866FF':'#65676B';$('m3like').style.transform=`scale(${t>=bt(34,2)?L(1.3,1,P(t,bt(34,2),bt(34,2.3))):1})`;
+    [0,1].forEach(i=>{const k=P(t,bt(34,2.5)+i*B*.7,bt(34,2.5)+i*B*.7+.35,E.o6);S($('m3k'+i),{o:k,y:(1-k)*30})});
+    const ms=P(t,bt(35,0),bt(35,.8),E.o6);S($('m3ms'),{o:clamp(ms*2),x:(1-ms)*700});
+    [0,1,2,3,4].forEach(i=>{const tt=bt(35,.5)+i*B*.6,k=P(t,tt,tt+.3,E.back);S($('m3m'+i),{o:clamp(k*2),y:(1-k)*30,s:L(.85,1,k)})});
+    const hk=P(t,bt(35,2.4),bt(35,2.7),E.back);S($('m3heart'),{o:clamp(hk*2),s:L(.3,1,hk)});$('m3hc').textContent=Math.max(1,Math.round(12*P(t,bt(35,2.4),bt(35,3.5))));
+    S($('m3typ'),{o:P(t,bt(35,3.3),bt(35,3.5))});[0,1,2].forEach(i=>S($('m3d'+i),{y:-Math.max(0,Math.sin(t*9-i*.9))*6}));
+  }
+  // ── MoM + PERKS
+  if(applyScene('perks',t))((t)=>{
+    const a=bt(25);
+    const mk=P(t,a,a+.6,E.back),fl=P(t,bt(26,2),bt(26,3),E.io5),fly=P(t,bt(26,3),bt(27,0)-.05,E.i);
+    S($('mom'),{p:2400,o:clamp(mk*2)*(1-P(t,bt(26,3.6),bt(27,0))),s:L(.4,1,mk)*L(1,.3,fly),ry:fl*180+Math.sin(t*.9)*3*(1-fl),rx:Math.cos(t*.7)*2,y:Math.sin(t*1.2)*6});
+    $('mring').style.transform=`rotate(${t*90}deg)`;S($('mshine'),{x:L(-300,900,P(t,bt(25,3),bt(26,1),E.io))});
+    S($('mrays'),{r:t*10,o:1-P(t,bt(26,3),bt(27,0))});
+    CF.forEach(c=>{const dt=t-c.t0;if(dt<0||dt>3.5){S(c.el,{o:0});return}const drag=Math.exp(-dt*1.6),x=960+c.vx*(1-drag)/1.6,y=540+c.vy*(1-drag)/1.6+300*dt*dt;S(c.el,{x,y,r:c.rot*dt*2,o:1-P(dt,2.5,3.5),p:600,ry:dt*400})});
+    const pw=t>=bt(26,3);S($('pkw'),{o:pw?1:0});
+    rise($('pkt'),t,bt(26,3),.5,40,8);
+    [0,1,2,3].forEach(i=>{const k=P(t,bt(26,3)+i*B/2,bt(26,3)+i*B/2+.5,E.o6);const fx=960-(150+i*410+190),fy=540-630;
+      S($('pk'+i),{p:1800,x:fx*(1-k),y:fy*(1-k)+Math.sin(t*1.3+i)*6*k,r:(1-k)*(i-1.5)*16,ry:(1-k)*-50,s:L(.3,1,k)*(1+(i===0?.04*P(t,bt(27,1)-.2,bt(27,1))*(1-P(t,bt(27,1)+.2,bt(27,1)+.6)):0)),o:clamp(k*3)})});
+    [[0,bt(27,1)],[2,bt(27,3)]].forEach(([i,tc])=>{const k=P(t,tc,tc+.3,E.io5);$('pkb'+i).style.transform=`translateY(${(1-k)*100}%)`;S($('pkc'+i),{o:P(t,tc+.1,tc+.4),y:(1-P(t,tc+.1,tc+.45,E.o6))*16})});
+    [1,3].forEach(i=>{$('pkb'+i).style.transform='translateY(100%)';S($('pkc'+i),{o:0})});
+    const tk=P(t,bt(27,1)+.2,bt(27,1)+.6,E.back)*(1-P(t,bt(28)-.4,bt(28)-.1));$('toast').style.transform=`translateX(-50%) translateY(${(1-tk)*40}px) scale(${L(.8,1,tk)})`;$('toast').style.opacity=clamp(tk);
+  })(t-9.25*BAR);
+  // ── CONTACT
+  if(applyScene('contact',t))((t)=>{
+    const a=bt(28);
+    const dk=P(t,a,a+.45,E.o6);
+    const toPhone=P(t,bt(31)-.45,bt(31)+.05,E.io5);
+    S($('cdesk'),{o:dk*(1-P(t,bt(30,0)-.1,bt(30,0)+.2)),y:(1-dk)*80});
+    const sel=t<bt(28,2)?0:1;[0,1,2].forEach(i=>{$('cw'+i).className='dcard'+(i===sel&&t>=bt(28,1)?' on':'');const k=(i===sel&&t>=bt(28,1))?P(t,i===0?bt(28,1):bt(28,2),(i===0?bt(28,1):bt(28,2))+.25,E.back):1;$('cw'+i).style.transform=`scale(${L(.94,1,k)})`;});
+    [0,1,2,3,4].forEach(i=>{const on=t>=bt(28,3)+i*B/2&&(i===1||t<bt(28,3)+(i+1)*B/2);$('cp'+i).className='chip2'+(on?' on':'')});
+    const typ=(id,txt,t0,t1)=>{$(id).textContent=txt.slice(0,Math.floor(txt.length*clamp((t-t0)/(t1-t0))))};
+    typ('cf0','Person F',bt(29,1),bt(29,1.8));typ('cf1','Company X',bt(29,1.8),bt(29,2.6));typ('cf2','We would like to sponsor the next Summit and hire interns.',bt(29,2.6),bt(29,3.8));
+    [0,1,2].forEach(i=>{const on=(t>=bt(29,3.8)?2:0)===i;$('cs'+i).style.background=on?'#fff':'transparent';$('cs'+i).style.color=on?'#016737':'';$('cs'+i).style.boxShadow=on?'var(--shadow-sm)':'none'});
+    typ('cf3','+880 1XXX-XXXXXX',bt(29,3.8),bt(29,4.4));
+    $('csend').style.transform=`scale(${t>bt(30,0)-.15&&t<bt(30,0)?.94:1})`;
+    const ok=P(t,bt(30,0)+.05,bt(30,0)+.5,E.back);S($('cdone'),{o:clamp(ok*2)*(1-toPhone),s:L(.7,1,ok)*L(1,.42,toPhone)});
+    S($('cchk'),{s:L(.2,1,P(t,bt(30,.2),bt(30,.6),E.back))});$('cchkp').style.strokeDashoffset=24*(1-P(t,bt(30,.4),bt(30,.8)));
+    const ref='BAUBC-00427';$('cref').textContent=t>=bt(30,1)?ref.slice(0,Math.floor(ref.length*clamp((t-bt(30,1))/(B*1.2)))):'';
+  })(t-10*BAR);
+  // ── MOBILE: all 18 routes as phones in a 9 × 2 grid (two bars, fast)
+  if(applyScene('mobile',t)){
+    const a=bt(41);
+    const k=P(t,a,a+BAR*.5,E.io5);const s0=L(2.2,1,k),fx=L(168,960,k),fy=L(320,540,k);
+    const drift=1+P(t,a+BAR*.5,bt(43),E.lin)*.03;
+    $('mgrid').style.transform=`translate(960px,540px) scale(${s0*drift}) translate(${-fx}px,${-fy}px)`;
+    const conv=P(t,bt(43)-.45,bt(43),E.ie);
+    ROUTES.forEach((_,i)=>{const col=i%9,row=Math.floor(i/9);const tt=a+.1+col*B/10+row*B/5,pk=i===0?1:P(t,tt,tt+.4,E.back);
+      const cx=168+col*198,cy=(row?590:150)+188;
+      S($('mg'+i),{o:clamp(pk*2)*(1-P(t,bt(43)-.15,bt(43))),x:(960-cx)*conv,y:(540-cy)*conv,s:L(.6,1,pk)*L(1,.3,conv),r:conv*45});
+      S($('mgc'+i),{y:-K(t,[[a+BAR*.45+col*.03,0],[bt(42,3),-(200+(i%3)*80),E.io]])});});
+    const s1=bt(41,2.4);const step=Math.max(0,Math.floor((t-s1)/(B/4)));const idx=step%18,prv=Math.max(0,step-1)%18;const f=P(t,s1+step*B/4,s1+step*B/4+.1,E.o);
+    const pos=i=>[168+(i%9)*198-85,(Math.floor(i/9)?590:150)-8];const[p0,p1]=[pos(prv),pos(idx)];
+    S($('mgring'),{o:t>s1&&t<bt(42,3.2)?1:0,x:L(p0[0],p1[0],f),y:L(p0[1],p1[1],f)});
+  }
+  // ── OUTRO
+  if(applyScene('outro',t))((t)=>{
+    const a=bt(34);
+    const offs=[[-520,-320,-120],[540,-280,90],[-440,440,-60],[580,400,140]];
+    [0,1,2,3].forEach(i=>{const k=P(t,a+i*.04,a+i*.04+.55,E.o6);const o=offs[i];S($('op'+i),{tr:`translate(${o[0]*(1-k)}px,${o[1]*(1-k)}px) rotate(${o[2]*(1-k)}deg) scale(${L(.2,1,k)})`,o:clamp(k*2.5)})});
+    $('oglow').setAttribute('opacity',(P(t,a+.4,a+.9)*(.5+.25*Math.sin(t*4))).toFixed(3));
+    const lg=P(t,bt(34,1.5),bt(35,0),E.io5);S($('ologo'),{y:L(140,0,lg),s:L(1.35,1,lg)});
+    document.querySelectorAll('.owl').forEach((el,i)=>{const tb=bt(34,2)+i*B/2,k=P(t,tb-.05,tb+.35,E.o6);S(el,{o:k,y:(1-k)*120,b:(1-k)*18,s:L(1.6,1,k)})});
+    $('owm').style.letterSpacing=L(.22,.01,P(t,bt(34,2),bt(35,2),E.o6))+'em';
+    document.querySelectorAll('.otw').forEach((el,i)=>{const k=P(t,bt(35,2)+i*.1,bt(35,2)+i*.1+.6,E.o6);S(el,{o:k,y:(1-k)*40,b:(1-k)*10})});
+    [0,1,2,3,4].forEach(i=>{const tb=bt(36)+i*B/2,k=P(t,tb-.05,tb+.4,E.back);S($('oi'+i),{o:clamp(k*2),y:(1-k)*50+Math.sin(t*1.4+i*.8)*4*P(t,bt(37),bt(37,2)),s:L(.5,1,k)})});
+    const fl=P(t,bt(35,3),bt(36,1),E.io);$('flare').style.opacity=Math.sin(fl*Math.PI)*.9;$('flare').style.transform=`scaleX(${L(.2,1.4,fl)})`;
+    $('sc-outro').style.transform=`scale(${1+P(t,a,DUR,E.lin)*.05})`;
+  })(t-9*BAR);
+
+  // cursor (only where something is clicked)
+  const CK=[[bt(8,1.5),[1300,980]],[bt(8,3.6),()=>c('ec2',.5,.45)],[bt(9,0)-.05,()=>c('ec2',.5,.45)],[bt(9,1.2),[1150,780]],[bt(10,1.6),()=>c('eReg',.5,.5)],[bt(10,2),()=>c('eReg',.5,.5)],
+    [bt(11,1.2),()=>c('regConsent',.5,.5)],[bt(11,1.6),()=>c('regConsent',.5,.5)],[bt(11,2.3),()=>c('regSubmit',.5,.5)],[bt(11,2.45),()=>c('regSubmit',.5,.5)],
+    [bt(12,.9),()=>c('efbl',.55,.55)],[bt(12,1.45),()=>c('efbl',.55,.55)],[bt(13,.6),()=>c('gfs',.5,.5)],[bt(13,1),()=>c('gfs',.5,.5)],[bt(13,1.6),[1820,1020]],
+    [bt(19,3.4),[1500,980]],[bt(20,0)-.05,()=>c('rv4',.5,.5)],[bt(20,.3),[1560,1000]],
+    [bt(21,3),[1300,900]],[bt(22,0)-.05,()=>c('pd0',.4,.5)],[bt(22,.3),()=>c('pd0',.4,.5)],
+    [bt(24,3),[1400,960]],[bt(25,.4),()=>c('tApprove',.5,.5)],[bt(25,.6),()=>c('tApprove',.5,.5)],[bt(25,1.4),[1500,980]],
+    [bt(31,3),[700,980]],[bt(32,.8),()=>c('bsub',.5,.5)],[bt(32,1.05),()=>c('bsub',.5,.5)],[bt(32,1.6),[760,1000]],
+    [bt(36,1),[1500,1000]],[bt(36,2)-.05,()=>c('pk0',.5,.92)],[bt(36,3.6),()=>c('pk2',.5,.92)],[bt(37,0)-.05,()=>c('pk2',.5,.92)],[bt(37,.6),[1600,1000]],
+    [bt(39,4)-.3,[1600,1000]],[bt(40,0)-.08,()=>c('csend',.5,.5)],[bt(40,.4),[1650,1000]]];
+  const segs=[[bt(8,1.5),bt(13,1.6)],[bt(19,3.4),bt(20,.3)],[bt(21,3),bt(22,.3)],[bt(24,3),bt(25,1.4)],[bt(31,3),bt(32,1.6)],[bt(36,1),bt(37,.6)],[bt(39,4)-.3,bt(40,.4)]];
+  const seg=segs.find(([s0,e0])=>t>s0&&t<e0);
+  if(seg){let i=1;while(i<CK.length-1&&CK[i][0]<t)i++;const A=CK[i-1],Bk=CK[i];const pa=typeof A[1]=='function'?A[1]():A[1],pb=typeof Bk[1]=='function'?Bk[1]():Bk[1];
+    const k=E.io(clamp((t-A[0])/(Bk[0]-A[0])));const clicks=[bt(9,0)-.05,bt(10,2),bt(11,1.6),bt(11,2.45),bt(12,1.45),bt(13,1),bt(20,0)-.05,bt(22,.2),bt(25,.6),bt(32,1.05),bt(36,2)-.05,bt(37,0)-.05,bt(40,0)-.05];const cl=clicks.find(x=>t>=x-.06&&t<x+.4);
+    S($('cursor'),{o:Math.min(1,(t-seg[0])/.12,(seg[1]-t)/.12),x:L(pa[0],pb[0],k),y:L(pa[1],pb[1],k),s:cl!==undefined&&t<cl+.08?.82:1});
+    const ck=cl!==undefined?P(t,cl,cl+.4,E.o):0;S($('cring'),{o:ck>0?1-ck:0,s:L(.3,1.7,ck)});
+  } else S($('cursor'),{o:0});
+
+  // captions: kinetic type, one character at a time, keywords in serif, inside a glass pill
+  const cap=CAPS.find(c=>t>=c[0]-.05&&t<c[1]+.4);
+  if(cap){const ci=CAPS.indexOf(cap);
+    if(lastCap!==ci){lastCap=ci;$('capK').innerHTML=`<span class="dia"></span>${cap[2]}`;$('capK').className='tag'+(cap[2].match(/[ঀ-৿]/)?' bn':'');
+      let n=0;$('capT').innerHTML=cap[3].split(/(\*[^*]+\*)/).map(part=>{const kw=part.startsWith('*');const txt=kw?part.slice(1,-1):part;return [...txt].map(ch=>ch===' '?' ':`<span class="ch${kw?' kwd':''}" data-i="${n++}">${ch}</span>`).join('')}).join('');}
+    const dark=darkO>.5;
+    $('capT').style.color=dark?'#fff':'#0A2015';$('capT').style.setProperty('--kc',dark?'#E0FF73':'#016737');
+    const pill=$('capP');pill.style.background=dark?'rgb(6 26 15/.42)':'rgb(255 255 255/.5)';pill.style.borderColor=dark?'rgb(255 255 255/.18)':'rgb(255 255 255/.85)';
+    const ok=P(t,cap[1],cap[1]+.35,E.i);
+    S($('capK'),{o:P(t,cap[0],cap[0]+.2)*(1-ok),y:(1-P(t,cap[0],cap[0]+.4,E.o6))*16});
+    S(pill,{o:P(t,cap[0],cap[0]+.25)*(1-ok),s:L(.92,1,P(t,cap[0],cap[0]+.45,E.o6)),y:ok*14});
+    document.querySelectorAll('#capT .ch').forEach(el=>{const i=+el.dataset.i,tb=cap[0]+.08+i*.016,k=P(t,tb,tb+.5,E.o6);S(el,{o:k,y:(1-k)*44,r:(1-k)*9,b:(1-k)*8,s:L(1.3,1,k)})});
+    S($('cap'),{o:1});
+  } else S($('cap'),{o:0});
+
+  // HUD: scene number and name on the left, running time and progress on the right
+  const order=Object.keys(SCN);const cur=order.find(k=>t>=bt(SCN[k][0])&&t<bt(SCN[k][1]))||'outro';
+  S($('hud'),{o:cur==='intro'||cur==='outro'?0:Math.min(1,(t-bt(2))/.4,(bt(43)-t)/.4)});
+  $('hudN').textContent=String(order.indexOf(cur)).padStart(2,'0');$('hudS').textContent=SCENE_NAMES[cur]||'';$('hudS').className=/[ঀ-৿]/.test(SCENE_NAMES[cur]||'')?'bn':'';
+  $('hudT').textContent=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(Math.floor(t%60)).padStart(2,'0')}`;$('hudP').style.width=(t/DUR*100).toFixed(2)+'%';
+  ['hudL','hudR'].forEach(id=>{const e=$(id);e.style.background=darkO>.5?'rgb(6 26 15/.4)':'';e.style.color=darkO>.5?'#fff':'';});
+  // giant outline word behind each scene, letters rising in, drifting slowly
+  const bw=BIGWORDS[cur];
+  if(bw){const [s0,s1]=T(cur),el=$('bwt');
+    if(el.dataset.w!==bw){el.dataset.w=bw;el.innerHTML=[...bw].map((c,i)=>`<span style="display:inline-block" data-i="${i}">${c===' '?'&nbsp;':c}</span>`).join('');el.className='abs '+(/[ঀ-৿]/.test(bw)?'bnd':'disp');}
+    S(el,{x:L(240,-520,(t-s0)/(s1-s0)),o:Math.min(1,(t-s0)/.3,(s1-t)/.3)});el.style.webkitTextStroke=`2px ${darkO>.5?'rgb(224 255 115/.13)':'rgb(1 103 55/.10)'}`;
+    el.querySelectorAll('span').forEach(sp=>{const k=P(t,s0+(+sp.dataset.i)*.045,s0+(+sp.dataset.i)*.045+.7,E.o6);sp.style.transform=`translateY(${((1-k)*140).toFixed(1)}px)`;sp.style.opacity=k.toFixed(3);});
+  } else S($('bwt'),{o:0});
+  {const ko=P(t,bt(43),bt(43,2),E.io5);[[390,290],[1570,320],[1500,810],[270,840],[910,920]].forEach(([cx,cy],i)=>S($('pane'+i),{x:Math.sin(t*.13+i*1.7)*60+(cx-960)*.5*ko,y:Math.cos(t*.11+i)*40+(cy-540)*.6*ko,r:Math.sin(t*.07+i)*6,o:.9*(i===4?1-ko:1)}));}
+
+  // flashes on scene cuts (none into the articles), big hits, fades, shake
+  const cuts=Object.entries(SCN).filter(([k,[s0]])=>s0>0&&k!=='bangla').map(([,[s0]])=>bt(s0));
+  const fl=(x,d=.22,m=.5)=>t>=x&&t<x+d?Math.pow(1-(t-x)/d,2)*m:0;
+  S($('flash'),{o:Math.max(...cuts.map(x=>fl(x,.2,.4)),fl(bt(2),.5,.95),fl(bt(43),.6,1),fl(bt(33,.6),.3,.5),...[0,1,2,3].map(i=>fl(bt(0,i),.18,.35)))});
+  S($('fade'),{o:Math.max(1-P(t,0,.25,E.lin),P(t,bt(46,3),DUR,E.io))});
+  const sh=(x,d,m)=>t>=x&&t<x+d?Math.sin((t-x)*80)*m*(1-(t-x)/d):0;
+  const shake=sh(bt(2),.45,12)+sh(bt(43),.6,14)+sh(bt(33,.6),.4,7)+sh(bt(26,.2),.3,6)+[0,1,2,3].reduce((s,i)=>s+sh(bt(0,i),.25,5),0);
+  st.style.transform=shake?`translate(${shake}px,${shake*.6}px)`:'none';
+  typewriter(t);
+}
+function c(id,fx=.5,fy=.5){const r=R($(id));return[r.left+r.width*fx,r.top+r.height*fy]}
+window.render=render;window.CUES=CUES;window.DUR=DUR;window.BPM=BPM;
+// ═══════════════════════════════════════════════════════════════════════════
+// Trailer v4 additions (inserted before initTW): real YouTube thumbnails and reel frames,
+// a centred cinematic article, glass HUD, giant background type, kinetic captions.
+// ═══════════════════════════════════════════════════════════════════════════
+const YT=[
+  {id:'1v8MTs4pK9U',t:'DECODED S1E4 · Monpura (2009)',k:'DECODED · S1E4',f:['maxresdefault','maxres1','maxres2','maxres3']},
+  {id:'0yzXoMivwvI',t:'DECODED S1E3 · Barbie (2023)',k:'DECODED · S1E3',f:['maxresdefault','maxres1','maxres2','maxres3']},
+  {id:'lZfgPnP1C2o',t:'DECODED S1E2 · Titanic (1997)',k:'DECODED · S1E2',f:['maxresdefault','maxres1','maxres2','maxres3']},
+  {id:'Yk7dTNZGt-k',t:'DECODED S1E1 · Spider-Man (2002)',k:'DECODED · S1E1',f:['maxresdefault','maxres1','maxres2','maxres3']},
+  {id:'PofL5z1tcFc',t:'৪৭ দিন ধরে অপেক্ষায় একটা কার্ট… কেন? · Case Studies Ep01',k:'Short · Case Studies',f:['oar2','maxres1','maxres2','maxres3'],short:true},
+];
+const ytSrc=(v,f)=>`assets/yt/${v.id}_${f}.jpg`;
+const ytCard=(v,{title=true}={})=>`<div style="position:absolute;inset:0;background:#000;overflow:hidden"><img src="${ytSrc(v,v.f[0])}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgb(0 0 0/.12),transparent 40%,rgb(4 20 11/.88))"></div>
+  <div style="position:absolute;right:14px;top:14px;width:46px;height:46px;border-radius:99px;background:#C9F53B;display:grid;place-items:center;color:#0A2015;font-size:17px;box-shadow:0 0 0 6px rgb(201 245 59/.25)">▶</div>
+  ${title?`<div style="position:absolute;left:16px;right:16px;bottom:14px;color:#fff"><span style="display:inline-block;padding:4px 11px;border-radius:99px;background:rgb(255 255 255/.16);backdrop-filter:blur(10px);border:1px solid rgb(255 255 255/.25);font:600 12px Int">${v.k}</span><div class="${/[ঀ-৿]/.test(v.t)?'bnd':'disp'}" style="font-size:${v.short?20:24}px;margin-top:8px;line-height:1.2">${v.t}</div></div>`:''}</div>`;
+
+// real reels in the rail: four DECODED episodes, then the Short, then "more"
+$('rrail').innerHTML=[0,1,2,3,4].map(i=>{const v=YT[i];return `<div id="rv${i}" style="position:relative;flex:none;width:${v.short?315:720}px;height:${v.short?560:405}px;border-radius:30px;overflow:hidden;box-shadow:0 40px 70px -30px rgb(1 50 25/.6)">${ytCard(v)}</div>`}).join('')
+  +`<div id="rv5" class="glass" style="position:relative;flex:none;width:315px;height:560px;border-radius:30px;display:grid;place-items:center;text-align:center;padding:30px"><div><div style="margin:0 auto;width:64px;height:64px;border-radius:18px;background:#FF0033;color:#fff;display:grid;place-items:center;font-size:26px">▶</div><div class="disp" style="font-size:30px;margin-top:16px">More on our channel</div><div style="font-size:15px;color:var(--muted);margin-top:6px">@businessclubofbau</div></div></div>`;
+// the player shows the Short's real frames
+$('rstage').innerHTML=YT[4].f.map((f,i)=>`<img id="rf${i}" src="${ytSrc(YT[4],f)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:${i?0:1}">`).join('')
+  +`<div class="abs" style="left:0;right:0;bottom:0;height:42%;background:linear-gradient(0deg,rgb(0 0 0/.7),transparent)"></div>
+  <div class="abs" style="left:22px;bottom:30px;display:flex;align-items:flex-end;gap:5px">${[0,1,2,3,4].map(i=>`<i id="req${i}" style="width:6px;height:20px;border-radius:3px;background:#C9F53B;display:block;transform-origin:bottom"></i>`).join('')}</div>
+  <div id="rplay" class="abs" style="left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:99px;background:rgb(255 255 255/.22);backdrop-filter:blur(14px);border:1px solid rgb(255 255 255/.4);display:grid;place-items:center;color:#fff;font-size:36px">▶</div>
+  <div class="abs" style="left:0;right:0;bottom:0;height:6px;background:rgb(255 255 255/.25)"><div id="rprog" style="height:100%;width:0;background:#FF0033"></div></div>`;
+$('rbar').innerHTML=`<span style="min-width:0"><b class="bnd" style="font-size:22px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px">${YT[4].t}</b><span style="font-size:14px;opacity:.7">Short · playing on baubc / reels</span></span><span class="btn bl">Open on YouTube</span>`;
+$('rbar').style.left='560px';$('rbar').style.right='560px';
+
+// real thumbnails everywhere a reel appears (route cards, phones)
+document.querySelectorAll('#sc-routes [style*="radial-gradient(120% 90% at 80% 0%"], #sc-mobile [style*="radial-gradient(120% 90% at 80% 0%"]').forEach((el,i)=>{el.outerHTML=ytCard(YT[i%5],{title:false});});
+
+// ── article: centred, with a 2.39:1 film-frame cover ─────────────────────────
+$('bnart').innerHTML=`<div id="bnread" class="abs" style="left:0;top:0;width:1920px;height:6px;background:linear-gradient(90deg,#016737,#C9F53B);transform-origin:0 50%;z-index:6"></div>
+ <div id="bnscroll" class="abs" style="left:0;top:0;width:1920px">
+  <div style="position:relative;height:640px;text-align:center;overflow:hidden">
+    <div class="layer" style="background:radial-gradient(60% 80% at 20% 10%,#E7FF8F,transparent 62%),radial-gradient(50% 70% at 85% 20%,#D7F87A,transparent 60%),linear-gradient(180deg,#EEFBC2,#F5F8EC)"></div>
+    <div class="layer" style="background-image:var(--pat);opacity:.45"></div>
+    <div style="position:relative;padding-top:120px;display:grid;justify-items:center;gap:22px">
+      <div style="display:flex;gap:10px"><span class="tag glass"><span class="bn">← গভীর পাঠ</span></span><span class="tag" style="background:#0A2015;color:#E0FF73"><span class="bn">বাংলা</span></span></div>
+      <div id="bntitle" class="bnd" data-notw style="font-size:104px;max-width:1500px;line-height:1.18">${'কৃষির সমস্যাই হতে পারে পরের বড় ব্যবসা'.split(' ').map(w=>`<span class="bkw" style="display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.12em;margin-bottom:-.12em"><span class="bnw" style="display:inline-block">${w}</span></span>`).join(' ')}</div>
+      <div id="bndek" class="bn" style="font-size:28px;color:var(--ink-2);max-width:1000px">মাঠে যে কষ্ট রোজ চোখে পড়ে, সেখানেই লুকিয়ে থাকে একজন উদ্যোক্তার প্রথম সুযোগ।</div>
+      <div id="bnauth" style="display:flex;align-items:center;gap:18px"><span class="glass" style="display:inline-flex;align-items:center;gap:12px;padding:6px 18px 6px 6px;border-radius:18px">${av('B',50,'border-radius:14px')}<span style="text-align:left"><span class="bn" style="font-size:13px;color:var(--muted);display:block">লিখেছেন</span><b style="font:700 18px Int">Member B</b></span></span><span class="bn" style="font-size:18px;color:var(--ink-2)">১৩ নভেম্বর ২০২৬ · ৬ মিনিটের পাঠ</span></div>
+    </div>
+  </div>
+  <div id="bncinewrap" style="position:relative;margin:-10px auto 0;width:1540px;padding:20px">
+    <i style="position:absolute;left:0;top:0;width:44px;height:44px;border-left:3px solid #016737;border-top:3px solid #016737;border-top-left-radius:12px;opacity:.6"></i>
+    <i style="position:absolute;right:0;bottom:0;width:44px;height:44px;border-right:3px solid #016737;border-bottom:3px solid #016737;border-bottom-right-radius:12px;opacity:.6"></i>
+    <div id="bncine" style="position:relative;width:1500px;height:628px;border-radius:30px;overflow:hidden;box-shadow:0 70px 120px -50px rgb(1 50 25/.65)">
+      <img id="bncimg" src="assets/cover1.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+      <div class="layer" style="background:linear-gradient(180deg,rgb(0 0 0/.32),transparent 18%,transparent 78%,rgb(0 0 0/.4)),radial-gradient(120% 120% at 50% 50%,transparent 58%,rgb(0 0 0/.3))"></div>
+      <span class="tag" style="position:absolute;left:24px;bottom:22px;background:rgb(255 255 255/.85)"><span class="bn">উদ্যোগ</span></span>
+      <span class="mono" style="position:absolute;right:24px;top:20px;color:#fff;font-size:14px;letter-spacing:.2em;opacity:.85">2.39 : 1</span>
+    </div>
+  </div>
+  <div id="bnbody" class="bn" style="width:1000px;margin:70px auto 0;font-size:30px;line-height:1.9;color:var(--ink-2);display:grid;gap:36px;padding-bottom:600px">
+    <p style="font-size:34px;color:var(--ink);line-height:1.75">বাংলাদেশের কৃষক প্রতিদিন এমন অনেক সমস্যার মুখোমুখি হন, যেগুলো আমরা শহর থেকে প্রায় দেখতেই পাই না। সঠিক সময়ে ভালো বীজ না পাওয়া, ফসল তোলার পর দ্রুত নষ্ট হয়ে যাওয়া, কিংবা ন্যায্য দাম না পাওয়া।</p>
+    <p><span id="hl0" class="hlx">প্রতিটি অপূর্ণ চাহিদাই আসলে একটি ব্যবসার সম্ভাবনা।</span></p>
+    <div class="bnd" style="font-size:48px;color:var(--ink)"><span style="display:inline-block;width:20px;height:20px;background:#C9F53B;transform:rotate(45deg);margin-right:16px"></span>ছোট করে শুরু করুন</div>
+    <p>একটি গ্রাম, একটি ফসল, দশজন কৃষক: এটুকু দিয়েই জানা যায় ধারণাটি কাজ করে কি না। <span id="hl1" class="hlx">ছোট পরীক্ষা দ্রুত শেখায়, আর ভুলের দামও কম রাখে।</span></p>
+    <div id="bnq" style="position:relative;padding:48px 56px;border-radius:30px;background:linear-gradient(135deg,#0A2015,#016737);color:#fff;overflow:hidden;text-align:center"><div class="layer" style="background-image:var(--rays-l)"></div><div class="serif abs" style="left:30px;top:-46px;font-size:220px;color:#C9F53B;opacity:.35">“</div><div class="bnd" style="position:relative;font-size:50px;line-height:1.45">যে সমস্যা আপনি নিজের চোখে দেখেননি, তার সমাধান বিক্রি করা সবচেয়ে কঠিন।</div></div>
+    <p>বাউবিসি-তে আমরা মাঠের বাস্তবতা থেকে শুরু করে টেকসই ব্যবসার মডেল পর্যন্ত কাজ করি। <span id="hl2" class="hlx">কৃষি আর ব্যবসা আলাদা কিছু নয়; দুটো মিলেই তৈরি হয় আগামীর অর্থনীতি।</span></p>
+  </div>
+ </div>
+ <div id="bnkeys" class="glass" style="position:absolute;right:70px;top:250px;width:330px;border-radius:26px;padding:24px;z-index:5"><div class="lbl bn" style="color:var(--leaf);font-size:15px">◆ মূল কথা</div>
+  ${['প্রতিটি অপূর্ণ চাহিদাই আসলে একটি ব্যবসার সম্ভাবনা।','ছোট পরীক্ষা দ্রুত শেখায়, আর ভুলের দামও কম রাখে।','কৃষি আর ব্যবসা আলাদা কিছু নয়।'].map((k,i)=>`<div id="bk${i}" class="bn" style="display:flex;gap:12px;margin-top:14px;font-size:18px;line-height:1.5;border-radius:14px;padding:8px"><span style="flex:none;width:28px;height:28px;display:grid;place-items:center;background:#C9F53B;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);font:700 13px HindBn">${'১২৩'[i]}</span>${k}</div>`).join('')}
+ </div>`;
+let BNY=null;
+const offTop=(el,root)=>{let y=0;for(let e=el;e&&e!==root;e=e.offsetParent)y+=e.offsetTop;return y;};
+
+// ── glass panes floating behind everything, cinematic vignette, HUD, giant type ──
+$('bokeh').insertAdjacentHTML('afterend',`<div id="panes" class="layer" style="pointer-events:none">${[[180,140,420,300,-8],[1380,90,380,460,12],[1240,640,520,340,-14],[90,700,360,280,9],[760,820,300,200,4]].map(([x,y,w,h,r],i)=>`<div id="pane${i}" class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;border-radius:44px;background:linear-gradient(135deg,rgb(255 255 255/.26),rgb(255 255 255/.06));backdrop-filter:blur(18px) saturate(1.4);border:1px solid rgb(255 255 255/.45);box-shadow:inset 0 1px 0 rgb(255 255 255/.5),0 30px 60px -30px rgb(0 0 0/.25)"></div>`).join('')}</div>
+<div id="bigword" class="layer" style="pointer-events:none;overflow:hidden"><div id="bwt" class="disp abs" style="left:0;top:330px;white-space:nowrap;font-size:420px;letter-spacing:-.04em;color:transparent;-webkit-text-stroke:2px rgb(1 103 55/.10)"></div></div>`);
+$('vig').style.background='radial-gradient(ellipse at center,transparent 50%,rgb(0 0 0/.30) 100%),linear-gradient(180deg,rgb(0 0 0/.14),transparent 13%,transparent 87%,rgb(0 0 0/.16))';
+$('stage').insertAdjacentHTML('beforeend',`<div id="hud" class="abs" style="left:40px;right:40px;top:30px;display:flex;justify-content:space-between;align-items:center;z-index:45;pointer-events:none">
+  <div id="hudL" class="glass" data-notw style="display:flex;align-items:center;gap:12px;padding:10px 18px 10px 12px;border-radius:999px;font:600 14px Int;letter-spacing:.06em">${markSVG('#016737',24)}<span id="hudN" class="mono" style="color:#016737">01</span><span style="width:1px;height:16px;background:rgb(10 32 21/.2)"></span><span id="hudS" style="text-transform:uppercase"></span></div>
+  <div id="hudR" class="glass" style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:999px;font:600 13px Mono"><span id="hudT" class="mono">00:00</span><span style="width:180px;height:4px;border-radius:9px;background:rgb(10 32 21/.12);overflow:hidden"><i id="hudP" style="display:block;height:100%;width:0;background:linear-gradient(90deg,#016737,#C9F53B)"></i></span></div></div>`);
+// caption becomes a glass pill
+$('cap').style.bottom='40px';
+$('capT').outerHTML=`<div id="capP" style="display:inline-block;margin-top:12px;padding:16px 34px 20px;border-radius:30px;background:rgb(255 255 255/.5);backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgb(255 255 255/.85);box-shadow:0 30px 60px -30px rgb(1 50 25/.45)"><div id="capT" class="disp" style="font-size:54px;letter-spacing:-.025em;line-height:1.05"></div></div>`;
+const SCENE_NAMES={intro:'',hero:'Home',routes:'Every route',events:'Events',bangla:'বাংলা লেখা',reels:'Reels',profile:'Profiles',teacher:'Advisors',dash:'Members',bkash:'Monthly fees',mom:'Recognition',perks:'Perks',contact:'Contact desk',mobile:'Every screen',outro:''};
+const BIGWORDS={hero:'PLANT IDEAS',routes:'EVERY PAGE',events:'LIVE',bangla:'বাংলা',reels:'REELS',profile:'PEOPLE',teacher:'ADVISORS',dash:'MEMBERS',bkash:'bKash',mom:'PROUD',perks:'PERKS',contact:'TALK',mobile:'MOBILE'};
+// glassier UI cards everywhere in the film
+document.head.insertAdjacentHTML('beforeend',`<style>#world .card{background:rgb(255 255 255/.62);backdrop-filter:blur(22px) saturate(1.5);border:1px solid rgb(255 255 255/.9)}#capT .ch{display:inline-block;will-change:transform}#capT .kwd{font-family:ISerif;font-weight:400;font-style:normal;letter-spacing:-.01em;color:var(--kc);font-size:1.08em}</style>`);
+
+initTW();
+Promise.all(['700 100px Bric','400 100px Bric','40px ISerif','400 20px Int','600 20px Int','700 20px Int','20px Mono','700 40px AnekBn','400 20px HindBn','600 20px HindBn'].map(f=>document.fonts.load(f,'অআকখ ABC'))).then(()=>document.fonts.ready).then(()=>{window.READY=true;seekTo(Number(location.hash.slice(1)||0))});
+</script></body></html>
