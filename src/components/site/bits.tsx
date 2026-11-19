@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { EventRow, PostRow } from '@/server/queries/public';
 import { RAYS, Mark, Arrow } from '@/components/brand/Mark';
+import { Kinetic } from './Kinetic';
 import { CATEGORY_LABEL, fmtDate, fmtMoney, fmtNum } from '@/lib/format';
 
 const TONES: Record<string, { bg: string; hot: string; ghost: string; fg: string }> = {
@@ -44,7 +45,7 @@ export function SectionHead({ label, title, children, className = '', center = f
   return (
     <div className={`grid gap-4 mb-10 md:mb-14 ${center ? 'justify-items-center text-center mx-auto max-w-3xl' : 'max-w-3xl'} ${className}`}>
       <span className="eyebrow reveal">{label}</span>
-      <h2 className="display-md text-[clamp(2.1rem,1.3rem+3vw,3.8rem)] reveal" style={{ ['--d' as any]: 1 }}>{title}</h2>
+      <h2 className="display-md text-[clamp(2.1rem,1.3rem+3vw,3.8rem)] reveal" style={{ ['--d' as any]: 1 }}><Kinetic>{title}</Kinetic></h2>
       {children && <div className="text-ink-2 text-[1.08rem] max-w-2xl reveal" style={{ ['--d' as any]: 2 }}>{children}</div>}
     </div>
   );
@@ -105,12 +106,14 @@ export function Paras({ text, className = '' }: { text?: string | null; classNam
 export function PageHero({ label, title, children, back }: { label: string; title: React.ReactNode; children?: React.ReactNode; back?: { href: string; label: string } }) {
   return (
     <section className="relative overflow-hidden lime-wash isolate">
-      <div className="absolute inset-0 -z-10 pat-diamonds opacity-70 [mask-image:linear-gradient(90deg,transparent,#000_55%)]" aria-hidden="true" />
-      <Mark size="46rem" className="pointer-events-none absolute -right-40 -top-24 -z-10 text-brand/[.07]" />
+      <div className="aurora" aria-hidden="true"><i /><i /><i /></div>
+      <div className="contour-drift" aria-hidden="true" />
+      <div className="absolute inset-0 -z-10 pat-diamonds opacity-50 [mask-image:linear-gradient(90deg,transparent,#000_70%)]" aria-hidden="true" />
+      <Mark size="46rem" className="pointer-events-none absolute -right-40 -top-24 -z-10 text-brand/[.07] float-a" />
       <div className="wrap pt-36 pb-14 md:pt-44 md:pb-20 grid gap-5">
         {back ? <Link href={back.href} className="tag w-max hover:bg-white fade-up" style={{ ['--i' as any]: -3 }}>← {back.label}</Link> : null}
         <span className="eyebrow fade-up" style={{ ['--i' as any]: -3 }}>{label}</span>
-        <h1 className="display text-[clamp(2.8rem,1.4rem+6vw,6.6rem)] max-w-[15ch]"><span className="line-rise"><span>{title}</span></span></h1>
+        <h1 className="display text-[clamp(2.8rem,1.4rem+6vw,6.6rem)] max-w-[15ch]"><Kinetic>{title}</Kinetic></h1>
         {children && <div className="text-ink-2 text-[1.15rem] max-w-2xl fade-up" style={{ ['--i' as any]: 0 }}>{children}</div>}
       </div>
     </section>

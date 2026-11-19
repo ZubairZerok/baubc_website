@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { Kinetic } from '@/components/site/Kinetic';
 import { HomeReels } from '@/components/site/HomeReels';
 import Link from 'next/link';
 import { Arrow, Diamond, Mark } from '@/components/brand/Mark';
@@ -38,8 +39,7 @@ export default async function Home() {
           <div className="grid gap-7 relative z-10">
             <span className="tag w-max max-w-full fade-up" style={{ ['--i' as any]: -3 }}><Diamond size={8} className="text-brand" />Bangladesh Agricultural University Business Club</span>
             <h1 id="hero-title" className="display text-[clamp(3.5rem,1.1rem+8.8vw,9.4rem)]">
-              <span className="line-rise" style={{ ['--i' as any]: 0 }}><span>Plant ideas.</span></span>
-              <span className="line-rise" style={{ ['--i' as any]: 1 }}><span><em className="serif-i text-brand pr-[.06em]">Harvest</em> founders.</span></span>
+              <Kinetic><span className="block">Plant ideas.</span><span className="block"><em className="serif-i text-brand pr-[.06em]">Harvest</em> founders.</span></Kinetic>
             </h1>
             <p className="max-w-[54ch] text-[1.14rem] text-ink-2 fade-up" style={{ ['--i' as any]: 1 }}>
               BAUBC is the student-run innovation ecosystem at BAU, Mymensingh. We decode how real businesses work, build in teams, and put student founders on a real stage, where agriculture, technology and business strategy meet.
