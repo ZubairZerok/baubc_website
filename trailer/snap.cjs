@@ -7,6 +7,6 @@ const p = await b.newPage({ viewport: { width: 1920, height: 1080 } });
 p.on('pageerror', e => console.log('ERR', e.message)); p.on('console', m => m.type()==='error' && console.log('CONSOLE', m.text()));
 await p.goto('file://' + path.resolve(process.env.TRAILER || 'trailer/trailer.html'));
 await p.waitForFunction(() => window.READY);
-for (const t of times) { await p.evaluate(t => render(t), t); await p.screenshot({ path: `${out}/t${String(t).padStart(5,'0')}.jpg`, quality: 70, type: 'jpeg' }); }
+for (const t of times) { await p.evaluate(t => (window.seekTo || render)(t), t); await p.screenshot({ path: `${out}/t${String(t).padStart(5,'0')}.jpg`, quality: 70, type: 'jpeg' }); }
 await b.close();
 })();
