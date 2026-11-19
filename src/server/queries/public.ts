@@ -37,7 +37,7 @@ export async function getAvailability(eventId: string) {
 export const getEventPeople = cache(async (eventId: string) =>
   anon((tx) => tx.query(`select name, role, title, bio from app.event_people where event_id = $1 order by sort`, [eventId])));
 
-export type PostRow = { id: string; slug: string; kind: string; series: string | null; episode_no: number | null; title: string; dek: string | null; body: string | null; topics: string[]; cover_tone: string; cover_label: string | null; facebook_url: string | null; youtube_url: string | null; author_name: string | null; stats: any; published_at: string | null };
+export type PostRow = { id: string; slug: string; lang?: 'en' | 'bn'; title_bn?: string | null; kind: string; series: string | null; episode_no: number | null; title: string; dek: string | null; body: string | null; topics: string[]; cover_tone: string; cover_label: string | null; facebook_url: string | null; youtube_url: string | null; author_name: string | null; stats: any; published_at: string | null };
 export const getPosts = cache(async () =>
   anon((tx) => tx.query<PostRow>(`select * from app.posts where status = 'published' order by published_at desc nulls last`)));
 export const getPost = cache(async (slug: string) =>
@@ -57,7 +57,25 @@ export const getPublicAnnouncements = cache(async () =>
   anon((tx) => tx.query(`select title, body, publish_at from app.announcements order by pinned desc, publish_at desc limit 3`)));
 export const getGallery = cache(async () => anon((tx) => tx.query(`select * from app.gallery_albums order by taken_on desc nulls last, created_at desc`)));
 export const getResources = cache(async () => anon((tx) => tx.query(`select * from app.resources order by created_at desc`)));
-export const getRecognition = cache(async () =>
-  anon((tx) => tx.one<{ period: string; full_name: string; citation: string; wing: string | null }>(`select * from app.public_recognition()`)));
-export const getLeaderboard = cache(async (scope: 'month' | 'all') =>
-  anon((tx) => tx.query<{ rank: number; full_name: string; wing: string | null; points: number }>(`select * from app.leaderboard($1)`, [scope])));
+export type Recognition = { period: string; full_name: string; citation: string; wing: string | null; handle: string | null; photo_url: string | null; points: number };
+export const getRecognition = cache(async () => anon((tx) => tx.one<Recognition>(`select * from app.public_recognition()`)));
+export type LeaderRow = { rank: number; full_name: string; wing: string | null; points: number; handle: string | null; photo_url: string | null };
+export const getLeaderboard = cache(async (scope: 'month' | 'all') => anon((tx) => tx.query<LeaderRow>(`select * from app.leaderboard($1)`, [scope])));
+
+export type PublicProfile = {
+  handle: string; name: string; full_name: string; full_name_bn: string | null; kind: string; photo_url: string | null; avatar: any;
+  department: string | null; session: string | null; bio: string | null; facebook_url: string | null; linkedin_url: string | null;
+  skills: string[]; interests: string[]; member_since: string | null;
+  units: { name: string; slug: string; title: string | null; lead: boolean }[];
+  awards: { period: string; citation: string }[];
+  achievements: { kind: string; title: string; description: string | null; on: string }[];
+  stats: { points_total: number; points_month: number | null; rank_month: number | null; events: number } | null;
+};
+export const getPublicProfile = cache(async (handle: string) => {
+  if (!/^[a-z0-9-]{1,40}$/i.test(handle)) return null;
+  return anon(async (tx) => ((await tx.one<{ p: PublicProfile | null }>(`select app.public_profile($1) p`, [handle]))?.p ?? null));
+});
+export async function getRecentRegistrations(eventId: string) {
+  const rows = await anon((tx) => tx.query<{ initial: string; via: string; at: string | Date }>(`select initial, via, at from app.recent_registrations($1, 6)`, [eventId]));
+  return rows.map((r) => ({ initial: r.initial, via: r.via, at: new Date(r.at).toISOString() }));
+}

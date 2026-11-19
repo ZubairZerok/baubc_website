@@ -3,6 +3,8 @@ import 'server-only';
 export const env = {
   siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, ''),
   databaseUrl: process.env.DATABASE_URL || '',
+  // Optional: a YouTube Data API key (restricted to the YouTube Data API v3). Without it the public RSS feeds are used.
+  youtubeApiKey: process.env.YOUTUBE_API_KEY || '',
   // The club's Supabase project. Both values are public by design (the publishable key only works through row-level security).
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://oinrhzcawnxkqvjyfbja.supabase.co',
   supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nUWO8j7-7msDVYZVeCEBew_a3-023rY',

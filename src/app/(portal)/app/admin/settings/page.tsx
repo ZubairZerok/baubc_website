@@ -17,6 +17,10 @@ const GROUPS: { key: string; title: string; help: string; sensitive?: boolean; f
   { key: 'social', title: 'Social links', help: 'Footer links and the follower number on the home page.', fields: [
     { name: 'facebook_url', label: 'Facebook page', type: 'url' }, { name: 'youtube_url', label: 'YouTube channel', type: 'url' }, { name: 'linkedin_url', label: 'LinkedIn page', type: 'url' },
     { name: 'facebook_followers', label: 'Facebook followers', type: 'number' }, { name: 'stats_as_of', label: 'Numbers correct as of', type: 'date' }] },
+  { key: 'youtube', title: 'YouTube reels', help: 'The Reels section on the home page and /reels. New uploads appear by themselves within an hour.', fields: [
+    { name: 'handle', label: 'Channel handle', type: 'text', hint: 'For example @businessclubofbau' },
+    { name: 'channel_id', label: 'Channel ID (optional)', type: 'text', hint: 'YouTube Studio → Settings → Channel → Advanced. Starts with UC. Makes loading faster and more reliable.' },
+    { name: 'featured', label: 'Pinned reels (optional)', type: 'area', hint: 'One YouTube link per line. Pinned reels show first, and are used if YouTube cannot be reached.' }] },
   { key: 'features', title: 'Pages', help: 'Switch optional pages on or off.', fields: [
     { name: 'members_directory', label: 'Members page', type: 'bool' }, { name: 'gallery', label: 'Gallery page', type: 'bool' }, { name: 'resources', label: 'Resources page', type: 'bool' }, { name: 'perks', label: 'Member perks', type: 'bool' },
     { name: 'leaderboard', label: 'Leaderboard', type: 'choice', choices: [['off', 'Hidden'], ['members', 'Members only'], ['public', 'Public page']] }] },
@@ -48,7 +52,7 @@ export default async function SettingsPage() {
                   if (f.type === 'bool') return <label key={f.name} className="check sm:col-span-2"><input type="checkbox" name={f.name} defaultChecked={!!v[f.name]} />{f.label}</label>;
                   return (
                     <div key={f.name} className={`field ${f.type === 'area' || f.type === 'url' ? 'sm:col-span-2' : ''}`}><label htmlFor={id}>{f.label}</label>
-                      {f.type === 'area' ? <textarea id={id} name={f.name} className="textarea min-h-[96px]" defaultValue={v[f.name] ?? ''} />
+                      {f.type === 'area' ? <textarea id={id} name={f.name} className="textarea min-h-[96px]" defaultValue={Array.isArray(v[f.name]) ? v[f.name].map((x: string) => `https://youtube.com/shorts/${x}`).join('\n') : v[f.name] ?? ''} />
                         : f.type === 'choice' ? <select id={id} name={f.name} className="select" defaultValue={String(v[f.name] ?? f.choices![0][0])}>{f.choices!.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
                         : <input id={id} name={f.name} className="input" type={f.type === 'number' ? 'number' : f.type === 'url' ? 'url' : f.type === 'date' ? 'date' : 'text'} min={f.type === 'number' ? 0 : undefined} defaultValue={v[f.name] ?? ''} inputMode={f.name === 'bkash_number' ? 'tel' : undefined} />}
                       {f.hint && <span className="hint">{f.hint}</span>}</div>

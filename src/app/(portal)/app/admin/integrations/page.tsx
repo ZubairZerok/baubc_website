@@ -1,7 +1,7 @@
 import { PageTitle } from '@/components/portal/Shell';
 import { Status } from '@/components/ui/Status';
 import { ActionForm, SubmitButton } from '@/components/ui/forms';
-import { runJobsNow, simulateFormSubmission } from '@/app/actions/portal';
+import { runJobsNow, simulateFormSubmission, simulateEventFormRegistration } from '@/app/actions/portal';
 import { withClaims } from '@/server/db';
 import { requireSession } from '@/server/session';
 import { env, isPreview } from '@/server/env';
@@ -11,6 +11,7 @@ export default async function IntegrationsPage() {
   const session = await requireSession('/app/admin/integrations');
   const d = await withClaims(session.claims, async (tx) => ({
     conns: await tx.query(`select * from app.integration_connections order by provider`),
+    events: await tx.query(`select slug, title from app.events where status = 'published' order by starts_at nulls last`),
     emails: await tx.query(`select * from app.email_log order by created_at desc limit 40`),
   }));
   const configured: Record<string, boolean> = { google_form: !!env.formSecret, gmail_appsscript: !!env.gmailSecret, resend: !!env.resendKey, meta_page: false, bkash_pgw: false };
@@ -36,6 +37,14 @@ export default async function IntegrationsPage() {
         <div className="field"><label htmlFor="sf-n">Full name</label><input id="sf-n" name="full_name" className="input" required defaultValue="Test Applicant" /></div>
         <div className="field"><label htmlFor="sf-e">Email</label><input id="sf-e" name="email" type="email" className="input" required placeholder="someone@example.com" /></div>
         <div className="field"><label htmlFor="sf-s">Student ID</label><input id="sf-s" name="student_id" className="input" /></div>
+        <SubmitButton className="btn btn-secondary">Send test</SubmitButton>
+      </ActionForm>
+      <ActionForm action={simulateEventFormRegistration} resetOnSuccess className="panel grid sm:grid-cols-[1.2fr_1fr_1fr_auto] gap-3 items-end mb-8">
+        <div className="sm:col-span-4 grid gap-1"><h2 className="heading text-lg">Live event registrations from a Google Form</h2>
+          <p className="text-sm text-ink-2">Paste <code className="font-mono text-xs">integrations/apps-script/google-form-event-registration.gs</code> into the event&apos;s form, set <code className="font-mono text-xs">BAUBC_EVENT_SLUG</code>, and every response becomes a real registration: seats, the public live list and the ticket email update by themselves. The site still enforces capacity, so a form can never over-book. Try it here:</p></div>
+        <div className="field"><label htmlFor="ef-ev">Event</label><select id="ef-ev" name="event_slug" className="select" required>{d.events.map((e: any) => <option key={e.slug} value={e.slug}>{e.title}</option>)}</select></div>
+        <div className="field"><label htmlFor="ef-n">Full name</label><input id="ef-n" name="full_name" className="input" required defaultValue="Test Attendee" /></div>
+        <div className="field"><label htmlFor="ef-e">Email</label><input id="ef-e" name="email" type="email" className="input" required placeholder="someone@example.com" /></div>
         <SubmitButton className="btn btn-secondary">Send test</SubmitButton>
       </ActionForm>
       <section className="grid gap-3">

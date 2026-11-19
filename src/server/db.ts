@@ -73,7 +73,7 @@ async function createPostgresDriver(): Promise<Driver> {
     max: 5,
     idle_timeout: 20,
     connect_timeout: 10,
-    ssl: env.databaseUrl.includes('localhost') ? false : 'require',
+    ssl: /@(localhost|127\.0\.0\.1)[:/]|sslmode=disable/.test(env.databaseUrl) ? false : 'require',
   });
   return {
     run<T>(claims: Claims | 'system', fn: (tx: Tx) => Promise<T>) {

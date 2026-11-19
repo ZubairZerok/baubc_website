@@ -43,8 +43,11 @@ export async function updateProfile(_: ActionResult, fd: FormData) {
       display_name: s(fd, 'display_name'), bio: s(fd, 'bio'), facebook_url: s(fd, 'facebook_url'), linkedin_url: s(fd, 'linkedin_url'),
       interests: s(fd, 'interests').split(',').map((x) => x.trim()).filter(Boolean), skills: s(fd, 'skills').split(',').map((x) => x.trim()).filter(Boolean),
       public_profile: b(fd, 'public_profile'),
+      public_fields: Object.fromEntries(['department', 'session', 'bio', 'socials', 'achievements', 'rank', 'skills'].map((k) => [k, b(fd, `show_${k}`)])),
       avatar: s(fd, 'avatar_hair') ? { hair: s(fd, 'avatar_hair'), skin: Number(s(fd, 'avatar_skin') || 0), top: Number(s(fd, 'avatar_top') || 0), glasses: b(fd, 'avatar_glasses') } : undefined,
     })]);
+    const h = s(fd, 'handle').toLowerCase();
+    if (h) await tx.query(`select app.set_my_handle($1) where $1 is distinct from (select handle from app.people where id = authz.current_person_id())`, [h]);
     return 'Profile updated.';
   });
 }
@@ -65,6 +68,16 @@ export async function submitTask(_: ActionResult, fd: FormData) {
 }
 export async function claimPerk(_: ActionResult, fd: FormData) {
   return act(async (tx) => { const r = await tx.one(`select app.claim_perk($1) v`, [s(fd, 'perk_id')]); return `Your perk: ${r!.v}`; }, { jobs: false });
+}
+/** Same command, but hands the revealed value back to the card so it can animate in place. */
+export async function claimPerkAction(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, message: 'Please sign in again.' };
+  try {
+    const r = await withClaims(session.claims, (tx) => tx.one<{ v: string }>(`select app.claim_perk($1) v`, [s(fd, 'perk_id')]));
+    revalidatePath('/app/perks');
+    return { ok: true, message: 'Claimed.', data: { value: r!.v } };
+  } catch (e) { return { ok: false, message: friendlyError(e) }; }
 }
 export async function payDues(_: ActionResult, fd: FormData) {
   return act(async (tx) => {
@@ -272,12 +285,17 @@ export async function savePost(_: ActionResult, fd: FormData) {
   }, { path: '/' });
 }
 export async function updateInquiry(_: ActionResult, fd: FormData) {
-  return act(async (tx) => { await tx.query(`update app.contact_inquiries set status=$2, assigned_to = coalesce(assigned_to, authz.current_person_id()) where id=$1`, [s(fd, 'id'), s(fd, 'status')]); return 'Updated.'; }, { flash: true });
+  const status = ['new', 'in_progress', 'closed', 'spam'].includes(s(fd, 'status')) ? s(fd, 'status') : 'in_progress';
+  return act(async (tx) => {
+    await tx.query(`update app.contact_inquiries set status = $2, staff_note = coalesce(nullif($3, ''), staff_note), updated_at = now(), assigned_to = coalesce(assigned_to, authz.current_person_id()) where id = $1`, [s(fd, 'id'), status, s(fd, 'staff_note').slice(0, 2000)]);
+    return status === 'closed' ? 'Marked as done.' : status === 'spam' ? 'Marked as spam.' : 'Saved.';
+  }, { flash: true });
 }
 export async function reviewInbound(_: ActionResult, fd: FormData) {
   return act(async (tx) => { await tx.query(`update app.inbound_messages set status=$2, review_note=$3, category=coalesce(nullif($4,''), category), reviewer_id=authz.current_person_id() where id=$1`, [s(fd, 'id'), s(fd, 'status'), s(fd, 'note') || null, s(fd, 'category')]); return 'Updated.'; }, { flash: true });
 }
-const SETTING_FIELDS: Record<string, { name: string; type: 'text' | 'url' | 'number' | 'bool' | 'choice'; choices?: string[] }[]> = {
+const SETTING_FIELDS: Record<string, { name: string; type: 'text' | 'url' | 'number' | 'bool' | 'choice' | 'videos'; choices?: string[] }[]> = {
+  youtube: [{ name: 'handle', type: 'text' }, { name: 'channel_id', type: 'text' }, { name: 'featured', type: 'videos' }],
   club: [{ name: 'name', type: 'text' }, { name: 'short_name', type: 'text' }, { name: 'tagline', type: 'text' }, { name: 'bio', type: 'text' }, { name: 'email', type: 'text' }, { name: 'location', type: 'text' }],
   social: [{ name: 'facebook_url', type: 'url' }, { name: 'youtube_url', type: 'url' }, { name: 'linkedin_url', type: 'url' }, { name: 'facebook_followers', type: 'number' }, { name: 'stats_as_of', type: 'text' }],
   payments: [{ name: 'bkash_number', type: 'text' }, { name: 'bkash_account_type', type: 'choice', choices: ['Personal', 'Merchant', 'Agent'] }, { name: 'instructions', type: 'text' }],
@@ -300,7 +318,16 @@ export async function saveSetting(_: ActionResult, fd: FormData) {
       else if (f.type === 'number') { const v = Number(raw); if (raw === '' || !Number.isFinite(v) || v < 0) throw new Error(`INVALID_VALUE: ${f.name.replace(/_/g, ' ')} must be a number`); value[f.name] = v; }
       else if (f.type === 'url') { if (raw && !/^https:\/\//i.test(raw)) throw new Error(`INVALID_VALUE: ${f.name.replace(/_/g, ' ')} must start with https://`); value[f.name] = raw; }
       else if (f.type === 'choice') { if (!f.choices!.includes(raw)) throw new Error('INVALID_VALUE: pick one of the listed options'); value[f.name] = raw; }
+      else if (f.type === 'videos') {
+        const ids = lines(raw).map((l) => youtubeId(l));
+        if (ids.some((x) => !x)) throw new Error('INVALID_VALUE: each line must be a YouTube link or an 11-character video ID');
+        value[f.name] = Array.from(new Set(ids)).slice(0, 40);
+      }
       else value[f.name] = raw;
+    }
+    if (key === 'youtube') {
+      if (value.channel_id && !/^UC[\w-]{22}$/.test(String(value.channel_id))) throw new Error('INVALID_VALUE: a channel ID starts with UC and has 24 characters');
+      if (value.handle && !/^@[\w.-]{3,40}$/.test(String(value.handle))) throw new Error('INVALID_VALUE: the handle looks like @businessclubofbau');
     }
     if (key === 'payments' && value.bkash_number && !/^(\+?880|0)1[3-9]\d{8}$/.test(String(value.bkash_number).replace(/[\s-]/g, ''))) throw new Error('INVALID_VALUE: enter a valid Bangladeshi mobile number, for example 01XXXXXXXXX');
     if (['security', 'finance', 'points'].includes(key)) {
@@ -312,6 +339,11 @@ export async function saveSetting(_: ActionResult, fd: FormData) {
     return 'Saved. The website now shows the new details.';
   }, { path: '/' });
 }
+
+const youtubeId = (v: string) => {
+  const m = v.trim().match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})(?![\w-])/) ?? v.trim().match(/^([\w-]{11})$/);
+  return m ? m[1] : null;
+};
 
 // ── wings & teams ────────────────────────────────────────────────────────────
 const slugify = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
@@ -435,6 +467,9 @@ export async function savePerk(_: ActionResult, fd: FormData) {
     else perk = (await tx.one(`insert into app.perks(title, partner, description, terms, mode, url, shared_code, min_points, distribution_permission, ends_at, status) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning id::text`, vals))!.id;
     const codes = lines(s(fd, 'codes'));
     const added = codes.length ? (await tx.one(`select app.add_perk_codes($1,$2::text[]) n`, [perk, codes]))!.n : 0;
+    const icon = ['burst', 'book', 'ticket', 'chat', 'gift', 'laptop', 'cup', 'star'].includes(s(fd, 'icon')) ? s(fd, 'icon') : 'gift';
+    const accent = ['lime', 'coral', 'river', 'harvest', 'leaf', 'ink'].includes(s(fd, 'accent')) ? s(fd, 'accent') : 'lime';
+    await tx.query(`update app.perks set category = $2, icon = $3, accent = $4, sort = $5 where id = $1`, [perk, s(fd, 'category') || null, icon, accent, n(fd, 'sort') ?? 100]);
     await tx.query(`select app.log_action('perk.saved','perk',$1,null)`, [perk]);
     return `Perk saved${added ? ` with ${added} new one-time codes` : ''}.`;
   });
@@ -468,6 +503,19 @@ export async function simulateFormSubmission(_: ActionResult, fd: FormData): Pro
     });
     revalidatePath('/app', 'layout');
     return { ok: true, message: `Application created (${r.late ? 'no open cycle: marked late' : 'pending activation'}). The activation email is in the Email log.` };
+  } catch (e) { return { ok: false, message: friendlyError(e) }; }
+}
+export async function simulateEventFormRegistration(_: ActionResult, fd: FormData): Promise<ActionResult> {
+  const session = await getSession();
+  if (!session?.isSuperAdmin && !session?.perms.includes('integration.manage')) return { ok: false, message: 'Not allowed.' };
+  try {
+    const r = await asSystem(async (tx) => (await tx.one(`select app.ingest_form_registration($1::jsonb) r`, [JSON.stringify({
+      type: 'event_registration', response_id: `sim-${Date.now()}`, event_slug: s(fd, 'event_slug'), email: s(fd, 'email').toLowerCase(), full_name: s(fd, 'full_name'),
+      answers: { Note: 'Sent from the integration test button' },
+    })]))!.r);
+    kickJobs();
+    revalidatePath('/', 'layout');
+    return { ok: true, message: r.duplicate ? 'That email is already registered for this event (no duplicate created).' : `Registered (${r.status.replace('_', ' ')}). Open the event page: it appears in the live list within 10 seconds.` };
   } catch (e) { return { ok: false, message: friendlyError(e) }; }
 }
 export async function runJobsNow(_: ActionResult): Promise<ActionResult> {

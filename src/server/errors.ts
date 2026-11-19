@@ -35,6 +35,8 @@ export function friendlyError(e: unknown): string {
     if (detail) return detail.charAt(0).toUpperCase() + detail.slice(1);
     return key.replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase()) + '.';
   }
+  if (/registrations_active_identity_uq/.test(raw)) return MESSAGES.ALREADY_REGISTERED;
+  if (/people_handle_key/.test(raw)) return 'Someone already uses that profile address.';
   if (/duplicate key/.test(raw)) return 'That already exists.';
   if (/permission denied/.test(raw)) return MESSAGES.PERMISSION_DENIED;
   console.error('[db]', raw);

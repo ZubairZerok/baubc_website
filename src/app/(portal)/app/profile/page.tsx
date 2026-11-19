@@ -72,7 +72,17 @@ export default async function ProfilePage() {
             <div className="field"><label htmlFor="fb">Facebook</label><input id="fb" name="facebook_url" className="input" defaultValue={p.facebook_url ?? ''} placeholder="https://www.facebook.com/…" /></div>
             <div className="field"><label htmlFor="li">LinkedIn</label><input id="li" name="linkedin_url" className="input" defaultValue={p.linkedin_url ?? ''} placeholder="https://www.linkedin.com/in/…" /></div>
           </div>
-          <label className="check"><input type="checkbox" name="public_profile" defaultChecked={p.public_profile} /><span>Show me on the public Members page. Your phone and email are never shown.</span></label>
+          <label className="check"><input type="checkbox" name="public_profile" defaultChecked={p.public_profile} /><span>Show me on the public Members page and give me a public profile page. Your phone, email and student ID are never shown.</span></label>
+          <div className="field"><label htmlFor="handle">Profile address</label>
+            <div className="flex items-center rounded-[14px] border border-line-strong bg-white focus-within:border-brand overflow-hidden"><span className="pl-3.5 text-muted text-sm whitespace-nowrap">/members/</span><input id="handle" name="handle" className="input !border-0 !shadow-none !pl-1" defaultValue={p.handle ?? ''} placeholder="your-name" pattern="[a-z0-9][a-z0-9-]{1,38}[a-z0-9]" maxLength={40} /></div>
+            <span className="hint">Lowercase letters, digits and dashes. {p.handle && p.public_profile ? <Link href={`/members/${p.handle}`} className="underline text-brand">View your public profile</Link> : 'Created automatically when you go public.'}</span></div>
+          <fieldset className="grid gap-2"><legend className="label text-muted mb-1">Show on my public profile</legend>
+            <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2">
+              {([['department', 'Department'], ['session', 'Session'], ['bio', 'Bio'], ['socials', 'Facebook and LinkedIn'], ['skills', 'Skills and interests'], ['achievements', 'Verified achievements'], ['rank', 'Points, rank and events attended']] as const).map(([k, l]) => (
+                <label key={k} className="check"><input type="checkbox" name={`show_${k}`} defaultChecked={p.public_fields?.[k] !== false} /><span>{l}</span></label>
+              ))}
+            </div>
+          </fieldset>
           <SubmitButton className="btn btn-primary justify-self-start">Save profile</SubmitButton>
         </ActionForm>
       </div>

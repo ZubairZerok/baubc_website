@@ -79,11 +79,12 @@ export function EventCard({ e, i = 0 }: { e: EventRow; i?: number }) {
 
 export function PostCard({ p, i = 0, dark = false }: { p: PostRow; i?: number; dark?: boolean }) {
   return (
-    <Link href={`/insights/${p.slug}`} className="group grid gap-4 reveal" style={{ ['--d' as any]: i % 4 }}>
+    <Link href={`/insights/${p.slug}`} className="group grid gap-4 reveal" style={{ ['--d' as any]: i % 4 }} lang={p.lang === 'bn' ? 'bn' : undefined}>
       <Cover tone={p.cover_tone} seed={p.slug} label={p.cover_label} numeral={p.kind === 'episode' ? p.episode_no : null} className="aspect-[4/3] cut rounded-[20px] shadow-[var(--shadow-sm)]" />
       <div className="grid gap-1.5">
-        <h3 className={`heading text-[1.2rem] transition-colors ${dark ? 'group-hover:text-lime-200' : 'group-hover:text-brand'}`}>{p.title}</h3>
-        {p.dek && <p className={`text-sm line-clamp-2 ${dark ? 'text-canopy-muted' : 'text-muted'}`}>{p.dek}</p>}
+        {p.lang === 'bn' && <span className={`label ${dark ? 'text-lime-200' : 'text-green'}`}>বাংলা · {p.author_name ?? 'বাউবিসি'}</span>}
+        <h3 className={`heading text-[1.2rem] transition-colors ${p.lang === 'bn' ? 'post-bn !text-[1.32rem]' : ''} ${dark ? 'group-hover:text-lime-200' : 'group-hover:text-brand'}`}>{p.title}</h3>
+        {p.dek && <p className={`text-sm line-clamp-2 ${p.lang === 'bn' ? 'font-bangla !text-[.98rem]' : ''} ${dark ? 'text-canopy-muted' : 'text-muted'}`}>{p.dek}</p>}
         {p.stats?.viewers && <p className={`label tnum ${dark ? 'text-lime-200' : 'text-green'}`}>{fmtNum(p.stats.viewers)} viewers on Facebook</p>}
       </div>
     </Link>

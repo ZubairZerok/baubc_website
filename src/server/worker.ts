@@ -47,10 +47,11 @@ async function handle(tx: Tx, topic: string, p: any) {
       return sendMail(tx, { to: p.to, template: 'info_request', subject: 'BAUBC needs a little more information',
         text: `Hello ${p.name},\n\n${p.message}\n\nPlease respond in your dashboard${p.due ? ` by ${fmtDateTime(p.due)}` : ''}: ${site}/app/application\n\nBAUBC` });
     case 'email.contact_ack': {
-      const c = await tx.one(`select name, email, category from app.contact_inquiries where id = $1`, [p.inquiry_id]);
+      const c = await tx.one(`select name, email, category, reference_no, preferred_channel, subject from app.contact_inquiries where id = $1`, [p.inquiry_id]);
       if (!c) return;
-      return sendMail(tx, { to: c.email, template: 'contact_ack', subject: 'We received your message',
-        text: `Hello ${c.name},\n\nThank you for contacting BAUBC about ${c.category}. A member of the team will reply from businessclub@bau.edu.bd.\n\nBAUBC` });
+      const how = c.preferred_channel === 'phone' ? 'call you' : c.preferred_channel === 'whatsapp' ? 'message you on WhatsApp' : 'reply by email from businessclub@bau.edu.bd';
+      return sendMail(tx, { to: c.email, template: 'contact_ack', subject: `We received your message${c.reference_no ? ` (${c.reference_no})` : ''}`,
+        text: `Hello ${c.name},\n\nThank you for contacting BAUBC${c.subject ? ` about "${c.subject}"` : ''}. Your reference is ${c.reference_no ?? 'on its way'}.\n\nA person from the club reads every message, and we will ${how}, usually within two working days. If you write again, please quote your reference.\n\nBAUBC · Bangladesh Agricultural University Business Club` });
     }
     default:
       return; // unknown topics are acknowledged

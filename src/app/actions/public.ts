@@ -81,14 +81,28 @@ export async function cancelRegistrationAction(_: ActionResult, fd: FormData): P
   return { ok: true, message: 'Your registration was cancelled. If you had paid, a refund request was created for the finance team.' };
 }
 
+const SENDERS = ['bau_student', 'company', 'organisation', 'teacher', 'other'];
+const PURPOSES = ['query', 'help', 'collaboration', 'sponsorship', 'partnership', 'speaker', 'media', 'membership', 'recruitment', 'general'];
+
+/** Contact desk: BAU students, companies and anyone else. Returns a reference number the sender can quote. */
 export async function contactAction(_: ActionResult, fd: FormData): Promise<ActionResult> {
-  if (str(fd, 'website')) return { ok: true, message: 'Thank you.' }; // honeypot
-  if (!(await rateLimit('contact', 4, 10 * 60_000))) return { ok: false, message: 'Too many messages. Please try again later.' };
+  if (str(fd, 'fax')) return { ok: true, message: 'Thank you.', data: { reference: 'BAUBC-00000' } }; // honeypot: bots fill every field
+  if (!(await rateLimit('contact', 4, 10 * 60_000))) return { ok: false, message: 'Too many messages from this connection. Please try again in a few minutes.' };
+  const sender = SENDERS.includes(str(fd, 'sender_type')) ? str(fd, 'sender_type') : 'other';
+  const category = PURPOSES.includes(str(fd, 'category')) ? str(fd, 'category') : 'query';
+  const channel = ['email', 'phone', 'whatsapp'].includes(str(fd, 'preferred_channel')) ? str(fd, 'preferred_channel') : 'email';
+  let website = str(fd, 'website');
+  if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
   try {
-    await withClaims(null, (tx) => tx.query(`select app.submit_contact($1,$2,$3,$4,$5)`, [str(fd, 'category') || 'general', str(fd, 'name'), str(fd, 'email'), str(fd, 'organization'), str(fd, 'message')]));
+    const r = await withClaims(null, async (tx) => (await tx.one<{ r: { id: string; reference: string } }>(`select app.submit_inquiry($1::jsonb) r`, [JSON.stringify({
+      sender_type: sender, category, name: str(fd, 'name'), email: str(fd, 'email'), message: str(fd, 'message'), subject: str(fd, 'subject').slice(0, 140),
+      organization: str(fd, 'organization'), role_title: str(fd, 'role_title'), website: website || null,
+      student_department: str(fd, 'student_department'), student_session: str(fd, 'student_session'),
+      preferred_channel: channel, phone: channel === 'email' ? str(fd, 'phone') : str(fd, 'phone'), callback_window: channel === 'email' ? '' : str(fd, 'callback_window'),
+    })]))!.r);
+    kickJobs();
+    return { ok: true, message: `Received. Your reference is ${r.reference}.`, data: { reference: r.reference, channel } };
   } catch (e) { return { ok: false, message: friendlyError(e) }; }
-  kickJobs();
-  return { ok: true, message: 'Thank you. Your message reached the BAUBC team; we will reply by email.' };
 }
 
 /** Native application form (used when the Google Form is not configured). Same pipeline as the Google Form webhook. */

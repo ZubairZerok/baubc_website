@@ -37,7 +37,8 @@ const { page } = await newPage();
 let ticketUrl = '';
 
 console.log('Public site');
-for (const path of ['/', '/setup', '/login', '/about', '/events', '/insights', '/insights/decoded-monpura-2009', '/wings', '/members', '/advisors', '/gallery', '/resources', '/contact', '/join', '/verify/PREVIEWCERT0001', '/privacy']) {
+for (const path of ['/', '/setup', '/login', '/about', '/events', '/insights', '/insights?lang=bn', '/insights/decoded-monpura-2009', '/insights/prothom-pitch-deck', '/insights/krishi-theke-udyokta',
+  '/wings', '/members', '/members/lamia-chowdhury', '/reels', '/advisors', '/gallery', '/resources', '/contact', '/join', '/verify', '/verify/PREVIEWCERT0001', '/privacy', '/sitemap.xml', '/robots.txt']) {
   await step(`GET ${path}`, async () => { const r = await page.goto(BASE + path); if (r.status() !== 200) throw new Error(`status ${r.status()}`); await noErrors(page); });
 }
 await shot(page, 'home-desktop');
@@ -188,9 +189,60 @@ await step('CSV export downloads under the caller’s permissions', async () => 
   if (!(await mine.json()).profile) throw new Error('no profile in my data');
 });
 
+console.log('Profiles, articles, reels, contact desk (2026-11-19)');
+await step('directory links to profiles; a profile shows no email, phone or student ID', async () => {
+  await page.goto(`${BASE}/members`);
+  await page.click('a[href="/members/lamia-chowdhury"]');
+  await page.waitForURL(/\/members\/lamia-chowdhury/);
+  const text = await page.locator('main, article').first().innerText();
+  if (!/Lamia Chowdhury/.test(text) || /@baubc\.test|2022-11-0631|\+880/.test(text)) throw new Error('profile content wrong or leaking');
+  if ((await page.goto(`${BASE}/members/tanjila-rahman`)).status() !== 404) throw new Error('private profile is public');
+});
+await step('Bangla article: Bangla title, key lines listed and highlighted', async () => {
+  await page.goto(`${BASE}/insights/prothom-pitch-deck`);
+  if ((await page.locator('article[lang=bn]').count()) !== 1) throw new Error('no lang=bn');
+  const keys = await page.locator('nav.keylines li').count(), marks = await page.locator('mark.hl').count();
+  if (keys < 2 || keys !== marks) throw new Error(`key lines ${keys} vs marks ${marks}`);
+  await page.locator('nav.keylines a').first().click(); await page.waitForTimeout(600);
+  if (!(await page.evaluate(() => location.hash === '#key-1'))) throw new Error('key line link');
+});
+await step('reels page lists the channel and the player opens and closes', async () => {
+  await page.goto(`${BASE}/reels`);
+  const n = await page.locator('button.reel-card').count();
+  if (!n) throw new Error('no reels');
+  await page.locator('button.reel-card').first().click();
+  await page.locator('[role=dialog] iframe[src*="youtube-nocookie.com/embed/"]').waitFor();
+  await page.keyboard.press('Escape');
+  if (await page.locator('[role=dialog]').count()) throw new Error('player did not close');
+});
+await step('contact desk: a company message gets a reference number', async () => {
+  const { page: c, ctx } = await newPage();
+  await c.goto(`${BASE}/contact`);
+  await c.locator('label.desk-card', { hasText: 'Company' }).click();
+  await c.locator('label.desk-chip', { hasText: 'Hire our members' }).click();
+  await c.fill('#c-name', 'E2E Recruiter'); await c.fill('#c-email', `e2e.desk.${Date.now()}@example.org`); await c.fill('#c-org', 'E2E Ltd');
+  await c.fill('#c-msg', 'We are hiring interns from the club this winter.');
+  await c.click('button:has-text("Send message")');
+  await c.locator('.desk-done').waitFor({ timeout: 15000 });
+  if (!/BAUBC-\d{5}/.test(await c.locator('.desk-done').innerText())) throw new Error('no reference');
+  await ctx.close();
+});
+await step('member claims a perk: code appears, card shows Claimed, toast says delivered', async () => {
+  const { page: pm, ctx } = await newPage();
+  await as(pm, 'Lamia');
+  await pm.goto(`${BASE}/app/perks`);
+  const card = pm.locator('article.perk', { hasText: 'Summit Pass' });
+  if (await card.locator('button.perk-btn').count()) {
+    await card.locator('button.perk-btn').click();
+    await pm.locator('.perk-toast').waitFor({ timeout: 10000 });
+  }
+  if (!/SUMMIT-MEMBER/.test(await card.innerText())) throw new Error('code not shown');
+  await ctx.close();
+});
+
 const { page: m } = await newPage({ width: 390, height: 844 });
 console.log('Phone width: no sideways scrolling');
-for (const path of ['/', '/about', '/events', '/events/startup-summit-2027', '/insights', '/wings', '/members', '/join', '/contact', '/login']) {
+for (const path of ['/', '/about', '/events', '/events/startup-summit-2027', '/insights', '/insights/mather-theke-bazar', '/wings', '/members', '/members/lamia-chowdhury', '/reels', '/join', '/contact', '/login']) {
   await step(`390px ${path}`, async () => {
     await m.goto(BASE + path);
     const w = await m.evaluate(() => document.documentElement.scrollWidth);

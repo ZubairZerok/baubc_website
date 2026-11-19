@@ -1,8 +1,11 @@
+import { Suspense } from 'react';
+import { HomeReels } from '@/components/site/HomeReels';
 import Link from 'next/link';
 import { Arrow, Diamond, Mark } from '@/components/brand/Mark';
 import { LedgerStamp } from '@/components/ui/Stamp';
 import { CountUp, HeroBurst, Journey, WingsBurst } from '@/components/site/client';
 import { Cover, EventCard, PostCard, SectionHead, eventWhen, priceLabel } from '@/components/site/bits';
+import { MemberOfMonth } from '@/components/site/MemberOfMonth';
 import { getEvents, getPosts, getRecognition, getRecruitment, getSettings, getStats, getWings } from '@/server/queries/public';
 import { CATEGORY_LABEL, fmtDate, fmtNum } from '@/lib/format';
 
@@ -182,6 +185,9 @@ export default async function Home() {
         </section>
       )}
 
+      {/* ── REELS (YouTube) ── */}
+      <Suspense fallback={null}><HomeReels /></Suspense>
+
       {/* ── NUMBERS ──────────────────────────────────────────── */}
       <section className="relative isolate lime-field py-20 md:py-28 overflow-hidden">
         <div className="absolute inset-0 -z-10 pat-diamonds opacity-80" aria-hidden="true" />
@@ -209,13 +215,7 @@ export default async function Home() {
       {/* ── MEMBER OF THE MONTH + JOIN ───────────────────────── */}
       <section className="wrap pb-10">
         <div className={`grid gap-5 ${motm ? 'lg:grid-cols-[1fr_1.5fr]' : ''}`}>
-          {motm && (
-            <div className="panel spot grid gap-4 content-start reveal">
-              <span className="eyebrow">Member of the month · {fmtDate(motm.period, { month: 'long', year: 'numeric' })}</span>
-              <div className="flex items-center gap-4"><LedgerStamp size={64} /><div><p className="display-md text-3xl">{motm.full_name}</p>{motm.wing && <p className="text-sm text-muted">{motm.wing}</p>}</div></div>
-              <p className="text-ink-2">“{motm.citation}”</p>
-            </div>
-          )}
+          {motm && <MemberOfMonth award={motm} compact />}
           <div className="relative isolate overflow-hidden rounded-[32px] canopy on-canopy cut reveal" data-r="scale">
             <div className="absolute inset-0 -z-10 pat-rays-light" aria-hidden="true" />
             <Mark size="34rem" className="pointer-events-none absolute -right-28 -bottom-40 -z-10 text-lime-300/25" />

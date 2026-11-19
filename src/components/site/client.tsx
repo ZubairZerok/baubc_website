@@ -12,6 +12,13 @@ export function RevealObserver() {
     if (!('IntersectionObserver' in window)) { els.forEach((e) => e.classList.add('in')); return; }
     const io = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -6% 0px' });
     els.forEach((e) => io.observe(e));
+    // content that streams in after hydration (Suspense, client navigation) gets observed too
+    const mo = new MutationObserver((muts) => muts.forEach((m) => m.addedNodes.forEach((n) => {
+      if (!(n instanceof Element)) return;
+      if (n.matches('.reveal:not(.in)')) io.observe(n);
+      n.querySelectorAll?.('.reveal:not(.in)').forEach((e) => io.observe(e));
+    })));
+    mo.observe(document.body, { childList: true, subtree: true });
     const all = () => document.querySelectorAll('.reveal:not(.in)').forEach((e) => e.classList.add('in'));
     const onScroll = () => { if (innerHeight + scrollY >= document.documentElement.scrollHeight - 80) all(); };
     addEventListener('scroll', onScroll, { passive: true });
@@ -24,7 +31,7 @@ export function RevealObserver() {
       el.style.setProperty('--mx', `${e.clientX - r.left}px`); el.style.setProperty('--my', `${e.clientY - r.top}px`);
     };
     addEventListener('pointermove', onMove, { passive: true });
-    return () => { io.disconnect(); removeEventListener('scroll', onScroll); removeEventListener('pointermove', onMove); clearTimeout(t); };
+    return () => { io.disconnect(); mo.disconnect(); removeEventListener('scroll', onScroll); removeEventListener('pointermove', onMove); clearTimeout(t); };
   }, [path]);
   return null;
 }
@@ -217,4 +224,18 @@ export function CopyButton({ value, label = 'Copy' }: { value: string; label?: s
       try { await navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* ignore */ }
     }}>{done ? 'Copied' : label}</button>
   );
+}
+
+/** Thin lime bar at the top that fills as the reader moves through the article. */
+export function ReadingProgress({ target = 'article' }: { target?: string }) {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const el = document.querySelector(target) as HTMLElement | null;
+    if (!el) return;
+    let raf = 0;
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { const r = el.getBoundingClientRect(); const total = r.height - innerHeight; setP(total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 1); }); };
+    on(); addEventListener('scroll', on, { passive: true }); addEventListener('resize', on);
+    return () => { removeEventListener('scroll', on); removeEventListener('resize', on); cancelAnimationFrame(raf); };
+  }, [target]);
+  return <div className="read-progress" style={{ transform: `scaleX(${p})` }} role="progressbar" aria-label="Reading progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(p * 100)} />;
 }

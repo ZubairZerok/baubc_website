@@ -114,7 +114,7 @@ export function Shell({ session, counts, unread, avatar, children }: { session: 
   );
 }
 
-export function PageTitle({ label, title, children, actions }: { label?: string; title: string; children?: React.ReactNode; actions?: React.ReactNode }) {
+export function PageTitle({ label, title, children, actions }: { label?: string; title: React.ReactNode; children?: React.ReactNode; actions?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
       <div className="grid gap-2 min-w-0">

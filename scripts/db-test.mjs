@@ -293,5 +293,69 @@ await test('audit hash chain verifies', async () => {
   if (!r.ok || r.checked < 10) throw new Error(JSON.stringify(r));
 });
 
+console.log('Profiles, perks, contact desk, form registrations (2026-11-19)');
+await test('public profile shows only what the member switched on', async () => {
+  const p = (await as('anon', (q) => q(`select app.public_profile('lamia-chowdhury') p`))).rows[0].p;
+  if (!p || p.department !== 'Agribusiness and Marketing') throw new Error('profile missing');
+  if (/preview\.member@|student_id|01700|email/.test(JSON.stringify(p))) throw new Error('leaks contact details');
+  await as(M1, (q) => q(`select app.update_my_profile('{"public_fields":{"department":false,"session":false,"bio":false,"socials":false,"achievements":false,"rank":false,"skills":false}}')`));
+  const h = (await as('anon', (q) => q(`select app.public_profile('lamia-chowdhury') p`))).rows[0].p;
+  if (h.department || h.session || h.bio || h.stats || h.achievements.length || h.skills.length) throw new Error('switches ignored: ' + JSON.stringify(h));
+  await as(M1, (q) => q(`select app.update_my_profile('{"public_fields":{"department":true,"session":true,"bio":true,"socials":true,"achievements":true,"rank":true,"skills":true}}')`));
+});
+await test('private profiles and non-members have no public page', async () => {
+  for (const h of ['tanjila-rahman', 'imran-kabir', 'nobody', "x' or 1=1 --"]) {
+    const r = (await as('anon', (q) => q(`select app.public_profile($1) p`, [h]))).rows[0].p;
+    if (r) throw new Error(`${h} is public`);
+  }
+});
+await test('profile address: format, reserved words and uniqueness', async () => {
+  await rejects(() => as(M2, (q) => q(`select app.set_my_handle('No Spaces!')`)), 'INVALID_HANDLE');
+  await rejects(() => as(M2, (q) => q(`select app.set_my_handle('admin')`)), 'INVALID_HANDLE');
+  await rejects(() => as(M2, (q) => q(`select app.set_my_handle('lamia-chowdhury')`)), 'HANDLE_TAKEN');
+  await as(M2, (q) => q(`select app.set_my_handle('sabbir-builds')`));
+});
+await test('draft perks stay invisible to members; claiming twice returns the same code and one notification', async () => {
+  await as('system', (q) => q(`update app.perks set status = 'draft' where title = 'Mentor Session'`));
+  const seen = (await as(M1, (q) => q(`select title from app.perks`))).rows.map((r) => r.title);
+  if (seen.includes('Mentor Session')) throw new Error('draft visible');
+  const a = (await as(M1, (q) => q(`select app.claim_perk((select id from app.perks where title = 'Course Bundle')) v`))).rows[0].v;
+  const b = (await as(M1, (q) => q(`select app.claim_perk((select id from app.perks where title = 'Course Bundle')) v`))).rows[0].v;
+  if (a !== b) throw new Error('different codes');
+  const n = (await as(M1, (q) => q(`select count(*)::int n from app.notifications where person_id = authz.current_person_id() and type = 'perk'`))).rows[0].n;
+  if (n !== 1) throw new Error(`notifications: ${n}`);
+  await rejects(() => as(TA1, (q) => q(`select app.claim_perk((select id from app.perks where title = 'Claude Pro'))`)), 'MEMBERS_ONLY');
+});
+await test('contact desk: validation, reference numbers, phone kept from the public', async () => {
+  const ok = (await as('anon', (q) => q(`select app.submit_inquiry($1::jsonb) r`, [JSON.stringify({ sender_type: 'bau_student', category: 'help', name: 'Test Student', email: 'desk1@example.com', message: 'I need help with a business plan please.', preferred_channel: 'whatsapp', phone: '01712345678' })]))).rows[0].r;
+  if (!/^BAUBC-\d{5}$/.test(ok.reference)) throw new Error(ok.reference);
+  await rejects(() => as('anon', (q) => q(`select app.submit_inquiry($1::jsonb)`, [JSON.stringify({ name: 'A B', email: 'desk2@example.com', message: 'Call me about this please.', preferred_channel: 'phone' })])), 'PHONE_REQUIRED');
+  await rejects(() => as('anon', (q) => q(`select app.submit_inquiry($1::jsonb)`, [JSON.stringify({ name: 'A B', email: 'desk2@example.com', message: 'Call me about this please.', preferred_channel: 'phone', phone: '12' })])), 'INVALID_PHONE');
+  await rejects(() => as('anon', (q) => q(`select app.submit_inquiry($1::jsonb)`, [JSON.stringify({ sender_type: 'company', name: 'A B', email: 'desk2@example.com', message: 'We want to sponsor the Summit.' })])), 'ORG_REQUIRED');
+  await rejects(() => as('anon', (q) => q(`select app.submit_inquiry($1::jsonb)`, [JSON.stringify({ name: 'A B', email: 'not-an-email', message: 'Hello there friends.' })])), 'INVALID_EMAIL');
+  await rejects(() => as('anon', (q) => q(`select phone from app.contact_inquiries`)), 'permission denied');
+  await rejects(() => as(M1, (q) => q(`update app.contact_inquiries set staff_note = 'x'`)).then(async () => { const r = await as('system', (q) => q(`select count(*)::int n from app.contact_inquiries where staff_note = 'x'`)); if (r.rows[0].n) throw new Error('member edited inquiries'); throw new Error('permission denied (no rows)'); }), 'permission denied');
+});
+await test('Google Form registration: replay-safe, duplicate-safe, team tickets refused, public feed shows initials only', async () => {
+  await as('system', (q) => q(`update app.ticket_types t set capacity = sold_count + held_count + 5 from app.events e where e.id = t.event_id and e.slug = 'startup-summit-2027' and t.unit = 'person'`));
+  const body = { response_id: 'dbtest-1', event_slug: 'startup-summit-2027', full_name: 'Zara Q.', email: 'zara@example.com' };
+  const a = (await as('system', (q) => q(`select app.ingest_form_registration($1::jsonb) r`, [JSON.stringify(body)]))).rows[0].r;
+  const b = (await as('system', (q) => q(`select app.ingest_form_registration($1::jsonb) r`, [JSON.stringify(body)]))).rows[0].r;
+  const c = (await as('system', (q) => q(`select app.ingest_form_registration($1::jsonb) r`, [JSON.stringify({ ...body, response_id: 'dbtest-2' })]))).rows[0].r;
+  if (!b.replayed || !c.duplicate || a.registration_id !== c.registration_id) throw new Error(JSON.stringify({ a, b, c }));
+  await rejects(() => as('system', (q) => q(`select app.ingest_form_registration($1::jsonb)`, [JSON.stringify({ ...body, response_id: 'dbtest-3', email: 'team@example.com', ticket_type: 'Pitch track team' })])), 'INVALID');
+  await rejects(() => as('system', (q) => q(`select app.ingest_form_registration($1::jsonb)`, [JSON.stringify({ ...body, response_id: 'dbtest-4', event_slug: 'no-such-event' })])), 'NOT_FOUND');
+  const feed = (await as('anon', (q) => q(`select * from app.recent_registrations((select id from app.events where slug = 'startup-summit-2027'), 50)`))).rows;
+  if (feed.length > 12 || feed.some((r) => r.initial.length !== 1) || JSON.stringify(feed).includes('@')) throw new Error(JSON.stringify(feed.slice(0, 2)));
+});
+await test('leaderboard links only to people who made their profile public', async () => {
+  await as('system', (q) => q(`update app.site_settings set value = jsonb_set(value, '{leaderboard}', '"public"') where key = 'features'`));
+  const handles = (await as('anon', (q) => q(`select handle from app.leaderboard('all') where handle is not null`))).rows.map((r) => r.handle);
+  if (!handles.length) throw new Error('no linked rows to check');
+  const priv = (await as('system', (q) => q(`select count(*)::int n from app.people where handle = any($1) and not public_profile`, [handles]))).rows[0].n;
+  if (priv) throw new Error('private person linked');
+  await as('system', (q) => q(`update app.site_settings set value = jsonb_set(value, '{leaderboard}', '"members"') where key = 'features'`));
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

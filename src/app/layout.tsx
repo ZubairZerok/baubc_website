@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from 'next';
-import { Bricolage_Grotesque, Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
+import { Anek_Bangla, Bricolage_Grotesque, Geist, Geist_Mono, Hind_Siliguri, Instrument_Serif } from 'next/font/google';
 import './globals.css';
 
 const bricolage = Bricolage_Grotesque({ subsets: ['latin'], axes: ['opsz', 'wdth'], variable: '--font-bricolage', display: 'swap' });
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono', display: 'swap' });
+// Bangla: Anek Bangla for headlines, Hind Siliguri for reading. Not preloaded: only Bangla pages use them.
+const bnDisplay = Anek_Bangla({ subsets: ['bengali'], axes: ['wdth'], variable: '--font-bn-display', display: 'swap', preload: false });
+const bnBody = Hind_Siliguri({ subsets: ['bengali'], weight: ['400', '500', '600', '700'], variable: '--font-bn-body', display: 'swap', preload: false });
 const instrument = Instrument_Serif({ subsets: ['latin'], weight: '400', style: ['normal', 'italic'], variable: '--font-instrument', display: 'swap' });
 
 export const metadata: Metadata = {
@@ -18,7 +21,7 @@ export const viewport: Viewport = { themeColor: '#D4FA4E', viewportFit: 'cover' 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${geist.variable} ${geistMono.variable} ${instrument.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${bricolage.variable} ${geist.variable} ${geistMono.variable} ${instrument.variable} ${bnDisplay.variable} ${bnBody.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `document.documentElement.classList.add('js')` }} />
       </head>

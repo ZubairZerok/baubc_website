@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { PageTitle } from '@/components/portal/Shell';
 import { Empty } from '@/components/ui/Empty';
 import { Avatar } from '@/components/ui/Avatar';
+import { MemberOfMonth } from '@/components/site/MemberOfMonth';
 import { withClaims } from '@/server/db';
 import { requireSession } from '@/server/session';
 
@@ -9,9 +10,9 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const session = await requireSession('/app/leaderboard');
   const scope = (await searchParams).scope === 'all' ? 'all' : 'month';
   const d = await withClaims(session.claims, async (tx) => ({
-    rows: await tx.query(`select rank::int, full_name, wing, points::int from app.leaderboard($1)`, [scope]),
+    rows: await tx.query(`select rank::int, full_name, wing, points::int, handle, photo_url from app.leaderboard($1)`, [scope]),
     me: await tx.one(`select coalesce(p.display_name, p.full_name) nm from app.people p where p.id = authz.current_person_id()`),
-    award: await tx.one(`select period, full_name, citation, wing from app.public_recognition()`),
+    award: await tx.one(`select * from app.public_recognition()`),
   }));
   const top = d.rows.slice(0, 3), rest = d.rows.slice(3);
   const order = [top[1], top[0], top[2]].filter(Boolean);
@@ -27,7 +28,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
               {order.map((r: any) => (
                 <div key={r.rank} className={`relative rounded-[26px] p-4 grid gap-2 justify-items-center text-center ${r.rank === 1 ? 'lime-field pt-8 pb-7 shadow-[var(--shadow)]' : 'panel'}`}>
                   <span className={`absolute -top-3 grid place-items-center size-8 rounded-full font-display font-bold text-sm ${r.rank === 1 ? 'bg-brand text-white' : 'bg-ink text-white'}`}>{r.rank}</span>
-                  <Avatar name={r.full_name} size={r.rank === 1 ? 72 : 56} />
+                  <Avatar name={r.full_name} photoUrl={r.photo_url} size={r.rank === 1 ? 72 : 56} />
                   <b className="leading-tight">{r.full_name}</b>
                   <span className="text-xs text-ink-2">{r.wing ?? 'Member'}</span>
                   <span className="display-md text-3xl tnum">{r.points}</span>
@@ -40,13 +41,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
             )}
           </div>
           <aside className="grid gap-4">
-            {d.award && (
-              <div className="rounded-[26px] bg-brand text-white p-5 grid gap-2 pat-rays-light">
-                <span className="label text-lime-200">Member of the Month · {new Date(d.award.period).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</span>
-                <b className="display-md text-2xl">{d.award.full_name}</b>
-                {d.award.citation && <p className="text-sm text-white/85">“{d.award.citation}”</p>}
-              </div>
-            )}
+            {d.award && <MemberOfMonth award={d.award as any} compact />}
             <div className="panel grid gap-2 text-sm"><b>How to climb</b>
               <p className="text-ink-2">Take a task from <Link href="/app/tasks" className="underline text-brand">your list</Link>, hand in the work, and a reviewer posts the points. Showing up to events counts too.</p></div>
           </aside>

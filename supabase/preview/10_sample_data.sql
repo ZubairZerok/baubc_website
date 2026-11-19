@@ -245,3 +245,30 @@ with a as (
 insert into app.recognition_awards(period, person_id, citation, decided_by, achievement_id)
 select (date_trunc('month', now()) - interval '1 month')::date, 'b0000000-0000-4000-8000-00000000000b',
        'Designed the full DECODED poster series and never missed a deadline.', 'b0000000-0000-4000-8000-000000000006', id from a;
+
+-- ── 2026-11-19: features from the trailer ──
+-- the four trailer perks are live in preview (they start as drafts on a real project)
+update app.perks set status = 'active', distribution_permission = 'Sample: shown in preview mode only'
+where title in ('Claude Pro', 'Course Bundle', 'Summit Pass', 'Mentor Session');
+update app.perks set shared_code = 'SUMMIT-MEMBER' where title = 'Summit Pass';
+update app.perks set url = 'https://example.com/book-a-mentor' where title = 'Mentor Session';
+insert into private.perk_codes(perk_id, code) select p.id, 'CLAUDE-PREVIEW-' || lpad(g::text, 3, '0') from app.perks p, generate_series(1, 30) g where p.title = 'Claude Pro';
+insert into private.perk_codes(perk_id, code) select p.id, 'COURSE-PREVIEW-' || lpad(g::text, 3, '0') from app.perks p, generate_series(1, 30) g where p.title = 'Course Bundle';
+update app.perks set category = 'Workshops', icon = 'star', accent = 'lime', sort = 50 where title like 'Partner workshop%';
+update app.perks set category = 'AI', icon = 'laptop', accent = 'ink', sort = 60 where title like 'Student AI tools%';
+
+-- registrations that arrived through a Google Form (feeds the live list on the event page)
+do $$ declare g int; begin
+  for g in 1..4 loop
+    perform app.ingest_form_registration(jsonb_build_object('response_id', 'preview-form-' || g, 'event_slug', 'startup-summit-2027',
+      'full_name', (array['Ayesha K.', 'Bappi R.', 'Chaity S.', 'Dipu M.'])[g], 'email', 'form' || g || '@example.com'));
+  end loop;
+exception when others then raise notice 'preview form registrations skipped: %', sqlerrm;
+end $$;
+
+-- contact desk examples
+update app.contact_inquiries set sender_type = 'company', role_title = 'Partnerships lead' where organization is not null;
+insert into app.contact_inquiries(category, name, email, message, reference_no, sender_type, subject, phone, preferred_channel, callback_window, student_department, student_session)
+values ('help', 'Sample Student', 'student@example.com', 'I want to start a small agri-business project. Can someone from the club guide me on writing a business plan?',
+        'BAUBC-' || lpad(app.next_counter('contact')::text, 5, '0'), 'bau_student', 'Help with a business plan', '+8801700000099', 'whatsapp', 'Weekdays after 5 pm',
+        'Agribusiness and Marketing', '2024-25');

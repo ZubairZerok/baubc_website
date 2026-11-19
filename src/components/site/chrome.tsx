@@ -10,6 +10,7 @@ export function SiteHeader({ signedIn, features }: { signedIn: boolean; features
     { href: '/about', label: 'About' },
     { href: '/events', label: 'Events' },
     { href: '/insights', label: 'Insights' },
+    { href: '/reels', label: 'Reels' },
     { href: '/wings', label: 'Wings' },
     ...(features.members_directory !== false ? [{ href: '/members', label: 'Members' }] : []),
     { href: '/contact', label: 'Contact' },
@@ -58,7 +59,7 @@ export function SiteFooter({ club, social }: { club: Record<string, any>; social
             <p className="font-mono text-sm">{club.email}</p>
           </div>
           {col('The club', [['/about', 'About'], ['/wings', 'Wings'], ['/advisors', 'Advisors'], ['/members', 'Members'], ['/join', 'Join BAUBC']])}
-          {col('Explore', [['/events', 'Events'], ['/insights', 'Insights'], ['/gallery', 'Gallery'], ['/resources', 'Resources'], ['/verify', 'Verify a certificate']])}
+          {col('Explore', [['/events', 'Events'], ['/insights', 'Insights'], ['/reels', 'Reels'], ['/gallery', 'Gallery'], ['/resources', 'Resources'], ['/verify', 'Verify a certificate']])}
           <div className="grid gap-2.5 content-start">
             <p className="label text-lime-200">Follow</p>
             {([['Facebook', social.facebook_url], ['YouTube', social.youtube_url], ['LinkedIn', social.linkedin_url]] as const).filter(([, u]) => u).map(([n, u]) => (

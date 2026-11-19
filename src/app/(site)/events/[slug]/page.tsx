@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Cover, PageHero, Paras, eventWhen, priceLabel } from '@/components/site/bits';
 import { LiveSeats } from '@/components/site/LiveSeats';
 import { RegisterForm } from '@/components/site/RegisterForm';
-import { getAvailability, getEvent, getEventPeople } from '@/server/queries/public';
+import { getAvailability, getEvent, getEventPeople, getRecentRegistrations } from '@/server/queries/public';
 import { getSession } from '@/server/session';
 import { CATEGORY_LABEL, fmtDateTime } from '@/lib/format';
 import { env, hasSupabaseAuth } from '@/server/env';
@@ -17,7 +17,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const [e, session] = await Promise.all([getEvent(slug), getSession()]);
   if (!e) notFound();
-  const [tickets, people] = await Promise.all([getAvailability(e.id), getEventPeople(e.id)]);
+  const [tickets, people, recent] = await Promise.all([getAvailability(e.id), getEventPeople(e.id), getRecentRegistrations(e.id)]);
   const jsonLd = {
     '@context': 'https://schema.org', '@type': 'Event', name: e.title, description: e.summary,
     startDate: e.starts_at ?? undefined, endDate: e.ends_at ?? undefined,
@@ -63,7 +63,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <aside className="grid gap-5 lg:sticky lg:top-28">
           <div className="glass-strong rounded-[26px] p-6 grid gap-5">
             <div className="flex items-center justify-between gap-3"><span className="eyebrow">Seats, live</span>{priceLabel(e) && <span className="heading text-lg tnum">{priceLabel(e)}</span>}</div>
-            {tickets.length > 0 ? <LiveSeats eventId={e.id} initial={tickets as any} realtime={hasSupabaseAuth ? { url: env.supabaseUrl, key: env.supabaseKey } : undefined} /> : <p className="text-muted text-sm">Ticket details are coming soon.</p>}
+            {tickets.length > 0 ? <LiveSeats eventId={e.id} initial={tickets as any} initialRecent={recent} realtime={hasSupabaseAuth ? { url: env.supabaseUrl, key: env.supabaseKey } : undefined} /> : <p className="text-muted text-sm">Ticket details are coming soon.</p>}
           </div>
           <div className="panel grid gap-4" id="register">
             <h2 className="display-md text-2xl">{e.reg_open ? 'Save your seat' : 'Registration'}</h2>
